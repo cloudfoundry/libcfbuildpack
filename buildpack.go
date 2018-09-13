@@ -111,7 +111,7 @@ func (d Dependencies) Best(id string, versionConstraint string, stack string) (D
 	}
 
 	if len(candidates) == 0 {
-		return Dependency{}, fmt.Errorf("no matching dependencies found")
+		return Dependency{}, fmt.Errorf("no valid dependencies for %s, %s, and %s in %s", id, versionConstraint, stack, d)
 	}
 
 	sort.Sort(candidates)

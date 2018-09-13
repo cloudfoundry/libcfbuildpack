@@ -18,6 +18,7 @@ package libjavabuildpack_test
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/Masterminds/semver"
@@ -269,8 +270,8 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 		}
 
 		_, err := d.Best("test-id-2", "1.0", "test-stack-1")
-		if err.Error() != "no matching dependencies found" {
-			t.Errorf("Dependencies.Best = %s, expected no matching dependencies found", err.Error())
+		if !strings.HasPrefix(err.Error(), "no valid dependencies") {
+			t.Errorf("Dependencies.Best = %s, expected no valid dependencies...", err.Error())
 		}
 	})
 }
