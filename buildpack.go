@@ -43,7 +43,7 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 	for _, dep := range deps {
 		d, err := b.dependency(dep)
 		if err != nil {
-			return Dependencies{}, nil
+			return Dependencies{}, err
 		}
 
 		dependencies = append(dependencies, d)
