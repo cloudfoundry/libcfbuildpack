@@ -83,9 +83,19 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		return Dependency{}, fmt.Errorf("dependency sha256 missing or wrong format")
 	}
 
-	stacks, ok := dep["stacks"].([]string)
+	s, ok := dep["stacks"].([]interface{})
 	if !ok {
 		return Dependency{}, fmt.Errorf("dependency stacks missing or wrong format")
+	}
+
+	var stacks []string
+	for _, t := range s {
+		u, ok := t.(string)
+		if !ok {
+			return Dependency{}, fmt.Errorf("dependency stacks missing or wrong format")
+		}
+
+		stacks = append(stacks, u)
 	}
 
 	return Dependency{id, name, version, uri, sha256, stacks}, nil

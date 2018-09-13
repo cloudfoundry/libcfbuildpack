@@ -66,7 +66,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"version": "1.0",
 						"uri":     "test-uri-1",
 						"sha256":  "test-sha256-1",
-						"stacks":  []string{"test-stack-1a", "test-stack-1b"},
+						"stacks":  []interface{}{"test-stack-1a", "test-stack-1b"},
 					},
 					{
 						"id":      "test-id-2",
@@ -74,7 +74,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"version": "2.0",
 						"uri":     "test-uri-2",
 						"sha256":  "test-sha256-2",
-						"stacks":  []string{"test-stack-2a", "test-stack-2b"},
+						"stacks":  []interface{}{"test-stack-2a", "test-stack-2b"},
 					},
 				},
 			},
