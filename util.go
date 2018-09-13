@@ -20,6 +20,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
 // FileExists returns true if a file exists, otherwise false.
@@ -34,6 +36,12 @@ func FileExists(file string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// FromTomlFile decodes a TOML file into a struct.
+func FromTomlFile(file string, v interface{}) error {
+	_, err := toml.DecodeFile(file, &v)
+	return err
 }
 
 // WriteToFile writes the contents of an io.Reader to a file.
