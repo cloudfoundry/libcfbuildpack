@@ -40,7 +40,7 @@ func FileExists(file string) (bool, error) {
 
 // FromTomlFile decodes a TOML file into a struct.
 func FromTomlFile(file string, v interface{}) error {
-	_, err := toml.DecodeFile(file, &v)
+	_, err := toml.DecodeFile(file, v)
 	return err
 }
 
