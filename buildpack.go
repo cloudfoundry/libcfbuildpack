@@ -49,6 +49,7 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 		dependencies = append(dependencies, d)
 	}
 
+	b.Logger.Debug("Dependencies: %s", dependencies)
 	return dependencies, nil
 }
 
