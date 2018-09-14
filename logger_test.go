@@ -85,9 +85,9 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 			t.Fatal(err)
 		}
 
-		actual := logger.PrettyVersion(libjavabuildpack.Dependency{Name: "test-name", Version: v})
+		actual := logger.PrettyVersion(libjavabuildpack.Dependency{Name: "test-name", Version: libjavabuildpack.Version{v}})
 		expected := fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
-			color.BlueString("1.0.0"))
+			color.BlueString("1.0"))
 
 		if actual != expected {
 			t.Errorf("PrettyVersion = %s, expected %s", actual, expected)

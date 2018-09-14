@@ -67,8 +67,8 @@ func (l Logger) PrettyVersion(v interface{}) string {
 	case Dependency:
 		name = t.Name
 
-		if t.Version != nil {
-			version = t.Version.String()
+		if t.Version.Version != nil {
+			version = t.Version.Version.Original()
 		}
 	}
 

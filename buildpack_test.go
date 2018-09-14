@@ -276,7 +276,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 	})
 }
 
-func newVersion(t *testing.T, version string) *semver.Version {
+func newVersion(t *testing.T, version string) libjavabuildpack.Version {
 	t.Helper()
 
 	v, err := semver.NewVersion(version)
@@ -284,5 +284,5 @@ func newVersion(t *testing.T, version string) *semver.Version {
 		t.Fatal(err)
 	}
 
-	return v
+	return libjavabuildpack.Version{v}
 }

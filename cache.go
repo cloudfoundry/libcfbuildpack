@@ -24,8 +24,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/buildpack/libbuildpack"
+	"github.com/cloudfoundry/libjavabuildpack/internal"
 	"github.com/fatih/color"
 )
 
@@ -53,14 +56,26 @@ type DownloadCacheLayer struct {
 	dependency Dependency
 }
 
-// Artifact returns the path to an artifact cached in the layer.
+// Artifact returns the path to an artifact cached in the layer.  If the artifact has already been downloaded, the cache
+// will be validated and used directly.
 func (d DownloadCacheLayer) Artifact() (string, error) {
 	a := filepath.Join(d.Root, filepath.Base(d.dependency.URI))
+
+	m, err := d.readMetadata()
+	if err != nil {
+		return "", err
+	}
+
+	if reflect.DeepEqual(d.dependency, m) {
+		d.Logger.FirstLine("%s: %s cached download",
+			d.Logger.PrettyVersion(d.dependency), color.GreenString("Reusing"))
+		return a, nil
+	}
 
 	d.Logger.FirstLine("%s: %s from %s",
 		d.Logger.PrettyVersion(d.dependency), color.YellowString("Downloading"), d.dependency.URI)
 
-	err := d.download(a)
+	err = d.download(a)
 	if err != nil {
 		return "", err
 	}
@@ -68,6 +83,10 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 	d.Logger.SubsequentLine("Verifying checksum")
 	err = d.verify(a)
 	if err != nil {
+		return "", err
+	}
+
+	if err := d.writeMetadata(); err != nil {
 		return "", err
 	}
 
@@ -86,6 +105,33 @@ func (d DownloadCacheLayer) download(file string) error {
 	}
 
 	return WriteToFile(resp.Body, file, 0644)
+}
+
+func (d DownloadCacheLayer) metadataPath() string {
+	return filepath.Join(d.Root, "dependency.toml")
+}
+
+func (d DownloadCacheLayer) readMetadata() (Dependency, error) {
+	f := d.metadataPath()
+
+	exists, err := FileExists(f)
+	if err != nil {
+		return Dependency{}, err
+	}
+
+	if !exists {
+		return Dependency{}, nil
+	}
+
+	var dep Dependency
+
+	err = FromTomlFile(f, &dep)
+	if err != nil {
+		return Dependency{}, err
+	}
+
+	d.Logger.Debug("Reading cache metadata: %s => %s", f, dep)
+	return dep, nil
 }
 
 func (d DownloadCacheLayer) verify(file string) error {
@@ -109,4 +155,16 @@ func (d DownloadCacheLayer) verify(file string) error {
 			d.dependency.SHA256, actualSha256)
 	}
 	return nil
+}
+
+func (d DownloadCacheLayer) writeMetadata() error {
+	f := d.metadataPath()
+	d.Logger.Debug("Writing cache metadata: %s <= %s", f, d.dependency)
+
+	toml, err := internal.ToTomlString(d.dependency)
+	if err != nil {
+		return err
+	}
+
+	return WriteToFile(strings.NewReader(toml), f, 0644)
 }

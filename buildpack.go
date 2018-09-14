@@ -101,7 +101,7 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		stacks = append(stacks, u)
 	}
 
-	return Dependency{id, name, version, uri, sha256, stacks}, nil
+	return Dependency{id, name, Version{version}, uri, sha256, stacks}, nil
 }
 
 // Dependencies is a collection of Dependency instances.
@@ -118,7 +118,7 @@ func (d Dependencies) Best(id string, versionConstraint string, stack string) (D
 	}
 
 	for _, c := range d {
-		if c.ID == id && constraint.Check(c.Version) && c.Stacks.contains(stack) {
+		if c.ID == id && constraint.Check(c.Version.Version) && c.Stacks.contains(stack) {
 			candidates = append(candidates, c)
 		}
 	}
@@ -139,7 +139,7 @@ func (d Dependencies) Len() int {
 
 // Less makes Dependencies satisfy the sort.Interface interface.
 func (d Dependencies) Less(i int, j int) bool {
-	return d[i].Version.LessThan(d[j].Version)
+	return d[i].Version.LessThan(d[j].Version.Version)
 }
 
 // Swap makes Dependencies satisfy the sort.Interface interface.
@@ -150,28 +150,50 @@ func (d Dependencies) Swap(i int, j int) {
 // Dependency represents a buildpack dependency.
 type Dependency struct {
 	// ID is the dependency ID.
-	ID string
+	ID string `toml:"id"`
 
 	// Name is the dependency ID.
-	Name string
+	Name string `toml:"name"`
 
 	// Version is the dependency version.
-	Version *semver.Version
+	Version Version `toml:"version"`
 
 	// URI is the dependency URI.
-	URI string
+	URI string `toml:"uri"`
 
 	// SHA256 is the hash of the dependency.
-	SHA256 string
+	SHA256 string `toml:"sha256"`
 
 	// Stacks are the stacks the dependency is compatible with.
-	Stacks Stacks
+	Stacks Stacks `toml:"stacks"`
 }
 
 // String makes Dependency satisfy the Stringer interface.
 func (d Dependency) String() string {
 	return fmt.Sprintf("Dependency{ ID: %s, Name: %s, Version: %s, URI: %s, SHA256: %s, Stacks: %s}",
 		d.ID, d.Name, d.Version, d.URI, d.SHA256, d.Stacks)
+}
+
+type Version struct {
+	*semver.Version
+}
+
+// MarshalText makes Version satisfy the encoding.TextMarshaler interface.
+func (v Version) MarshalText() ([]byte, error) {
+	return []byte(v.Version.Original()), nil
+}
+
+// UnmarshalText makes Version satisfy the encoding.TextUnmarshaler interface.
+func (v *Version) UnmarshalText(text []byte) error {
+	s := string(text)
+
+	w, err := semver.NewVersion(s)
+	if err != nil {
+		return fmt.Errorf("invalid semantic version %s", s)
+	}
+
+	v.Version = w
+	return nil
 }
 
 // Stacks is a collection of stack ids
