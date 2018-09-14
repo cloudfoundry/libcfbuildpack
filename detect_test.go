@@ -71,7 +71,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,7 +80,7 @@ test-key = "test-value"
 			t.Errorf("detect.Application should not be empty")
 		}
 
-		if reflect.DeepEqual(detect.Buildpack, libbuildpack.Buildpack{}) {
+		if reflect.DeepEqual(detect.Buildpack, libjavabuildpack.Buildpack{}) {
 			t.Errorf("detect.Buildpack should not be empty")
 		}
 
@@ -88,7 +88,7 @@ test-key = "test-value"
 			t.Errorf("detect.BuildPlan should not be empty")
 		}
 
-		if reflect.DeepEqual(detect.Logger, libbuildpack.Logger{}) {
+		if reflect.DeepEqual(detect.Logger, libjavabuildpack.Logger{}) {
 			t.Errorf("detect.Logger should not be empty")
 		}
 
@@ -113,7 +113,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -153,7 +153,7 @@ test-key = "test-value"
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 		defer libjavabuildpack.ReplaceEnv(t, "BP_DEBUG", "")()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -192,7 +192,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -223,7 +223,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -255,7 +255,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"))()
 
-		detect, err := libbuildpack.DefaultDetect()
+		detect, err := libjavabuildpack.DefaultDetect()
 		if err != nil {
 			t.Fatal(err)
 		}

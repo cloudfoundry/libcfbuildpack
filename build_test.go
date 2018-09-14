@@ -71,7 +71,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
-		build, err := libbuildpack.DefaultBuild()
+		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,7 +80,7 @@ test-key = "test-value"
 			t.Errorf("detect.Application should not be empty")
 		}
 
-		if reflect.DeepEqual(build.Buildpack, libbuildpack.Buildpack{}) {
+		if reflect.DeepEqual(build.Buildpack, libjavabuildpack.Buildpack{}) {
 			t.Errorf("detect.Buildpack should not be empty")
 		}
 
@@ -88,7 +88,7 @@ test-key = "test-value"
 			t.Errorf("detect.BuildPlan should not be empty")
 		}
 
-		if reflect.DeepEqual(build.Cache, libbuildpack.Cache{}) {
+		if reflect.DeepEqual(build.Cache, libjavabuildpack.Cache{}) {
 			t.Errorf("detect.Cache should not be empty")
 		}
 
@@ -96,7 +96,7 @@ test-key = "test-value"
 			t.Errorf("detect.Launch should not be empty")
 		}
 
-		if reflect.DeepEqual(build.Logger, libbuildpack.Logger{}) {
+		if reflect.DeepEqual(build.Logger, libjavabuildpack.Logger{}) {
 			t.Errorf("detect.Logger should not be empty")
 		}
 
@@ -125,7 +125,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
-		build, err := libbuildpack.DefaultBuild()
+		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -159,7 +159,7 @@ test-key = "test-value"
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 		defer libjavabuildpack.ReplaceEnv(t, "BP_DEBUG", "")()
 
-		build, err := libbuildpack.DefaultBuild()
+		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -192,7 +192,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
-		build, err := libbuildpack.DefaultBuild()
+		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -223,7 +223,7 @@ test-key = "test-value"
 
 		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
-		build, err := libbuildpack.DefaultBuild()
+		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
