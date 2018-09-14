@@ -21,7 +21,7 @@ import (
 )
 
 type Detect struct {
-	libbuildpack.Detect
+	*libbuildpack.Detect
 
 	// Buildpack represents the metadata associated with a buildpack.
 	Buildpack Buildpack
@@ -38,7 +38,7 @@ func DefaultDetect() (Detect, error) {
 	}
 
 	return Detect{
-		d,
+		&d,
 		Buildpack{d.Buildpack},
 		Logger{d.Logger},
 	}, nil

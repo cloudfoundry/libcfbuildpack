@@ -21,7 +21,7 @@ import (
 )
 
 type Build struct {
-	libbuildpack.Build
+	*libbuildpack.Build
 
 	// Buildpack represents the metadata associated with a buildpack.
 	Buildpack Buildpack
@@ -43,7 +43,7 @@ func DefaultBuild() (Build, error) {
 	logger := Logger{b.Logger}
 
 	return Build{
-		b,
+		&b,
 		Buildpack{b.Buildpack},
 		Cache{b.Cache, logger},
 		logger,
