@@ -26,22 +26,29 @@ import (
 	"path/filepath"
 
 	"github.com/buildpack/libbuildpack"
+	"github.com/fatih/color"
 )
 
 // Cache is an extension to libbuildpack.Cache that allows additional functionality to be added.
 type Cache struct {
 	libbuildpack.Cache
+
+	// Logger is used to write debug and info to the console.
+	Logger Logger
 }
 
 // DownloadLayer returns a DownloadLayer unique to a dependency.
 func (c Cache) DownloadLayer(dependency Dependency) DownloadCacheLayer {
 	l := c.Layer(dependency.SHA256)
-	return DownloadCacheLayer{l, dependency}
+	return DownloadCacheLayer{l, c.Logger, dependency}
 }
 
 // DownloadLayer is an extension to CacheLayer that is unique to a dependency download.
 type DownloadCacheLayer struct {
 	libbuildpack.CacheLayer
+
+	// Logger is used to write debug and info to the console.
+	Logger Logger
 
 	dependency Dependency
 }
@@ -50,11 +57,15 @@ type DownloadCacheLayer struct {
 func (d DownloadCacheLayer) Artifact() (string, error) {
 	a := filepath.Join(d.Root, filepath.Base(d.dependency.URI))
 
+	d.Logger.FirstLine("%s: %s from %s",
+		d.Logger.PrettyVersion(d.dependency), color.YellowString("Downloading"), d.dependency.URI)
+
 	err := d.download(a)
 	if err != nil {
 		return "", err
 	}
 
+	d.Logger.SubsequentLine("Verifying checksum")
 	err = d.verify(a)
 	if err != nil {
 		return "", err

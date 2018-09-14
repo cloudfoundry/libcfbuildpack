@@ -25,7 +25,9 @@ import (
 )
 
 // Buildpack is an extension to libbuildpack.Buildpack that adds additional opinionated behaviors.
-type Buildpack libbuildpack.Buildpack
+type Buildpack struct {
+	libbuildpack.Buildpack
+}
 
 // Dependencies returns the collection of dependencies extracted from the generic buildpack metadata.
 func (b Buildpack) Dependencies() (Dependencies, error) {

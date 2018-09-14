@@ -37,7 +37,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 	it("returns error with no defined dependencies", func() {
 		b := libbuildpack.Buildpack{}
 
-		_, err := libjavabuildpack.Buildpack(b).Dependencies()
+		_, err := libjavabuildpack.Buildpack{b}.Dependencies()
 
 		if err.Error() != "no dependencies specified" {
 			t.Errorf("Buildpack.Dependencies = %s, expected no dependencies specified", err.Error())
@@ -49,7 +49,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 			Metadata: map[string]interface{}{"dependencies": "test-dependency"},
 		}
 
-		_, err := libjavabuildpack.Buildpack(b).Dependencies()
+		_, err := libjavabuildpack.Buildpack{b}.Dependencies()
 
 		if err.Error() != "dependencies have invalid structure" {
 			t.Errorf("Buildpack.Dependencies = %s, expected dependencies have invalid structure", err.Error())
@@ -97,7 +97,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 				Stacks:  []string{"test-stack-2a", "test-stack-2b"}},
 		}
 
-		actual, err := libjavabuildpack.Buildpack(b).Dependencies()
+		actual, err := libjavabuildpack.Buildpack{b}.Dependencies()
 		if err != nil {
 			t.Fatal(err)
 		}
