@@ -75,8 +75,7 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 	}
 
 	if reflect.DeepEqual(d.dependency, m) {
-		d.Logger.FirstLine("%s: %s cached download",
-			d.Logger.PrettyVersion(d.dependency), color.GreenString("Reusing"))
+		d.Logger.SubsequentLine("%s cached download", color.GreenString("Reusing"))
 		return a, nil
 	}
 
