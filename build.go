@@ -32,7 +32,8 @@ type Build struct {
 	// Cache represents the cache layers contributed by a buildpack.
 	Cache Cache
 
-	Launc Launch
+	// Launch represents the launch layers contributed by the buildpack.
+	Launch Launch
 
 	// Logger is used to write debug and info to the console.
 	Logger Logger
