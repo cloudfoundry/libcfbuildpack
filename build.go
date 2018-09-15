@@ -17,9 +17,12 @@
 package libjavabuildpack
 
 import (
+	"fmt"
+
 	"github.com/buildpack/libbuildpack"
 )
 
+// Build is an extension to libbuildpack.Build that allows additional functionality to be added.
 type Build struct {
 	libbuildpack.Build
 
@@ -31,6 +34,12 @@ type Build struct {
 
 	// Logger is used to write debug and info to the console.
 	Logger Logger
+}
+
+// String makes Build satisfy the Stringer interface.
+func (b Build) String() string {
+	return fmt.Sprintf("Build{ Build: %s, Buildpack: %s, Cache: %s, Logger: %s }",
+		b.Build, b.Buildpack, b.Cache, b.Logger)
 }
 
 // DefaultBuild creates a new instance of Build using default values.

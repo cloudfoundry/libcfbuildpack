@@ -40,13 +40,21 @@ type Cache struct {
 	Logger Logger
 }
 
-// DownloadLayer returns a DownloadLayer unique to a dependency.
+// DownloadLayer returns a DownloadCacheLayer unique to a dependency.
 func (c Cache) DownloadLayer(dependency Dependency) DownloadCacheLayer {
-	l := c.Layer(dependency.SHA256)
-	return DownloadCacheLayer{l, c.Logger, dependency}
+	return DownloadCacheLayer{
+		c.Layer(dependency.SHA256),
+		c.Logger,
+		dependency,
+	}
 }
 
-// DownloadLayer is an extension to CacheLayer that is unique to a dependency download.
+// String makes Cache satisfy the Stringer interface.
+func (c Cache) String() string {
+	return fmt.Sprintf("Cache{ Cache: %s, Logger: %s }", c.Cache, c.Logger)
+}
+
+// DownloadCacheLayer is an extension to CacheLayer that is unique to a dependency download.
 type DownloadCacheLayer struct {
 	libbuildpack.CacheLayer
 
@@ -72,8 +80,9 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 		return a, nil
 	}
 
-	d.Logger.FirstLine("%s: %s from %s",
-		d.Logger.PrettyVersion(d.dependency), color.YellowString("Downloading"), d.dependency.URI)
+	d.Logger.Debug("Download metadata %s does not match expected %s", m, d.dependency)
+
+	d.Logger.SubsequentLine("%s from %s", color.YellowString("Downloading"), d.dependency.URI)
 
 	err = d.download(a)
 	if err != nil {
@@ -91,6 +100,12 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 	}
 
 	return a, nil
+}
+
+// String makes DownloadCacheLayer satisfy the Stringer interface.
+func (d DownloadCacheLayer) String() string {
+	return fmt.Sprintf("DownloadCacheLayer{ CacheLayer: %s, Logger: %s, dependency: %s }",
+		d.CacheLayer, d.Logger, d.dependency)
 }
 
 func (d DownloadCacheLayer) download(file string) error {
@@ -115,22 +130,19 @@ func (d DownloadCacheLayer) readMetadata() (Dependency, error) {
 	f := d.metadataPath()
 
 	exists, err := FileExists(f)
-	if err != nil {
+	if err != nil || !exists {
+		d.Logger.Debug("Download metadata %s does not exist", f)
 		return Dependency{}, err
-	}
-
-	if !exists {
-		return Dependency{}, nil
 	}
 
 	var dep Dependency
 
-	err = FromTomlFile(f, &dep)
-	if err != nil {
+	if err = FromTomlFile(f, &dep); err != nil {
+		d.Logger.Debug("Download metadata %s is not structured correctly", f)
 		return Dependency{}, err
 	}
 
-	d.Logger.Debug("Reading cache metadata: %s => %s", f, dep)
+	d.Logger.Debug("Reading download metadata: %s => %s", f, dep)
 	return dep, nil
 }
 

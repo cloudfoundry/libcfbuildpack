@@ -17,9 +17,12 @@
 package libjavabuildpack
 
 import (
+	"fmt"
+
 	"github.com/buildpack/libbuildpack"
 )
 
+// Detect is an extension to libbuildpack.Detect that allows additional functionality to be added.
 type Detect struct {
 	libbuildpack.Detect
 
@@ -28,6 +31,11 @@ type Detect struct {
 
 	// Logger is used to write debug and info to the console.
 	Logger Logger
+}
+
+// String makes Detect satisfy the Stringer interface.
+func (d Detect) String() string {
+	return fmt.Sprintf("Detect{ Detect: %s, Buildpack: %s, Logger: %s }", d.Detect, d.Buildpack, d.Logger)
 }
 
 // DefaultDetect creates a new instance of Detect using default values.
