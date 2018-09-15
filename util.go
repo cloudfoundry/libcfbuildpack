@@ -17,12 +17,79 @@
 package libjavabuildpack
 
 import (
+	"archive/tar"
+	"archive/zip"
+	"compress/gzip"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
+
+// CopyFile copies source file to destFile, creating all intermediate directories in destFile
+func CopyFile(source, destFile string) error {
+	fh, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := fh.Stat()
+	if err != nil {
+		return err
+	}
+
+	defer fh.Close()
+
+	return WriteToFile(fh, destFile, fileInfo.Mode())
+}
+
+// ExtractTarGz extracts tarfile to destDir
+func ExtractTarGz(tarFile, destDir string, stripComponents int) error {
+	file, err := os.Open(tarFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	gz, err := gzip.NewReader(file)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+	return extractTar(gz, destDir, stripComponents)
+}
+
+// ExtractZip extracts zipfile to destDir
+func ExtractZip(zipfile, destDir string) error {
+	r, err := zip.OpenReader(zipfile)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		path := filepath.Join(destDir, f.Name)
+
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		if f.FileInfo().IsDir() {
+			err = os.MkdirAll(path, f.Mode())
+		} else {
+			err = WriteToFile(rc, path, f.Mode())
+		}
+
+		rc.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 // FileExists returns true if a file exists, otherwise false.
 func FileExists(file string) (bool, error) {
@@ -62,5 +129,38 @@ func WriteToFile(source io.Reader, destFile string, mode os.FileMode) error {
 		return err
 	}
 
+	return nil
+}
+
+func extractTar(src io.Reader, destDir string, stripComponents int) error {
+	tr := tar.NewReader(src)
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+
+		path := filepath.Join(append([]string{destDir}, strings.Split(hdr.Name, string(filepath.Separator))[stripComponents:]...)...)
+		fi := hdr.FileInfo()
+
+		if fi.IsDir() {
+			err = os.MkdirAll(path, hdr.FileInfo().Mode())
+		} else if fi.Mode()&os.ModeSymlink != 0 {
+			target := hdr.Linkname
+			if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+				return err
+			}
+			if err = os.Symlink(target, path); err != nil {
+				return err
+			}
+		} else {
+			err = WriteToFile(tr, path, hdr.FileInfo().Mode())
+		}
+
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
