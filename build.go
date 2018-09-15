@@ -32,6 +32,8 @@ type Build struct {
 	// Cache represents the cache layers contributed by a buildpack.
 	Cache Cache
 
+	Launc Launch
+
 	// Logger is used to write debug and info to the console.
 	Logger Logger
 }
@@ -50,11 +52,13 @@ func DefaultBuild() (Build, error) {
 	}
 
 	logger := Logger{b.Logger}
+	cache := Cache{b.Cache, logger}
 
 	return Build{
 		b,
 		Buildpack{b.Buildpack},
-		Cache{b.Cache, logger},
+		cache,
+		Launch{b.Launch, cache, logger},
 		logger,
 	}, nil
 }
