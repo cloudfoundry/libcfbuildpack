@@ -108,11 +108,17 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 type Dependencies []Dependency
 
 // Best returns the best (latest version) dependency within a collection of Dependencies.  The candidate set is first
-// filtered by id, version, and stack, then the remaining candidates are sorted for the best result.
+// filtered by id, version, and stack, then the remaining candidates are sorted for the best result.  If the
+// versionConstraint is not specified (""), then the latest wildcard ("*") is used.
 func (d Dependencies) Best(id string, versionConstraint string, stack string) (Dependency, error) {
 	var candidates Dependencies
 
-	constraint, err := semver.NewConstraint(versionConstraint)
+	vc := versionConstraint
+	if vc == "" {
+		vc = "*"
+	}
+
+	constraint, err := semver.NewConstraint(vc)
 	if err != nil {
 		return Dependency{}, err
 	}

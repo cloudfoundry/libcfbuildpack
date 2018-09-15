@@ -274,6 +274,35 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 			t.Errorf("Dependencies.Best = %s, expected no valid dependencies...", err.Error())
 		}
 	})
+
+	it("substitutes all wildcard for unspecified version constraint", func() {
+		d := libjavabuildpack.Dependencies{
+			libjavabuildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: newVersion(t, "1.1"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  []string{"test-stack-1", "test-stack-2"}},
+		}
+
+		expected := libjavabuildpack.Dependency{
+			ID:      "test-id",
+			Name:    "test-name",
+			Version: newVersion(t, "1.1"),
+			URI:     "test-uri",
+			SHA256:  "test-sha256",
+			Stacks:  []string{"test-stack-1", "test-stack-2"}}
+
+		actual, err := d.Best("test-id", "", "test-stack-1")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
+		}
+	})
 }
 
 func newVersion(t *testing.T, version string) libjavabuildpack.Version {
