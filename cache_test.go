@@ -36,87 +36,183 @@ func TestCache(t *testing.T) {
 
 func testCache(t *testing.T, when spec.G, it spec.S) {
 
-	it("creates a download cache with the dependency SHA256 name", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
-		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
-		dependency := libjavabuildpack.Dependency{SHA256: "test-sha256"}
+	when("DependencyCacheLayer", func() {
 
-		d := cache.DownloadLayer(dependency)
+		it("creates a dependency cache with the dependency id", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+			dependency := libjavabuildpack.Dependency{ID: "test-id"}
 
-		expected := filepath.Join(root, "test-sha256")
-		if d.Root != expected {
-			t.Errorf("DownloadCacheLayer.Root = %s, expected %s", d.Root, expected)
-		}
+			d := cache.DependencyLayer(dependency)
+
+			expected := filepath.Join(root, "test-id")
+			if d.Root != expected {
+				t.Errorf("DependencyCacheLayer.Root = %s, expected %s", d.Root, expected)
+			}
+		})
+
+		it("contributes a dependency", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			dependency := libjavabuildpack.Dependency{
+				ID:      "test-id",
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
+
+			defer gock.Off()
+
+			gock.New("http://test.com").
+				Get("/test-path").
+				Reply(200).
+				BodyString("test-payload")
+
+			contributed := false
+
+			err = cache.DependencyLayer(dependency).Contribute(func(artifact string, layer libjavabuildpack.DependencyCacheLayer) error {
+				contributed = true
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !contributed {
+				t.Errorf("Expected contribution but didn't contribute")
+			}
+		})
+
+		it("does not contribute a dependency", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			dependency := libjavabuildpack.Dependency{
+				ID:      "test-id",
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
+
+			libjavabuildpack.WriteToFile(strings.NewReader(`id = "test-id"
+name = ""
+version = "1.0"
+uri = "http://test.com/test-path"
+sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
+`), filepath.Join(root, dependency.ID, "dependency.toml"), 0644)
+
+			contributed := false
+
+			err = cache.DependencyLayer(dependency).Contribute(func(artifact string, layer libjavabuildpack.DependencyCacheLayer) error {
+				contributed = true
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if contributed {
+				t.Errorf("Expected non-contribution but did contribute")
+			}
+		})
 	})
 
-	it("downloads a dependency", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
-		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+	when("DownloadCacheLayer", func() {
 
-		v, err := semver.NewVersion("1.0")
-		if err != nil {
-			t.Fatal(err)
-		}
+		it("creates a download cache with the dependency SHA256 name", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+			dependency := libjavabuildpack.Dependency{SHA256: "test-sha256"}
 
-		dependency := libjavabuildpack.Dependency{
-			Version: libjavabuildpack.Version{Version: v},
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
+			d := cache.DownloadLayer(dependency)
 
-		defer gock.Off()
+			expected := filepath.Join(root, "test-sha256")
+			if d.Root != expected {
+				t.Errorf("DownloadCacheLayer.Root = %s, expected %s", d.Root, expected)
+			}
+		})
 
-		gock.New("http://test.com").
-			Get("/test-path").
-			Reply(200).
-			BodyString("test-payload")
+		it("downloads a dependency", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
-		a, err := cache.DownloadLayer(dependency).Artifact()
-		if err != nil {
-			t.Fatal(err)
-		}
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		expected := filepath.Join(root, dependency.SHA256, "test-path")
-		if a != expected {
-			t.Errorf("DownloadCacheLayer.Artifact() = %s, expected %s", a, expected)
-		}
+			dependency := libjavabuildpack.Dependency{
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
 
-		internal.BeFileLike(t, expected, 0644, "test-payload")
+			defer gock.Off()
 
-		expected = filepath.Join(root, dependency.SHA256, "dependency.toml")
-		internal.BeFileLike(t, expected, 0644, `id = ""
+			gock.New("http://test.com").
+				Get("/test-path").
+				Reply(200).
+				BodyString("test-payload")
+
+			a, err := cache.DownloadLayer(dependency).Artifact()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			expected := filepath.Join(root, dependency.SHA256, "test-path")
+			if a != expected {
+				t.Errorf("DownloadCacheLayer.Artifact() = %s, expected %s", a, expected)
+			}
+
+			internal.BeFileLike(t, expected, 0644, "test-payload")
+
+			expected = filepath.Join(root, dependency.SHA256, "dependency.toml")
+			internal.BeFileLike(t, expected, 0644, `id = ""
 name = ""
 version = "1.0"
 uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 `)
-	})
+		})
 
-	it("does not download a cached dependency", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
-		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+		it("does not download a cached dependency", func() {
+			root := libjavabuildpack.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
-		v, err := semver.NewVersion("1.0")
-		if err != nil {
-			t.Fatal(err)
-		}
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		dependency := libjavabuildpack.Dependency{
-			Version: libjavabuildpack.Version{Version: v},
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
+			dependency := libjavabuildpack.Dependency{
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
 
-		libjavabuildpack.WriteToFile(strings.NewReader(`id = ""
+			libjavabuildpack.WriteToFile(strings.NewReader(`id = ""
 name = ""
 version = "1.0"
 uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 `), filepath.Join(root, dependency.SHA256, "dependency.toml"), 0644)
 
-		_, err = cache.DownloadLayer(dependency).Artifact()
-		if err != nil {
-			t.Fatal(err)
-		}
+			_, err = cache.DownloadLayer(dependency).Artifact()
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
 	})
+
 }

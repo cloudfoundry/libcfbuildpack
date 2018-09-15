@@ -89,14 +89,15 @@ func (d DependencyLaunchLayer) Contribute(contributor LaunchContributor) error {
 
 	d.Logger.Debug("Download metadata %s does not match expected %s", m, d.dependency)
 
-	d.Logger.FirstLine("%s: %s", d.Logger.PrettyVersion(d.dependency), color.YellowString("Contributing"))
+	d.Logger.FirstLine("%s: %s to launch",
+		d.Logger.PrettyVersion(d.dependency), color.YellowString("Contributing"))
 
-	a, err := d.downloadLayer.Artifact()
-	if err != nil {
+	if err := os.RemoveAll(d.Root); err != nil {
 		return err
 	}
 
-	if err := os.RemoveAll(d.Root); err != nil {
+	a, err := d.downloadLayer.Artifact()
+	if err != nil {
 		return err
 	}
 

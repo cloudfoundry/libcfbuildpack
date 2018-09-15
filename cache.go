@@ -40,6 +40,16 @@ type Cache struct {
 	Logger Logger
 }
 
+// DependencyLayer returns a DependencyCacheLayer unique to a dependency.
+func (c Cache) DependencyLayer(dependency Dependency) DependencyCacheLayer {
+	return DependencyCacheLayer{
+		c.Layer(dependency.ID),
+		c.Logger,
+		dependency,
+		c.DownloadLayer(dependency),
+	}
+}
+
 // DownloadLayer returns a DownloadCacheLayer unique to a dependency.
 func (c Cache) DownloadLayer(dependency Dependency) DownloadCacheLayer {
 	return DownloadCacheLayer{
@@ -52,6 +62,97 @@ func (c Cache) DownloadLayer(dependency Dependency) DownloadCacheLayer {
 // String makes Cache satisfy the Stringer interface.
 func (c Cache) String() string {
 	return fmt.Sprintf("Cache{ Cache: %s, Logger: %s }", c.Cache, c.Logger)
+}
+
+// DependencyCacheLayer is an extension to CacheLayer that is unique to a dependency contribution.
+type DependencyCacheLayer struct {
+	libbuildpack.CacheLayer
+
+	// Logger is used to write debug and info to the console.
+	Logger Logger
+
+	dependency    Dependency
+	downloadLayer DownloadCacheLayer
+}
+
+// CacheContributor defines a callback function that is called when a dependency needs to be contributed.
+type CacheContributor func(artifact string, layer DependencyCacheLayer) error
+
+// Contribute contributes an artifact to a cache layer.  If the artifact has already been contributed, the cache will be
+// validated and used directly.
+func (d DependencyCacheLayer) Contribute(contributor CacheContributor) error {
+	m, err := d.readMetadata()
+	if err != nil {
+		return err
+	}
+
+	if reflect.DeepEqual(d.dependency, m) {
+		d.Logger.SubsequentLine("%s cached dependency", color.GreenString("Reusing"))
+		return nil
+	}
+
+	d.Logger.Debug("Dependency metadata %s does not match expected %s", m, d.dependency)
+
+	d.Logger.FirstLine("%s: %s to cache",
+		d.Logger.PrettyVersion(d.dependency), color.YellowString("Contributing"))
+
+	if err := os.RemoveAll(d.Root); err != nil {
+		return err
+	}
+
+	a, err := d.downloadLayer.Artifact()
+	if err != nil {
+		return err
+	}
+
+	if err := contributor(a, d); err != nil {
+		d.Logger.Debug("Error during contribution")
+		return err
+	}
+
+	return d.writeMetadata()
+}
+
+func (d DependencyCacheLayer) metadataPath() string {
+	return filepath.Join(d.Root, "dependency.toml")
+}
+
+func (d DependencyCacheLayer) readMetadata() (Dependency, error) {
+	f := d.metadataPath()
+
+	exists, err := FileExists(f)
+	if err != nil || !exists {
+		d.Logger.Debug("Dependency metadata %s does not exist", f)
+		return Dependency{}, err
+	}
+
+	var dep Dependency
+
+	if err = FromTomlFile(f, &dep); err != nil {
+		d.Logger.Debug("Dependency metadata %s is not structured correctly", f)
+		return Dependency{}, err
+	}
+
+	d.Logger.Debug("Reading dependency metadata: %s => %s", f, dep)
+	return dep, nil
+}
+
+func (d DependencyCacheLayer) writeMetadata() error {
+	f := d.metadataPath()
+	d.Logger.Debug("Writing dependency metadata: %s <= %s", f, d.dependency)
+
+	toml, err := internal.ToTomlString(d.dependency)
+	if err != nil {
+		return err
+	}
+
+	return WriteToFile(strings.NewReader(toml), f, 0644)
+}
+
+// String makes DependencyCacheLayer satisfy the Stringer interface.
+func (d DependencyCacheLayer) String() string {
+	return fmt.Sprintf("DependencyCacheLayer{ CacheLayer: %s, Logger: %s, dependency: %s }",
+		d.CacheLayer, d.Logger, d.dependency)
 }
 
 // DownloadCacheLayer is an extension to CacheLayer that is unique to a dependency download.
