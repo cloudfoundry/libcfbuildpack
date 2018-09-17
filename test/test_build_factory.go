@@ -34,9 +34,9 @@ type BuildFactory struct {
 }
 
 // AddBuildPlan adds an entry to a build plan.
-func (f *BuildFactory) AddBuildPlan(t *testing.T, name string) {
+func (f *BuildFactory) AddBuildPlan(t *testing.T, name string, dependency libbuildpack.BuildPlanDependency) {
 	t.Helper()
-	f.Build.BuildPlan[name] = libbuildpack.BuildPlanDependency{}
+	f.Build.BuildPlan[name] = dependency
 }
 
 // AddDependency adds a dependency to the buildpack metadata and copies a fixture into a cached dependency layer.
