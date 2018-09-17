@@ -28,6 +28,9 @@ import (
 
 // EnvironmentFactory is a factory for creating a test environment to test detect and build functionality.
 type EnvironmentFactory struct {
+	// Application is the root of the application
+	Application string
+
 	// Console is the Console of the application.
 	Console Console
 
@@ -57,6 +60,7 @@ func NewEnvironmentFactory(t *testing.T) EnvironmentFactory {
 	if err := os.MkdirAll(appRoot, 0755); err != nil {
 		t.Fatal(err)
 	}
+	f.Application = appRoot
 
 	d := ReplaceWorkingDirectory(t, appRoot)
 	f.defers = append(f.defers, d)
