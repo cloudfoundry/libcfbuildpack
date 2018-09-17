@@ -19,6 +19,7 @@ package libjavabuildpack
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/buildpack/libbuildpack"
@@ -60,6 +61,11 @@ type DependencyLaunchLayer struct {
 
 	dependency    Dependency
 	downloadLayer DownloadCacheLayer
+}
+
+// ArtifactName returns the name portion of the download path for the dependency.
+func (d DependencyLaunchLayer) ArtifactName() string {
+	return filepath.Base(d.dependency.URI)
 }
 
 // String makes DependencyLaunchLayer satisfy the Stringer interface.

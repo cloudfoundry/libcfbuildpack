@@ -127,4 +127,16 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 		}
 	})
 
+	it("returns artifact name", func() {
+		root := test.ScratchDir(t, "cache")
+		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}}
+		dependency := libjavabuildpack.Dependency{ID: "test-id", URI: "http://localhost/path/test-artifact-name"}
+
+		d := launch.DependencyLayer(dependency)
+
+		if d.ArtifactName() != "test-artifact-name" {
+			t.Errorf("DependencyLaunchLayer.ArtifactName = %s, expected test-artifact-name", d.ArtifactName())
+		}
+	})
+
 }
