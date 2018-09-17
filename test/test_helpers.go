@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/bouk/monkey"
+	"github.com/cloudfoundry/libjavabuildpack"
 )
 
 // CaptureExitStatus returns a pointer to the exit status code when os.Exit() is called.  Returns a function for use
@@ -102,6 +103,30 @@ func (c Console) Out(t *testing.T) string {
 	}
 
 	return string(bytes)
+}
+
+// FindRoot returns the root of project being tested.
+func FindRoot(t *testing.T) string {
+	t.Helper()
+
+	dir, err := filepath.Abs(".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for {
+		if dir == "/" {
+			t.Fatalf("could not find go.mod in the directory hierarchy")
+		}
+		if exist, err := libjavabuildpack.FileExists(filepath.Join(dir, "go.mod")); err != nil {
+			t.Fatal(err)
+		} else if exist {
+			return dir
+		}
+		dir, err = filepath.Abs(filepath.Join(dir, ".."))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 // ProtectEnv protects a collection of environment variables.  Returns a function for use with defer in order to reset

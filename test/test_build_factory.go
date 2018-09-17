@@ -73,7 +73,7 @@ func (f *BuildFactory) cacheFixture(t *testing.T, dependency libjavabuildpack.De
 	t.Helper()
 
 	l := f.Build.Cache.Layer(dependency.SHA256)
-	if err := libjavabuildpack.CopyFile(filepath.Join(f.findRoot(t), "fixtures", fixture), filepath.Join(l.Root, filepath.Base(fixture))); err != nil {
+	if err := libjavabuildpack.CopyFile(filepath.Join(FindRoot(t), "fixtures", fixture), filepath.Join(l.Root, filepath.Base(fixture))); err != nil {
 		t.Fatal(err)
 	}
 
@@ -83,29 +83,6 @@ func (f *BuildFactory) cacheFixture(t *testing.T, dependency libjavabuildpack.De
 	}
 	if err := libjavabuildpack.WriteToFile(strings.NewReader(d), filepath.Join(l.Root, "dependency.toml"), 0644); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func (f *BuildFactory) findRoot(t *testing.T) string {
-	t.Helper()
-
-	dir, err := filepath.Abs(".")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for {
-		if dir == "/" {
-			t.Fatalf("could not find go.mod in the directory hierarchy")
-		}
-		if exist, err := libjavabuildpack.FileExists(filepath.Join(dir, "go.mod")); err != nil {
-			t.Fatal(err)
-		} else if exist {
-			return dir
-		}
-		dir, err = filepath.Abs(filepath.Join(dir, ".."))
-		if err != nil {
-			t.Fatal(err)
-		}
 	}
 }
 
