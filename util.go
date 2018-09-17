@@ -77,7 +77,7 @@ func ExtractZip(zipfile, destDir string, stripComponents int) error {
 		}
 
 		if f.FileInfo().IsDir() {
-			err = os.MkdirAll(path, f.Mode())
+			err = os.MkdirAll(path, 0755)
 		} else {
 			err = WriteToFile(rc, path, f.Mode())
 		}
