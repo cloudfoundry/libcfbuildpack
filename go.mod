@@ -4,7 +4,7 @@ require (
 	github.com/BurntSushi/toml v0.3.0
 	github.com/Masterminds/semver v1.4.2
 	github.com/bouk/monkey v1.0.1
-	github.com/buildpack/libbuildpack v0.0.0-20180917010656-5a19109ff39e
+	github.com/buildpack/libbuildpack v0.0.0-20180917215559-e0a1f1ae6c05
 	github.com/fatih/color v1.7.0
 	github.com/h2non/gock v1.0.10
 	github.com/mattn/go-colorable v0.0.9 // indirect
