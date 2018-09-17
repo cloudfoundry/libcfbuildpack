@@ -48,12 +48,6 @@ func (f *BuildFactory) AddDependency(t *testing.T, id string, fixture string) {
 	f.addDependency(t, d)
 }
 
-// SetStack sets the current stack.
-func (f *BuildFactory) SetStack(t *testing.T, name string) {
-	t.Helper()
-	f.Build.Stack = name
-}
-
 func (f *BuildFactory) addDependency(t *testing.T, dependency libjavabuildpack.Dependency) {
 	t.Helper()
 
