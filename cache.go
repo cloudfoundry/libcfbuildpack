@@ -87,7 +87,7 @@ func (d DependencyCacheLayer) Contribute(contributor CacheContributor) error {
 	}
 
 	if reflect.DeepEqual(d.dependency, m) {
-		d.Logger.SubsequentLine("%s cached dependency", color.GreenString("Reusing"))
+		d.Logger.FirstLine("%s cached dependency", color.GreenString("Reusing"))
 		return nil
 	}
 
