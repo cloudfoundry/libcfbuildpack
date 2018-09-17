@@ -61,7 +61,7 @@ func ExtractTarGz(tarFile, destDir string, stripComponents int) error {
 }
 
 // ExtractZip extracts zipfile to destDir
-func ExtractZip(zipfile, destDir string) error {
+func ExtractZip(zipfile, destDir string, stripComponents int) error {
 	r, err := zip.OpenReader(zipfile)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func ExtractZip(zipfile, destDir string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		path := filepath.Join(destDir, f.Name)
+		path := filepath.Join(append([]string{destDir}, strings.Split(f.Name, string(filepath.Separator))[stripComponents:]...)...)
 
 		rc, err := f.Open()
 		if err != nil {
