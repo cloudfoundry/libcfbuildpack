@@ -25,6 +25,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/buildpack/libbuildpack"
 	"github.com/cloudfoundry/libjavabuildpack"
+	"github.com/cloudfoundry/libjavabuildpack/test"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -36,7 +37,7 @@ func TestLaunch(t *testing.T) {
 func testLaunch(t *testing.T, when spec.G, it spec.S) {
 
 	it("creates a dependency launch with the dependency id", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
+		root := test.ScratchDir(t, "cache")
 		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}}
 		dependency := libjavabuildpack.Dependency{ID: "test-id"}
 
@@ -49,7 +50,7 @@ func testLaunch(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("calls contributor to contribute launch layer", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
+		root := test.ScratchDir(t, "cache")
 		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}, Cache: cache}
 
@@ -88,7 +89,7 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 	})
 
 	it("does not call contributor for a cached launch layer", func() {
-		root := libjavabuildpack.ScratchDir(t, "cache")
+		root := test.ScratchDir(t, "cache")
 		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}, Cache: cache}
 

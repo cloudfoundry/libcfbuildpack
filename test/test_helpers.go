@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package test
 
 import (
 	"fmt"

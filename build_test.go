@@ -24,6 +24,7 @@ import (
 
 	"github.com/buildpack/libbuildpack"
 	"github.com/cloudfoundry/libjavabuildpack"
+	"github.com/cloudfoundry/libjavabuildpack/test"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -35,11 +36,11 @@ func TestBuild(t *testing.T) {
 func testBuild(t *testing.T, when spec.G, it spec.S) {
 
 	it("contains default values", func() {
-		root := libjavabuildpack.ScratchDir(t, "detect")
-		defer libjavabuildpack.ReplaceWorkingDirectory(t, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+		root := test.ScratchDir(t, "detect")
+		defer test.ReplaceWorkingDirectory(t, root)()
+		defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
 
-		console, d := libjavabuildpack.ReplaceConsole(t)
+		console, d := test.ReplaceConsole(t)
 		defer d()
 
 		console.In(t, `[alpha]
@@ -69,7 +70,7 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
+		defer test.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
 		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
@@ -110,11 +111,11 @@ test-key = "test-value"
 	})
 
 	it("suppresses debug output", func() {
-		root := libjavabuildpack.ScratchDir(t, "build")
-		defer libjavabuildpack.ReplaceWorkingDirectory(t, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+		root := test.ScratchDir(t, "build")
+		defer test.ReplaceWorkingDirectory(t, root)()
+		defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
 
-		c, d := libjavabuildpack.ReplaceConsole(t)
+		c, d := test.ReplaceConsole(t)
 		defer d()
 		c.In(t, "")
 
@@ -123,7 +124,7 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
+		defer test.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
 		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
@@ -143,11 +144,11 @@ test-key = "test-value"
 	})
 
 	it("allows debug output if BP_DEBUG is set", func() {
-		root := libjavabuildpack.ScratchDir(t, "build")
-		defer libjavabuildpack.ReplaceWorkingDirectory(t, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+		root := test.ScratchDir(t, "build")
+		defer test.ReplaceWorkingDirectory(t, root)()
+		defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
 
-		c, d := libjavabuildpack.ReplaceConsole(t)
+		c, d := test.ReplaceConsole(t)
 		defer d()
 		c.In(t, "")
 
@@ -156,8 +157,8 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "BP_DEBUG", "")()
+		defer test.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
+		defer test.ReplaceEnv(t, "BP_DEBUG", "")()
 
 		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
@@ -177,11 +178,11 @@ test-key = "test-value"
 	})
 
 	it("returns 0 when successful", func() {
-		root := libjavabuildpack.ScratchDir(t, "build")
-		defer libjavabuildpack.ReplaceWorkingDirectory(t, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+		root := test.ScratchDir(t, "build")
+		defer test.ReplaceWorkingDirectory(t, root)()
+		defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
 
-		c, d := libjavabuildpack.ReplaceConsole(t)
+		c, d := test.ReplaceConsole(t)
 		defer d()
 		c.In(t, "")
 
@@ -190,14 +191,14 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
+		defer test.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
 		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		actual, d := libjavabuildpack.CaptureExitStatus(t)
+		actual, d := test.CaptureExitStatus(t)
 		defer d()
 
 		build.Success()
@@ -208,11 +209,11 @@ test-key = "test-value"
 	})
 
 	it("returns code when failing", func() {
-		root := libjavabuildpack.ScratchDir(t, "build")
-		defer libjavabuildpack.ReplaceWorkingDirectory(t, root)()
-		defer libjavabuildpack.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+		root := test.ScratchDir(t, "build")
+		defer test.ReplaceWorkingDirectory(t, root)()
+		defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
 
-		c, d := libjavabuildpack.ReplaceConsole(t)
+		c, d := test.ReplaceConsole(t)
 		defer d()
 		c.In(t, "")
 
@@ -221,14 +222,14 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		defer libjavabuildpack.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
+		defer test.ReplaceArgs(t, filepath.Join(root, "bin", "test"), root, root, root)()
 
 		build, err := libjavabuildpack.DefaultBuild()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		actual, d := libjavabuildpack.CaptureExitStatus(t)
+		actual, d := test.CaptureExitStatus(t)
 		defer d()
 
 		build.Failure(42)

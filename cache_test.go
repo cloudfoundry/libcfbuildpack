@@ -25,6 +25,7 @@ import (
 	"github.com/buildpack/libbuildpack"
 	"github.com/cloudfoundry/libjavabuildpack"
 	"github.com/cloudfoundry/libjavabuildpack/internal"
+	"github.com/cloudfoundry/libjavabuildpack/test"
 	"github.com/h2non/gock"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -39,7 +40,7 @@ func testCache(t *testing.T, when spec.G, it spec.S) {
 	when("DependencyCacheLayer", func() {
 
 		it("creates a dependency cache with the dependency id", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 			dependency := libjavabuildpack.Dependency{ID: "test-id"}
 
@@ -52,7 +53,7 @@ func testCache(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("contributes a dependency", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
 			v, err := semver.NewVersion("1.0")
@@ -90,7 +91,7 @@ func testCache(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("does not contribute a dependency", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
 			v, err := semver.NewVersion("1.0")
@@ -131,7 +132,7 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 	when("DownloadCacheLayer", func() {
 
 		it("creates a download cache with the dependency SHA256 name", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 			dependency := libjavabuildpack.Dependency{SHA256: "test-sha256"}
 
@@ -144,7 +145,7 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 		})
 
 		it("downloads a dependency", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
 			v, err := semver.NewVersion("1.0")
@@ -187,7 +188,7 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 		})
 
 		it("does not download a cached dependency", func() {
-			root := libjavabuildpack.ScratchDir(t, "cache")
+			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
 			v, err := semver.NewVersion("1.0")
