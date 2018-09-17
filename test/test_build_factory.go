@@ -142,12 +142,16 @@ func NewBuildFactory(t *testing.T) BuildFactory {
 
 	f.Build.Application.Root = filepath.Join(root, "app")
 	f.Build.BuildPlan = make(libbuildpack.BuildPlan)
-	f.Build.Cache.Root = filepath.Join(root, "cache")
-	f.Build.Launch.Root = filepath.Join(root, "launch")
-	f.Build.Platform.Root = filepath.Join(root, "platform")
 
 	f.Build.Buildpack.Metadata = make(libbuildpack.BuildpackMetadata)
 	f.Build.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
+
+	f.Build.Cache.Root = filepath.Join(root, "cache")
+
+	f.Build.Launch.Root = filepath.Join(root, "launch")
+	f.Build.Launch.Cache = f.Build.Cache
+
+	f.Build.Platform.Root = filepath.Join(root, "platform")
 
 	return f
 }
