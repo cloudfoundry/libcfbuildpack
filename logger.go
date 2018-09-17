@@ -74,3 +74,8 @@ func (l Logger) PrettyVersion(v interface{}) string {
 
 	return fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint(name), color.BlueString(version))
 }
+
+// String makes Logger satisfy the Stringer interface.
+func (l Logger) String() string {
+	return fmt.Sprintf("Logger{ Logger: %s}", l.Logger)
+}
