@@ -203,6 +203,11 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 	return a, nil
 }
 
+// Metadata returns the path to the metadata file for an artifact cached in the later.
+func (d DownloadCacheLayer) Metadata() string {
+	return filepath.Join(d.Root, "dependency.toml")
+}
+
 // String makes DownloadCacheLayer satisfy the Stringer interface.
 func (d DownloadCacheLayer) String() string {
 	return fmt.Sprintf("DownloadCacheLayer{ CacheLayer: %s, Logger: %s, dependency: %s }",
@@ -223,12 +228,8 @@ func (d DownloadCacheLayer) download(file string) error {
 	return WriteToFile(resp.Body, file, 0644)
 }
 
-func (d DownloadCacheLayer) metadataPath() string {
-	return filepath.Join(d.Root, "dependency.toml")
-}
-
 func (d DownloadCacheLayer) readMetadata() (Dependency, error) {
-	f := d.metadataPath()
+	f := d.Metadata()
 
 	exists, err := FileExists(f)
 	if err != nil || !exists {
@@ -271,7 +272,7 @@ func (d DownloadCacheLayer) verify(file string) error {
 }
 
 func (d DownloadCacheLayer) writeMetadata() error {
-	f := d.metadataPath()
+	f := d.Metadata()
 	d.Logger.Debug("Writing cache metadata: %s <= %s", f, d.dependency)
 
 	toml, err := internal.ToTomlString(d.dependency)

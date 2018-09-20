@@ -55,6 +55,42 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 	return dependencies, nil
 }
 
+// IncludeFiles returns the include_files buildpack metadata.
+func (b Buildpack) IncludeFiles() ([]string, error) {
+	i, ok := b.Metadata["include_files"]
+	if !ok {
+		return []string{}, nil
+	}
+
+	files, ok := i.([]interface{})
+	if !ok {
+		return []string{}, fmt.Errorf("include_files is not an array of strings")
+	}
+
+	var includes []string
+	for _, candidate := range files {
+		file, ok := candidate.(string)
+		if !ok {
+			return []string{}, fmt.Errorf("include_files is not an array of strings")
+		}
+
+		includes = append(includes, file)
+	}
+
+	return includes, nil
+}
+
+// PrePackage returns the pre_package buildpack metadata.
+func (b Buildpack) PrePackage() (string, bool) {
+	p, ok := b.Metadata["pre_package"]
+	if !ok {
+		return "", false
+	}
+
+	s, ok := p.(string)
+	return s, ok
+}
+
 func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 	id, ok := dep["id"].(string)
 	if !ok {

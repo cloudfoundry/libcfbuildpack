@@ -37,7 +37,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 	it("returns error with no defined dependencies", func() {
 		b := libbuildpack.Buildpack{}
 
-		_, err := libjavabuildpack.Buildpack{b}.Dependencies()
+		_, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
 
 		if err.Error() != "no dependencies specified" {
 			t.Errorf("Buildpack.Dependencies = %s, expected no dependencies specified", err.Error())
@@ -46,10 +46,10 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 
 	it("returns error with incorrectly defined dependencies", func() {
 		b := libbuildpack.Buildpack{
-			Metadata: map[string]interface{}{"dependencies": "test-dependency"},
+			Metadata: libbuildpack.BuildpackMetadata{"dependencies": "test-dependency"},
 		}
 
-		_, err := libjavabuildpack.Buildpack{b}.Dependencies()
+		_, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
 
 		if err.Error() != "dependencies have invalid structure" {
 			t.Errorf("Buildpack.Dependencies = %s, expected dependencies have invalid structure", err.Error())
@@ -58,7 +58,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 
 	it("returns dependencies", func() {
 		b := libbuildpack.Buildpack{
-			Metadata: map[string]interface{}{
+			Metadata: libbuildpack.BuildpackMetadata{
 				"dependencies": []map[string]interface{}{
 					{
 						"id":      "test-id-1",
@@ -97,13 +97,96 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 				Stacks:  []string{"test-stack-2a", "test-stack-2b"}},
 		}
 
-		actual, err := libjavabuildpack.Buildpack{b}.Dependencies()
+		actual, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		if !reflect.DeepEqual(actual, expected) {
 			t.Errorf("Buildpack.Dependencies = %s, expected %s", actual, expected)
+		}
+	})
+
+	it("returns include_files if it exists", func() {
+		b := libbuildpack.Buildpack{
+			Metadata: libbuildpack.BuildpackMetadata{
+				"include_files": []interface{}{"test-file-1", "test-file-2"},
+			},
+		}
+
+		actual, err := libjavabuildpack.Buildpack{Buildpack: b}.IncludeFiles()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expected := []string{"test-file-1", "test-file-2"}
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("Buildpack.IncludeFiles = %s, expected empty []string", actual)
+		}
+	})
+
+	it("returns empty []string if include_files does not exist", func() {
+		b := libbuildpack.Buildpack{}
+
+		actual, err := libjavabuildpack.Buildpack{Buildpack: b}.IncludeFiles()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(actual, []string{}) {
+			t.Errorf("Buildpack.IncludeFiles = %s, expected empty []string", actual)
+		}
+	})
+
+	it("returns false if include_files is not []string", func() {
+		b := libbuildpack.Buildpack{
+			Metadata: libbuildpack.BuildpackMetadata{
+				"include_files": 1,
+			},
+		}
+
+		_, err := libjavabuildpack.Buildpack{Buildpack: b}.IncludeFiles()
+		if err.Error() != "include_files is not an array of strings" {
+			t.Errorf("Buildpack.IncludeFiles = %s, expected include_files is not an array of strings", err.Error())
+		}
+	})
+
+	it("returns pre_package if it exists", func() {
+		b := libbuildpack.Buildpack{
+			Metadata: libbuildpack.BuildpackMetadata{
+				"pre_package": "test-package",
+			},
+		}
+
+		actual, ok := libjavabuildpack.Buildpack{Buildpack: b}.PrePackage()
+		if !ok {
+			t.Errorf("Buildpack.PrePackage() = %t, expected true", ok)
+		}
+
+		if actual != "test-package" {
+			t.Errorf("Buildpack.PrePackage() %s, expected test-package", actual)
+		}
+	})
+
+	it("returns false if pre_package does not exist", func() {
+		b := libbuildpack.Buildpack{}
+
+		_, ok := libjavabuildpack.Buildpack{Buildpack: b}.PrePackage()
+		if ok {
+			t.Errorf("Buildpack.PrePackage() = %t, expected false", ok)
+		}
+	})
+
+	it("returns false if pre_package is not string", func() {
+		b := libbuildpack.Buildpack{
+			Metadata: libbuildpack.BuildpackMetadata{
+				"pre_package": 1,
+			},
+		}
+
+		_, ok := libjavabuildpack.Buildpack{Buildpack: b}.PrePackage()
+		if ok {
+			t.Errorf("Buildpack.PrePackage() = %t, expected false", ok)
 		}
 	})
 
@@ -313,5 +396,5 @@ func newVersion(t *testing.T, version string) libjavabuildpack.Version {
 		t.Fatal(err)
 	}
 
-	return libjavabuildpack.Version{v}
+	return libjavabuildpack.Version{Version: v}
 }
