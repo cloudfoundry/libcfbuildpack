@@ -11,5 +11,5 @@ require (
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/sclevine/spec v1.0.0
-	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e // indirect
+	golang.org/x/sys v0.0.0-20180920110915-d641721ec2de // indirect
 )
