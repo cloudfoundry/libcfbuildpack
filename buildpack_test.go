@@ -37,10 +37,14 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 	it("returns error with no defined dependencies", func() {
 		b := libbuildpack.Buildpack{}
 
-		_, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
+		actual, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		if err.Error() != "no dependencies specified" {
-			t.Errorf("Buildpack.Dependencies = %s, expected no dependencies specified", err.Error())
+		expected := libjavabuildpack.Dependencies{}
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("Buildpack.Dependencies = %s, expected %s", actual, expected)
 		}
 	})
 

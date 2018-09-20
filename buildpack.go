@@ -33,7 +33,7 @@ type Buildpack struct {
 func (b Buildpack) Dependencies() (Dependencies, error) {
 	d, ok := b.Metadata["dependencies"]
 	if !ok {
-		return Dependencies{}, fmt.Errorf("no dependencies specified")
+		return Dependencies{}, nil
 	}
 
 	deps, ok := d.([]map[string]interface{})
