@@ -100,7 +100,7 @@ func (p Packager) archivePath() (string, error) {
 	path = append(path, info.ID, info.Version)
 
 	f := fmt.Sprintf("%s-%s.tgz", info.ID, info.Version)
-	f = strings.Replace(f, "SNAPSHOT", time.Now().Format("20060102.150405"), 1)
+	f = strings.Replace(f, "SNAPSHOT", fmt.Sprintf("%s-1", time.Now().Format("20060102.150405")), 1)
 
 	path = append(path, f)
 
