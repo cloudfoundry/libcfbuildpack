@@ -110,6 +110,10 @@ func (p Packager) createArchive(files []string) error {
 
 	p.Logger.FirstLine("Creating archive %s", archive)
 
+	if err = os.MkdirAll(filepath.Dir(archive), 0755); err != nil {
+		return err
+	}
+
 	file, err := os.OpenFile(archive, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
