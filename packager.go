@@ -94,7 +94,12 @@ func (p Packager) archivePath() (string, error) {
 
 	info := p.Buildpack.Info
 
-	return filepath.Join(dir, fmt.Sprintf("%s-v%s.tar.gz", info.ID, info.Version)), nil
+	path := []string{dir}
+	path = append(path, strings.Split(info.ID, ".")...)
+	path = append(path, info.Version)
+	path = append(path, fmt.Sprintf("%s-v%s.tar.gz", info.ID, info.Version))
+
+	return filepath.Join(path...), nil
 }
 
 func (p Packager) createArchive(files []string) error {
