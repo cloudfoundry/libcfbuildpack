@@ -184,7 +184,6 @@ name = ""
 version = "1.0"
 uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-license = ""
 `)
 		})
 
@@ -208,7 +207,6 @@ name = ""
 version = "1.0"
 uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-license = ""
 `), filepath.Join(root, dependency.SHA256, "dependency.toml"), 0644)
 
 			_, err = cache.DownloadLayer(dependency).Artifact()

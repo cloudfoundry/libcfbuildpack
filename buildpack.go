@@ -122,12 +122,6 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		return Dependency{}, fmt.Errorf("dependency sha256 missing or wrong format")
 	}
 
-	license, ok := dep["license"].(string)
-	if !ok {
-		return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
-	}
-
-
 	s, ok := dep["stacks"].([]interface{})
 	if !ok {
 		return Dependency{}, fmt.Errorf("dependency stacks missing or wrong format")
@@ -143,7 +137,7 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		stacks = append(stacks, u)
 	}
 
-	return Dependency{id, name, Version{version}, uri, sha256, license, stacks}, nil
+	return Dependency{id, name, Version{version}, uri, sha256, stacks}, nil
 }
 
 // Dependencies is a collection of Dependency instances.
@@ -212,17 +206,14 @@ type Dependency struct {
 	// SHA256 is the hash of the dependency.
 	SHA256 string `toml:"sha256"`
 
-	// License is a dependency license URI.
-	License string `toml:"license"`
-
 	// Stacks are the stacks the dependency is compatible with.
 	Stacks Stacks `toml:"stacks"`
 }
 
 // String makes Dependency satisfy the Stringer interface.
 func (d Dependency) String() string {
-	return fmt.Sprintf("Dependency{ ID: %s, Name: %s, Version: %s, URI: %s, SHA256: %s, License: %s, Stacks: %s}",
-		d.ID, d.Name, d.Version, d.URI, d.SHA256, d.License, d.Stacks)
+	return fmt.Sprintf("Dependency{ ID: %s, Name: %s, Version: %s, URI: %s, SHA256: %s, Stacks: %s}",
+		d.ID, d.Name, d.Version, d.URI, d.SHA256, d.Stacks)
 }
 
 type Version struct {

@@ -70,7 +70,6 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"version": "1.0",
 						"uri":     "test-uri-1",
 						"sha256":  "test-sha256-1",
-						"license": "test-license-1",
 						"stacks":  []interface{}{"test-stack-1a", "test-stack-1b"},
 					},
 					{
@@ -79,7 +78,6 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"version": "2.0",
 						"uri":     "test-uri-2",
 						"sha256":  "test-sha256-2",
-						"license": "test-license-2",
 						"stacks":  []interface{}{"test-stack-2a", "test-stack-2b"},
 					},
 				},
@@ -93,7 +91,6 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 				Version: newVersion(t, "1.0"),
 				URI:     "test-uri-1",
 				SHA256:  "test-sha256-1",
-				License: "test-license-1",
 				Stacks:  []string{"test-stack-1a", "test-stack-1b"}},
 			libjavabuildpack.Dependency{
 				ID:      "test-id-2",
@@ -101,7 +98,6 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 				Version: newVersion(t, "2.0"),
 				URI:     "test-uri-2",
 				SHA256:  "test-sha256-2",
-				License: "test-license-2",
 				Stacks:  []string{"test-stack-2a", "test-stack-2b"}},
 		}
 
