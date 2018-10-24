@@ -59,6 +59,14 @@ func (f *BuildFactory) addDependency(t *testing.T, dependency libjavabuildpack.D
 		stacks = append(stacks, stack)
 	}
 
+	var licenses []map[string]interface{}
+	for _, license := range dependency.Licenses {
+		licenses = append(licenses, map[string]interface{}{
+			"type": license.Type,
+			"uri":  license.URI,
+		})
+	}
+
 	metadata["dependencies"] = append(dependencies, map[string]interface{}{
 		"id":       dependency.ID,
 		"name":     dependency.Name,
@@ -66,7 +74,7 @@ func (f *BuildFactory) addDependency(t *testing.T, dependency libjavabuildpack.D
 		"uri":      dependency.URI,
 		"sha256":   dependency.SHA256,
 		"stacks":   stacks,
-		"licenses": dependency.Licenses,
+		"licenses": licenses,
 	})
 }
 
