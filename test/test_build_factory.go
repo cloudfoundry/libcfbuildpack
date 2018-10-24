@@ -60,12 +60,13 @@ func (f *BuildFactory) addDependency(t *testing.T, dependency libjavabuildpack.D
 	}
 
 	metadata["dependencies"] = append(dependencies, map[string]interface{}{
-		"id":      dependency.ID,
-		"name":    dependency.Name,
-		"version": dependency.Version.Version.Original(),
-		"uri":     dependency.URI,
-		"sha256":  dependency.SHA256,
-		"stacks":  stacks,
+		"id":       dependency.ID,
+		"name":     dependency.Name,
+		"version":  dependency.Version.Version.Original(),
+		"uri":      dependency.URI,
+		"sha256":   dependency.SHA256,
+		"stacks":   stacks,
+		"licenses": dependency.Licenses,
 	})
 }
 
