@@ -156,17 +156,11 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 
 	var licenses Licenses
 	for _, t := range l {
-		lt, ok := t["type"].(string)
-		if !ok {
-			return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
-		}
+		lt, tok := t["type"].(string)
 
-		lu, ok := t["uri"].(string)
-		if !ok {
-			return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
-		}
+		lu, uok := t["uri"].(string)
 
-		if lt == "" && lu == "" {
+		if !tok && !uok {
 			return Dependency{}, fmt.Errorf("dependency license must have at least one of type or uri")
 		}
 
