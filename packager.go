@@ -35,7 +35,6 @@ type Packager struct {
 	Buildpack Buildpack
 	Cache     Cache
 	Logger    Logger
-	Root      string
 }
 
 // Create creates a new buildpack package.
@@ -62,7 +61,7 @@ func (p Packager) Create() error {
 func (p Packager) addFile(out *tar.Writer, path string) error {
 	p.Logger.SubsequentLine("Adding %s", path)
 
-	file, err := os.Open(filepath.Join(p.Root, path))
+	file, err := os.Open(filepath.Join(p.Buildpack.Root, path))
 	if err != nil {
 		return err
 	}
@@ -168,12 +167,12 @@ func (p Packager) cacheDependencies() ([]string, error) {
 			return nil, err
 		}
 
-		artifact, err := filepath.Rel(p.Root, a)
+		artifact, err := filepath.Rel(p.Buildpack.Root, a)
 		if err != nil {
 			return nil, err
 		}
 
-		metadata, err := filepath.Rel(p.Root, layer.Metadata())
+		metadata, err := filepath.Rel(p.Buildpack.Root, layer.Metadata(layer.Root))
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +192,7 @@ func (p Packager) prePackage() error {
 	cmd := exec.Command(pp)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = p.Root
+	cmd.Dir = p.Buildpack.Root
 
 	p.Logger.FirstLine("Pre-Package with %s", strings.Join(cmd.Args, " "))
 
@@ -204,12 +203,6 @@ func (p Packager) prePackage() error {
 func DefaultPackager() (Packager, error) {
 	p := Packager{}
 
-	root, err := FindRoot()
-	if err != nil {
-		return Packager{}, err
-	}
-	p.Root = root
-
 	logger := p.defaultLogger()
 	p.Logger = Logger{Logger: logger}
 
@@ -219,7 +212,7 @@ func DefaultPackager() (Packager, error) {
 	}
 	p.Buildpack = Buildpack{Buildpack: buildpack}
 
-	cache := libbuildpack.Cache{Root: filepath.Join(root, "cache"), Logger: logger}
+	cache := libbuildpack.Cache{Root: p.Buildpack.CacheRoot, Logger: logger}
 	p.Cache = Cache{Cache: cache, Logger: p.Logger}
 
 	return p, nil

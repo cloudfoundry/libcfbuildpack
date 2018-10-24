@@ -18,6 +18,7 @@ package libjavabuildpack
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 
 	"github.com/Masterminds/semver"
@@ -27,6 +28,9 @@ import (
 // Buildpack is an extension to libbuildpack.Buildpack that adds additional opinionated behaviors.
 type Buildpack struct {
 	libbuildpack.Buildpack
+
+	// CacheRoot is the path to the root directory for the buildpack's dependency cache.
+	CacheRoot string
 }
 
 // Dependencies returns the collection of dependencies extracted from the generic buildpack metadata.
@@ -249,4 +253,12 @@ func (s Stacks) contains(stack string) bool {
 	}
 
 	return false
+}
+
+// NewBuildpack creates a new instance of Buildpack from a specified libbuildpack.Buildpack.
+func NewBuildpack(buildpack libbuildpack.Buildpack) Buildpack {
+	return Buildpack{
+		buildpack,
+		filepath.Join(buildpack.Root, "cache"),
+	}
 }

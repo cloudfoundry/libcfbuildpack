@@ -36,6 +36,9 @@ import (
 type Cache struct {
 	libbuildpack.Cache
 
+	// BuildpackCacheRoot is the path to the root directory for the buildpack's dependency cache.
+	BuildpackCacheRoot string
+
 	// Logger is used to write debug and info to the console.
 	Logger Logger
 }
@@ -55,13 +58,15 @@ func (c Cache) DownloadLayer(dependency Dependency) DownloadCacheLayer {
 	return DownloadCacheLayer{
 		c.Layer(dependency.SHA256),
 		c.Logger,
+		filepath.Join(c.BuildpackCacheRoot, dependency.SHA256),
 		dependency,
 	}
 }
 
 // String makes Cache satisfy the Stringer interface.
 func (c Cache) String() string {
-	return fmt.Sprintf("Cache{ Cache: %s, Logger: %s }", c.Cache, c.Logger)
+	return fmt.Sprintf("Cache{ Cache: %s, BuildpackCacheRoot: %s, Logger: %s}",
+		c.Cache, c.BuildpackCacheRoot, c.Logger)
 }
 
 // DependencyCacheLayer is an extension to CacheLayer that is unique to a dependency contribution.
@@ -163,21 +168,33 @@ type DownloadCacheLayer struct {
 	// Logger is used to write debug and info to the console.
 	Logger Logger
 
+	buildpackLayerRoot string
+
 	dependency Dependency
 }
 
 // Artifact returns the path to an artifact cached in the layer.  If the artifact has already been downloaded, the cache
 // will be validated and used directly.
 func (d DownloadCacheLayer) Artifact() (string, error) {
-	a := filepath.Join(d.Root, filepath.Base(d.dependency.URI))
-
-	m, err := d.readMetadata()
+	m, err := d.readMetadata(d.buildpackLayerRoot)
 	if err != nil {
 		return "", err
 	}
 
 	if reflect.DeepEqual(d.dependency, m) {
-		d.Logger.SubsequentLine("%s cached download", color.GreenString("Reusing"))
+		d.Logger.SubsequentLine("%s cached download from buildpack", color.GreenString("Reusing"))
+		return filepath.Join(d.buildpackLayerRoot, filepath.Base(d.dependency.URI)), nil
+	}
+
+	m, err = d.readMetadata(d.Root)
+	if err != nil {
+		return "", err
+	}
+
+	a := filepath.Join(d.Root, filepath.Base(d.dependency.URI))
+
+	if reflect.DeepEqual(d.dependency, m) {
+		d.Logger.SubsequentLine("%s cached download from previous build", color.GreenString("Reusing"))
 		return a, nil
 	}
 
@@ -196,7 +213,7 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 		return "", err
 	}
 
-	if err := d.writeMetadata(); err != nil {
+	if err := d.writeMetadata(d.Root); err != nil {
 		return "", err
 	}
 
@@ -204,14 +221,14 @@ func (d DownloadCacheLayer) Artifact() (string, error) {
 }
 
 // Metadata returns the path to the metadata file for an artifact cached in the later.
-func (d DownloadCacheLayer) Metadata() string {
-	return filepath.Join(d.Root, "dependency.toml")
+func (d DownloadCacheLayer) Metadata(root string) string {
+	return filepath.Join(root, "dependency.toml")
 }
 
 // String makes DownloadCacheLayer satisfy the Stringer interface.
 func (d DownloadCacheLayer) String() string {
-	return fmt.Sprintf("DownloadCacheLayer{ CacheLayer: %s, Logger: %s, dependency: %s }",
-		d.CacheLayer, d.Logger, d.dependency)
+	return fmt.Sprintf("DownloadCacheLayer{ CacheLayer: %s, Logger: %s, buildpackLayerRoot: %s, dependency: %s }",
+		d.CacheLayer, d.Logger, d.buildpackLayerRoot, d.dependency)
 }
 
 func (d DownloadCacheLayer) download(file string) error {
@@ -228,23 +245,23 @@ func (d DownloadCacheLayer) download(file string) error {
 	return WriteToFile(resp.Body, file, 0644)
 }
 
-func (d DownloadCacheLayer) readMetadata() (Dependency, error) {
-	f := d.Metadata()
+func (d DownloadCacheLayer) readMetadata(root string) (Dependency, error) {
+	metadata := d.Metadata(root)
 
-	exists, err := FileExists(f)
+	exists, err := FileExists(metadata)
 	if err != nil || !exists {
-		d.Logger.Debug("Download metadata %s does not exist", f)
+		d.Logger.Debug("Download metadata %s does not exist", metadata)
 		return Dependency{}, err
 	}
 
 	var dep Dependency
 
-	if err = FromTomlFile(f, &dep); err != nil {
-		d.Logger.Debug("Download metadata %s is not structured correctly", f)
+	if err = FromTomlFile(metadata, &dep); err != nil {
+		d.Logger.Debug("Download metadata %s is not structured correctly", metadata)
 		return Dependency{}, err
 	}
 
-	d.Logger.Debug("Reading download metadata: %s => %s", f, dep)
+	d.Logger.Debug("Reading download metadata: %s => %s", metadata, dep)
 	return dep, nil
 }
 
@@ -271,8 +288,8 @@ func (d DownloadCacheLayer) verify(file string) error {
 	return nil
 }
 
-func (d DownloadCacheLayer) writeMetadata() error {
-	f := d.Metadata()
+func (d DownloadCacheLayer) writeMetadata(root string) error {
+	f := d.Metadata(root)
 	d.Logger.Debug("Writing cache metadata: %s <= %s", f, d.dependency)
 
 	toml, err := internal.ToTomlString(d.dependency)

@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -110,37 +109,6 @@ func FileExists(file string) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// FindRoot returns the location of the root of the current buildpack.
-func FindRoot() (string, error) {
-	exec, err := osArgs(0)
-	if err != nil {
-		return "", err
-	}
-
-	dir, err := filepath.Abs(path.Dir(exec))
-	if err != nil {
-		return "", err
-	}
-
-	for {
-		if dir == "/" {
-			return "", fmt.Errorf("could not find buildpack.toml in the directory hierarchy")
-		}
-
-		f := filepath.Join(dir, "buildpack.toml")
-		if exist, err := FileExists(f); err != nil {
-			return "", err
-		} else if exist {
-			return dir, nil
-		}
-
-		dir, err = filepath.Abs(filepath.Join(dir, ".."))
-		if err != nil {
-			return "", err
-		}
-	}
 }
 
 // FromTomlFile decodes a TOML file into a struct.

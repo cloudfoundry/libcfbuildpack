@@ -187,7 +187,43 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 `)
 		})
 
-		it("does not download a cached dependency", func() {
+		it("does not download a buildpack cached dependency", func() {
+			root := test.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{
+				Cache:              libbuildpack.Cache{Root: root},
+				BuildpackCacheRoot: filepath.Join(root, "buildpack"),
+			}
+
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			dependency := libjavabuildpack.Dependency{
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
+
+			libjavabuildpack.WriteToFile(strings.NewReader(`id = ""
+name = ""
+version = "1.0"
+uri = "http://test.com/test-path"
+sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
+`), filepath.Join(root, "buildpack", dependency.SHA256, "dependency.toml"), 0644)
+
+			a, err := cache.DownloadLayer(dependency).Artifact()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			expected := filepath.Join(root, "buildpack", dependency.SHA256, "test-path")
+			if a != expected {
+				t.Errorf("DownloadCacheLayer.Artifact() = %s, expected %s", a, expected)
+			}
+		})
+
+		it("does not download a previously cached dependency", func() {
 			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
 
@@ -209,9 +245,14 @@ uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 `), filepath.Join(root, dependency.SHA256, "dependency.toml"), 0644)
 
-			_, err = cache.DownloadLayer(dependency).Artifact()
+			a, err := cache.DownloadLayer(dependency).Artifact()
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			expected := filepath.Join(root, dependency.SHA256, "test-path")
+			if a != expected {
+				t.Errorf("DownloadCacheLayer.Artifact() = %s, expected %s", a, expected)
 			}
 		})
 
@@ -237,7 +278,8 @@ uri = "http://test.com/test-path"
 sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 `), filepath.Join(root, dependency.SHA256, "dependency.toml"), 0644)
 
-			actual := cache.DownloadLayer(dependency).Metadata()
+			layer := cache.DownloadLayer(dependency)
+			actual := layer.Metadata(layer.Root)
 
 			expected := filepath.Join(root, dependency.SHA256, "dependency.toml")
 			if actual != expected {

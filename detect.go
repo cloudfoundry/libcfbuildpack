@@ -47,7 +47,7 @@ func DefaultDetect() (Detect, error) {
 
 	return Detect{
 		d,
-		Buildpack{d.Buildpack},
+		NewBuildpack(d.Buildpack),
 		Logger{d.Logger},
 	}, nil
 }

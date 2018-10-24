@@ -53,11 +53,12 @@ func DefaultBuild() (Build, error) {
 	}
 
 	logger := Logger{b.Logger}
-	cache := Cache{b.Cache, logger}
+	buildpack := NewBuildpack(b.Buildpack)
+	cache := Cache{b.Cache, buildpack.CacheRoot, logger}
 
 	return Build{
 		b,
-		Buildpack{b.Buildpack},
+		buildpack,
 		cache,
 		Launch{b.Launch, cache, logger},
 		logger,
