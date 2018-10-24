@@ -210,7 +210,7 @@ func DefaultPackager() (Packager, error) {
 	if err != nil {
 		return Packager{}, err
 	}
-	p.Buildpack = Buildpack{Buildpack: buildpack}
+	p.Buildpack = NewBuildpack(buildpack)
 
 	cache := libbuildpack.Cache{Root: p.Buildpack.CacheRoot, Logger: logger}
 	p.Cache = Cache{Cache: cache, Logger: p.Logger}
