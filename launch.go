@@ -52,6 +52,39 @@ func (l Launch) String() string {
 	return fmt.Sprintf("Launch{ Launch: %s Cache: %s, Logger: %s }", l.Launch, l.Cache, l.Logger)
 }
 
+// WriteMetadata writes Launch metadata to the filesystem.
+func (l Launch) WriteMetadata(metadata libbuildpack.LaunchMetadata) error {
+	l.Logger.FirstLine("Process types:")
+
+	max := l.maximumTypeLength(metadata)
+
+	for _, t := range metadata.Processes {
+		s := color.CyanString(t.Type) + ":"
+
+		for i := 0 ; i < (max - len(t.Type)) ; i++ {
+			s += " "
+		}
+
+		l.Logger.SubsequentLine("%s %s", s, t.Command)
+	}
+
+	return l.Launch.WriteMetadata(metadata)
+}
+
+func (l Launch) maximumTypeLength(metadata libbuildpack.LaunchMetadata) int {
+	max := 0
+
+	for _, t := range metadata.Processes {
+		l := len(t.Type)
+
+		if l > max {
+			max = l
+		}
+	}
+
+	return max
+}
+
 // DependencyLaunchLayer is an extension to LaunchLayer that is unique to a dependency.
 type DependencyLaunchLayer struct {
 	libbuildpack.LaunchLayer

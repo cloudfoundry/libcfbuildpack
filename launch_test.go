@@ -17,6 +17,7 @@
 package libjavabuildpack_test
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,7 @@ import (
 	"github.com/buildpack/libbuildpack"
 	"github.com/cloudfoundry/libjavabuildpack"
 	"github.com/cloudfoundry/libjavabuildpack/test"
+	"github.com/fatih/color"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -37,7 +39,7 @@ func TestLaunch(t *testing.T) {
 func testLaunch(t *testing.T, when spec.G, it spec.S) {
 
 	it("creates a dependency launch with the dependency id", func() {
-		root := test.ScratchDir(t, "cache")
+		root := test.ScratchDir(t, "launch")
 		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}}
 		dependency := libjavabuildpack.Dependency{ID: "test-id"}
 
@@ -128,7 +130,7 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 	})
 
 	it("returns artifact name", func() {
-		root := test.ScratchDir(t, "cache")
+		root := test.ScratchDir(t, "launch")
 		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}}
 		dependency := libjavabuildpack.Dependency{ID: "test-id", URI: "http://localhost/path/test-artifact-name"}
 
@@ -136,6 +138,31 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 
 		if d.ArtifactName() != "test-artifact-name" {
 			t.Errorf("DependencyLaunchLayer.ArtifactName = %s, expected test-artifact-name", d.ArtifactName())
+		}
+	})
+
+	it("logs process types", func() {
+		root := test.ScratchDir(t, "launch")
+
+		var info bytes.Buffer
+		logger := libjavabuildpack.Logger{Logger: libbuildpack.NewLogger(nil, &info)}
+		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}, Logger: logger}
+
+		launch.WriteMetadata(libbuildpack.LaunchMetadata{
+			Processes: []libbuildpack.Process{
+				{"short", "test-command-1"},
+				{"a-very-long-type", "test-command-2"},
+			},
+		})
+
+		expected := fmt.Sprintf(`%s Process types:
+       %s:            test-command-1
+       %s: test-command-2
+`, color.New(color.FgRed, color.Bold).Sprint("----->"), color.CyanString("short"),
+			color.CyanString("a-very-long-type"))
+
+		if info.String() != expected {
+			t.Errorf("Process types log = %s, expected %s", info.String(), expected)
 		}
 	})
 
