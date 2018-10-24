@@ -145,7 +145,7 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		stacks = append(stacks, u)
 	}
 
-	l, ok := dep["licenses"].([]interface{})
+	l, ok := dep["licenses"].([]map[string]interface{})
 	if !ok {
 		return Dependency{}, fmt.Errorf("dependency licenses missing or wrong format")
 	}
@@ -156,13 +156,15 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 
 	var licenses Licenses
 	for _, t := range l {
-		u, ok := t.(map[string]string)
+		lt, ok := t["type"].(string)
 		if !ok {
 			return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
 		}
 
-		lt := u["type"]
-		lu := u["uri"]
+		lu, ok := t["uri"].(string)
+		if !ok {
+			return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
+		}
 
 		if lt == "" && lu == "" {
 			return Dependency{}, fmt.Errorf("dependency license must have at least one of type or uri")
@@ -301,8 +303,8 @@ type Licenses []License
 
 // License represents a license that a Dependency is distributed under.  At least one of Name or URI MUST be specified.
 type License struct {
-	// Type is the type of the license.  This is typically the Open Source Initiative approved name for OSI licenses.
-	Type string `toml:"name"`
+	// Type is the type of the license.  This is typically the SPDX short identifier.
+	Type string `toml:"type"`
 
 	// URI is the location where the license can be found.
 	URI string `toml:"uri"`

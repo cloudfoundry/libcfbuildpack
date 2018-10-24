@@ -71,12 +71,12 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"uri":     "test-uri-1",
 						"sha256":  "test-sha256-1",
 						"stacks":  []interface{}{"test-stack-1a", "test-stack-1b"},
-						"licenses": []interface{}{
-							map[string]string{
+						"licenses": []map[string]interface{}{
+							{
 								"type": "test-type-1",
 								"uri":  "test-uri-1",
 							},
-							map[string]string{
+							{
 								"type": "test-type-2",
 								"uri":  "test-uri-2",
 							},
@@ -89,12 +89,12 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"uri":     "test-uri-2",
 						"sha256":  "test-sha256-2",
 						"stacks":  []interface{}{"test-stack-2a", "test-stack-2b"},
-						"licenses": []interface{}{
-							map[string]string{
+						"licenses": []map[string]interface{}{
+							{
 								"type": "test-type-1",
 								"uri":  "test-uri-1",
 							},
-							map[string]string{
+							{
 								"type": "test-type-2",
 								"uri":  "test-uri-2",
 							},
