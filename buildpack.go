@@ -131,17 +131,55 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 		return Dependency{}, fmt.Errorf("dependency stacks missing or wrong format")
 	}
 
-	var stacks []string
+	if len(s) == 0 {
+		return Dependency{}, fmt.Errorf("at least one dependency stack is required")
+	}
+
+	var stacks Stacks
 	for _, t := range s {
 		u, ok := t.(string)
 		if !ok {
-			return Dependency{}, fmt.Errorf("dependency stacks missing or wrong format")
+			return Dependency{}, fmt.Errorf("dependency stack missing or wrong format")
 		}
 
 		stacks = append(stacks, u)
 	}
 
-	return Dependency{id, name, Version{version}, uri, sha256, stacks}, nil
+	l, ok := dep["licenses"].([]interface{})
+	if !ok {
+		return Dependency{}, fmt.Errorf("dependency licenses missing or wrong format")
+	}
+
+	if len(l) == 0 {
+		return Dependency{}, fmt.Errorf("at least one dependency license is required")
+	}
+
+	var licenses Licenses
+	for _, t := range l {
+		u, ok := t.(map[string]string)
+		if !ok {
+			return Dependency{}, fmt.Errorf("dependency license missing or wrong format")
+		}
+
+		lt := u["type"]
+		lu := u["uri"]
+
+		if lt == "" && lu == "" {
+			return Dependency{}, fmt.Errorf("dependency license must have at least one of type or uri")
+		}
+
+		licenses = append(licenses, License{lt, lu})
+	}
+
+	return Dependency{
+		id,
+		name,
+		Version{version},
+		uri,
+		sha256,
+		stacks,
+		licenses,
+	}, nil
 }
 
 // Dependencies is a collection of Dependency instances.
@@ -212,6 +250,9 @@ type Dependency struct {
 
 	// Stacks are the stacks the dependency is compatible with.
 	Stacks Stacks `toml:"stacks"`
+
+	// Licenses are the stacks the dependency is distributed under.
+	Licenses Licenses `toml:"licenses"`
 }
 
 // String makes Dependency satisfy the Stringer interface.
@@ -253,6 +294,18 @@ func (s Stacks) contains(stack string) bool {
 	}
 
 	return false
+}
+
+// Licenses is a collection of licenses
+type Licenses []License
+
+// License represents a license that a Dependency is distributed under.  At least one of Name or URI MUST be specified.
+type License struct {
+	// Type is the type of the license.  This is typically the Open Source Initiative approved name for OSI licenses.
+	Type string `toml:"name"`
+
+	// URI is the location where the license can be found.
+	URI string `toml:"uri"`
 }
 
 // NewBuildpack creates a new instance of Buildpack from a specified libbuildpack.Buildpack.

@@ -71,6 +71,16 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"uri":     "test-uri-1",
 						"sha256":  "test-sha256-1",
 						"stacks":  []interface{}{"test-stack-1a", "test-stack-1b"},
+						"licenses": []interface{}{
+							map[string]string{
+								"type": "test-type-1",
+								"uri":  "test-uri-1",
+							},
+							map[string]string{
+								"type": "test-type-2",
+								"uri":  "test-uri-2",
+							},
+						},
 					},
 					{
 						"id":      "test-id-2",
@@ -79,6 +89,16 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 						"uri":     "test-uri-2",
 						"sha256":  "test-sha256-2",
 						"stacks":  []interface{}{"test-stack-2a", "test-stack-2b"},
+						"licenses": []interface{}{
+							map[string]string{
+								"type": "test-type-1",
+								"uri":  "test-uri-1",
+							},
+							map[string]string{
+								"type": "test-type-2",
+								"uri":  "test-uri-2",
+							},
+						},
 					},
 				},
 			},
@@ -91,14 +111,24 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 				Version: newVersion(t, "1.0"),
 				URI:     "test-uri-1",
 				SHA256:  "test-sha256-1",
-				Stacks:  []string{"test-stack-1a", "test-stack-1b"}},
+				Stacks:  libjavabuildpack.Stacks{"test-stack-1a", "test-stack-1b"},
+				Licenses: libjavabuildpack.Licenses{
+					libjavabuildpack.License{Type: "test-type-1", URI: "test-uri-1"},
+					libjavabuildpack.License{Type: "test-type-2", URI: "test-uri-2"},
+				},
+			},
 			libjavabuildpack.Dependency{
 				ID:      "test-id-2",
 				Name:    "test-name-2",
 				Version: newVersion(t, "2.0"),
 				URI:     "test-uri-2",
 				SHA256:  "test-sha256-2",
-				Stacks:  []string{"test-stack-2a", "test-stack-2b"}},
+				Stacks:  libjavabuildpack.Stacks{"test-stack-2a", "test-stack-2b"},
+				Licenses: libjavabuildpack.Licenses{
+					libjavabuildpack.License{Type: "test-type-1", URI: "test-uri-1"},
+					libjavabuildpack.License{Type: "test-type-2", URI: "test-uri-2"},
+				},
+			},
 		}
 
 		actual, err := libjavabuildpack.Buildpack{Buildpack: b}.Dependencies()
