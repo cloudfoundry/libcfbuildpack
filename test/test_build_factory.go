@@ -101,6 +101,9 @@ func (f *BuildFactory) newDependency(t *testing.T, id string, fixture string) li
 		URI:     fmt.Sprintf("http://localhost/%s", filepath.Base(fixture)),
 		SHA256:  "test-hash",
 		Stacks:  libjavabuildpack.Stacks{f.Build.Stack},
+		Licenses: libjavabuildpack.Licenses{
+			libjavabuildpack.License{Type: "test-type"},
+		},
 	}
 }
 
