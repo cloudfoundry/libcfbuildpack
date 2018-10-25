@@ -135,6 +135,10 @@ func (d DependencyLaunchLayer) Contribute(contributor LaunchContributor) error {
 		return err
 	}
 
+	if err := os.MkdirAll(d.Root, 0755) ; err != nil {
+		return err
+	}
+
 	a, err := d.downloadLayer.Artifact()
 	if err != nil {
 		return err

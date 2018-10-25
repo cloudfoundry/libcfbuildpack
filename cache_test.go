@@ -90,6 +90,39 @@ func testCache(t *testing.T, when spec.G, it spec.S) {
 			}
 		})
 
+		it("creates cache layer when contribute called", func() {
+			root := test.ScratchDir(t, "cache")
+			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+
+			v, err := semver.NewVersion("1.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			dependency := libjavabuildpack.Dependency{
+				ID:      "test-id",
+				Version: libjavabuildpack.Version{Version: v},
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
+
+			defer gock.Off()
+
+			gock.New("http://test.com").
+				Get("/test-path").
+				Reply(200).
+				BodyString("test-payload")
+
+			layer := cache.DependencyLayer(dependency)
+			err = layer.Contribute(func(artifact string, layer libjavabuildpack.DependencyCacheLayer) error {
+				internal.FileExists(t, layer.Root)
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
 		it("does not contribute a dependency", func() {
 			root := test.ScratchDir(t, "cache")
 			cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}

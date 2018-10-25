@@ -26,12 +26,13 @@ import (
 func BeFileLike(t *testing.T, file string, mode os.FileMode, content string) {
 	t.Helper()
 
-	fileExists(t, file)
+	FileExists(t, file)
 	fileModeMatches(t, file, mode)
 	fileContentMatches(t, file, content)
 }
 
-func fileExists(t *testing.T, file string) {
+// FileExists tests that a file exists
+func FileExists(t *testing.T, file string) {
 	t.Helper()
 
 	_, err := os.Stat(file)

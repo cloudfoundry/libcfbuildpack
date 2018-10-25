@@ -26,6 +26,7 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/buildpack/libbuildpack"
 	"github.com/cloudfoundry/libjavabuildpack"
+	"github.com/cloudfoundry/libjavabuildpack/internal"
 	"github.com/cloudfoundry/libjavabuildpack/test"
 	"github.com/fatih/color"
 	"github.com/sclevine/spec"
@@ -87,6 +88,40 @@ sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
 
 		if !contributed {
 			t.Errorf("Expected contribution but didn't contribute")
+		}
+	})
+
+	it("creates launch layer when contribute called", func() {
+		root := test.ScratchDir(t, "cache")
+		cache := libjavabuildpack.Cache{Cache: libbuildpack.Cache{Root: root}}
+		launch := libjavabuildpack.Launch{Launch: libbuildpack.Launch{Root: root}, Cache: cache}
+
+		v, err := semver.NewVersion("1.0")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dependency := libjavabuildpack.Dependency{
+			ID:      "test-id",
+			Version: libjavabuildpack.Version{Version: v},
+			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+			URI:     "http://test.com/test-path",
+		}
+
+		libjavabuildpack.WriteToFile(strings.NewReader(`id = "test-id"
+name = ""
+version = "1.0"
+uri = "http://test.com/test-path"
+sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
+`), filepath.Join(root, dependency.SHA256, "dependency.toml"), 0644)
+
+		layer := launch.DependencyLayer(dependency)
+		err = layer.Contribute(func(artifact string, layer libjavabuildpack.DependencyLaunchLayer) error {
+			internal.FileExists(t, layer.Root)
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
 		}
 	})
 

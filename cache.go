@@ -120,6 +120,10 @@ func (d DependencyCacheLayer) Contribute(contributor CacheContributor) error {
 		return err
 	}
 
+	if err := os.MkdirAll(d.Root, 0755) ; err != nil {
+		return err
+	}
+
 	a, err := d.downloadLayer.Artifact()
 	if err != nil {
 		return err
@@ -138,7 +142,6 @@ func (d DependencyCacheLayer) OverrideEnv(name string, format string, args ...in
 	d.Logger.SubsequentLine("Writing %s", name)
 	return d.CacheLayer.OverrideEnv(name, format, args...)
 }
-
 
 func (d DependencyCacheLayer) metadataPath() string {
 	return filepath.Join(d.Root, "dependency.toml")
