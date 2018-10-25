@@ -83,6 +83,20 @@ type DependencyCacheLayer struct {
 // CacheContributor defines a callback function that is called when a dependency needs to be contributed.
 type CacheContributor func(artifact string, layer DependencyCacheLayer) error
 
+// AppendEnv appends the value of this environment variable to any previous declarations of the value without any
+// delimitation.  If delimitation is important during concatenation, callers are required to add it.
+func (d DependencyCacheLayer) AppendEnv(name string, format string, args ...interface{}) error {
+	d.Logger.SubsequentLine("Writing %s", name)
+	return d.CacheLayer.AppendEnv(name, format, args...)
+}
+
+// AppendPathEnv appends the value of this environment variable to any previous declarations of the value using the OS
+// path delimiter.
+func (d DependencyCacheLayer) AppendPathEnv(name string, format string, args ...interface{}) error {
+	d.Logger.SubsequentLine("Writing %s", name)
+	return d.CacheLayer.AppendPathEnv(name, format, args...)
+}
+
 // Contribute contributes an artifact to a cache layer.  If the artifact has already been contributed, the cache will be
 // validated and used directly.
 func (d DependencyCacheLayer) Contribute(contributor CacheContributor) error {
@@ -118,6 +132,13 @@ func (d DependencyCacheLayer) Contribute(contributor CacheContributor) error {
 
 	return d.writeMetadata()
 }
+
+// Override overrides any existing value for an environment variable with this value.
+func (d DependencyCacheLayer) OverrideEnv(name string, format string, args ...interface{}) error {
+	d.Logger.SubsequentLine("Writing %s", name)
+	return d.CacheLayer.OverrideEnv(name, format, args...)
+}
+
 
 func (d DependencyCacheLayer) metadataPath() string {
 	return filepath.Join(d.Root, "dependency.toml")

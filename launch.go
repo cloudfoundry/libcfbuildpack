@@ -61,7 +61,7 @@ func (l Launch) WriteMetadata(metadata libbuildpack.LaunchMetadata) error {
 	for _, t := range metadata.Processes {
 		s := color.CyanString(t.Type) + ":"
 
-		for i := 0 ; i < (max - len(t.Type)) ; i++ {
+		for i := 0; i < (max - len(t.Type)); i++ {
 			s += " "
 		}
 
@@ -146,4 +146,10 @@ func (d DependencyLaunchLayer) Contribute(contributor LaunchContributor) error {
 	}
 
 	return d.WriteMetadata(d.dependency)
+}
+
+// WriteProfile writes a file to profile.d with this value.
+func (d DependencyLaunchLayer) WriteProfile(file string, format string, args ...interface{}) error {
+	d.Logger.SubsequentLine("Writing .profile.d/%s", file)
+	return d.LaunchLayer.WriteProfile(file, format, args...)
 }
