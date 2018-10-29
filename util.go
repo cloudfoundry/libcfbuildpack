@@ -20,14 +20,66 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
 )
+
+// CopyDirectory copies srcDir to destDir
+func CopyDirectory(srcDir, destDir string) error {
+	destExists, _ := FileExists(destDir)
+	if !destExists {
+		return errors.New("destination dir must exist")
+	}
+
+	files, err := ioutil.ReadDir(srcDir)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		src := filepath.Join(srcDir, f.Name())
+		dest := filepath.Join(destDir, f.Name())
+
+		if m := f.Mode(); m&os.ModeSymlink != 0 {
+			target, err := os.Readlink(src)
+			if err != nil {
+				return fmt.Errorf("Error while reading symlink '%s': %v", src, err)
+			}
+			if err := os.Symlink(target, dest); err != nil {
+				return fmt.Errorf("Error while creating '%s' as symlink to '%s': %v", dest, target, err)
+			}
+		} else if f.IsDir() {
+			err = os.MkdirAll(dest, f.Mode())
+			if err != nil {
+				return err
+			}
+			if err := CopyDirectory(src, dest); err != nil {
+				return err
+			}
+		} else {
+			rc, err := os.Open(src)
+			if err != nil {
+				return err
+			}
+
+			err = WriteToFile(rc, dest, f.Mode())
+			if err != nil {
+				rc.Close()
+				return err
+			}
+			rc.Close()
+		}
+	}
+
+	return nil
+}
 
 // CopyFile copies source file to destFile, creating all intermediate directories in destFile
 func CopyFile(source, destFile string) error {
