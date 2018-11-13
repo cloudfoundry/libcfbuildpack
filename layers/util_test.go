@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package libjavabuildpack_test
+package layers_test
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cloudfoundry/libjavabuildpack"
-	"github.com/cloudfoundry/libjavabuildpack/test"
+	"github.com/Masterminds/semver"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/internal"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/test"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -35,9 +38,9 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 	when("ExtractTarGz", func() {
 
 		it("extracts the archive", func() {
-			root := test.ScratchDir(t, "util")
+			root := internal.ScratchDir(t, "util")
 
-			err := libjavabuildpack.ExtractTarGz(test.FixturePath(t, "test-archive.tar.gz"), root, 0)
+			err := layers.ExtractTarGz(internal.FixturePath(t, "test-archive.tar.gz"), root, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -48,14 +51,14 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("skips stripped components", func() {
-			root := test.ScratchDir(t, "util")
+			root := internal.ScratchDir(t, "util")
 
-			err := libjavabuildpack.ExtractTarGz(test.FixturePath(t, "test-archive.tar.gz"), root, 1)
+			err := layers.ExtractTarGz(internal.FixturePath(t, "test-archive.tar.gz"), root, 1)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			exists, err := libjavabuildpack.FileExists(filepath.Join(root, "fileA.txt"))
+			exists, err := layers.FileExists(filepath.Join(root, "fileA.txt"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -73,9 +76,9 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 	when("ExtractZip", func() {
 
 		it("extracts the archive", func() {
-			root := test.ScratchDir(t, "util")
+			root := internal.ScratchDir(t, "util")
 
-			err := libjavabuildpack.ExtractZip(test.FixturePath(t, "test-archive.zip"), root, 0)
+			err := layers.ExtractZip(internal.FixturePath(t, "test-archive.zip"), root, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -86,14 +89,14 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("skips stripped components", func() {
-			root := test.ScratchDir(t, "util")
+			root := internal.ScratchDir(t, "util")
 
-			err := libjavabuildpack.ExtractZip(test.FixturePath(t, "test-archive.zip"), root, 1)
+			err := layers.ExtractZip(internal.FixturePath(t, "test-archive.zip"), root, 1)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			exists, err := libjavabuildpack.FileExists(filepath.Join(root, "fileA.txt"))
+			exists, err := layers.FileExists(filepath.Join(root, "fileA.txt"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -108,4 +111,15 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 
 	})
 
+}
+
+func newVersion(t *testing.T, version string) buildpack.Version {
+	t.Helper()
+
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return buildpack.Version{Version: v}
 }

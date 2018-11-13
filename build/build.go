@@ -14,53 +14,60 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package build
 
 import (
 	"fmt"
 
-	"github.com/buildpack/libbuildpack"
+	"github.com/buildpack/libbuildpack/build"
+	layersBp "github.com/buildpack/libbuildpack/layers"
+	buildpackPkg "github.com/cloudfoundry/libcfbuildpack/buildpack"
+	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	loggerPkg "github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
 // Build is an extension to libbuildpack.Build that allows additional functionality to be added.
 type Build struct {
-	libbuildpack.Build
+	build.Build
 
 	// Buildpack represents the metadata associated with a buildpack.
-	Buildpack Buildpack
+	Buildpack buildpackPkg.Buildpack
 
-	// Cache represents the cache layers contributed by a buildpack.
-	Cache Cache
-
-	// Launch represents the launch layers contributed by the buildpack.
-	Launch Launch
+	// Layers represents the launch layers contributed by a buildpack.
+	Layers layersCf.Layers
 
 	// Logger is used to write debug and info to the console.
-	Logger Logger
+	Logger loggerPkg.Logger
 }
 
 // String makes Build satisfy the Stringer interface.
 func (b Build) String() string {
-	return fmt.Sprintf("Build{ Build: %s, Buildpack: %s, Cache: %s, Logger: %s }",
-		b.Build, b.Buildpack, b.Cache, b.Logger)
+	return fmt.Sprintf("Build{ Build: %s, Buildpack: %s, Layers: %s, Logger: %s }",
+		b.Build, b.Buildpack, b.Layers, b.Logger)
 }
 
 // DefaultBuild creates a new instance of Build using default values.
 func DefaultBuild() (Build, error) {
-	b, err := libbuildpack.DefaultBuild()
+	b, err := build.DefaultBuild()
 	if err != nil {
 		return Build{}, err
 	}
 
-	logger := Logger{b.Logger}
-	buildpack := NewBuildpack(b.Buildpack)
-	cache := Cache{b.Cache, buildpack.CacheRoot, logger}
+	logger := loggerPkg.Logger{Logger: b.Logger}
+	buildpack := buildpackPkg.NewBuildpack(b.Buildpack)
+	layers := layersCf.Layers{
+		Layers: b.Layers,
+		BuildpackCache: layersBp.Layers{
+			Root:   buildpack.CacheRoot,
+			Logger: b.Logger,
+		},
+		Logger: logger,
+	}
 
 	return Build{
 		b,
 		buildpack,
-		cache,
-		Launch{b.Launch, cache, logger},
+		layers,
 		logger,
 	}, nil
 }

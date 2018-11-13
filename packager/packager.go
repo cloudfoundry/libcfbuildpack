@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package packager
 
 import (
 	"archive/tar"
@@ -27,14 +27,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/buildpack/libbuildpack"
+	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
+	layersBp "github.com/buildpack/libbuildpack/layers"
+	loggerBp "github.com/buildpack/libbuildpack/logger"
+	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
+	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
 // Packager is a root element for packaging up a buildpack
 type Packager struct {
-	Buildpack Buildpack
-	Cache     Cache
-	Logger    Logger
+	Buildpack buildpackCf.Buildpack
+	Layers    layersCf.Layers
+	Logger    loggerCf.Logger
 }
 
 // Create creates a new buildpack package.
@@ -106,6 +111,40 @@ func (p Packager) archivePath() (string, error) {
 	return filepath.Join(path...), nil
 }
 
+func (p Packager) cacheDependencies() ([]string, error) {
+	var files []string
+
+	deps, err := p.Buildpack.Dependencies()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dep := range deps {
+		p.Logger.FirstLine("Caching %s", p.Logger.PrettyVersion(dep))
+
+		layer := p.Layers.DownloadLayer(dep)
+
+		a, err := layer.Artifact()
+		if err != nil {
+			return nil, err
+		}
+
+		artifact, err := filepath.Rel(p.Buildpack.Root, a)
+		if err != nil {
+			return nil, err
+		}
+
+		metadata, err := filepath.Rel(p.Buildpack.Root, layer.Metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, artifact, metadata)
+	}
+
+	return files, nil
+}
+
 func (p Packager) createArchive(files []string) error {
 	archive, err := p.archivePath()
 	if err != nil {
@@ -139,50 +178,6 @@ func (p Packager) createArchive(files []string) error {
 	return nil
 }
 
-func (p Packager) defaultLogger() libbuildpack.Logger {
-	var debug io.Writer
-
-	if _, ok := os.LookupEnv("BP_DEBUG"); ok {
-		debug = os.Stderr
-	}
-
-	return libbuildpack.NewLogger(debug, os.Stdout)
-}
-
-func (p Packager) cacheDependencies() ([]string, error) {
-	var files []string
-
-	deps, err := p.Buildpack.Dependencies()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, dep := range deps {
-		p.Logger.FirstLine("Caching %s", p.Logger.PrettyVersion(dep))
-
-		layer := p.Cache.DownloadLayer(dep)
-
-		a, err := layer.Artifact()
-		if err != nil {
-			return nil, err
-		}
-
-		artifact, err := filepath.Rel(p.Buildpack.Root, a)
-		if err != nil {
-			return nil, err
-		}
-
-		metadata, err := filepath.Rel(p.Buildpack.Root, layer.Metadata(layer.Root))
-		if err != nil {
-			return nil, err
-		}
-
-		files = append(files, artifact, metadata)
-	}
-
-	return files, nil
-}
-
 func (p Packager) prePackage() error {
 	pp, ok := p.Buildpack.PrePackage()
 	if !ok {
@@ -201,19 +196,24 @@ func (p Packager) prePackage() error {
 
 // DefaultPackager creates a new Packager, using the executable to find the root of the buildpack.
 func DefaultPackager() (Packager, error) {
-	p := Packager{}
+	l := loggerBp.DefaultLogger()
+	logger := loggerCf.Logger{Logger: l}
 
-	logger := p.defaultLogger()
-	p.Logger = Logger{Logger: logger}
-
-	buildpack, err := libbuildpack.DefaultBuildpack(logger)
+	b, err := buildpackBp.DefaultBuildpack(l)
 	if err != nil {
 		return Packager{}, err
 	}
-	p.Buildpack = NewBuildpack(buildpack)
+	buildpack := buildpackCf.NewBuildpack(b)
 
-	cache := libbuildpack.Cache{Root: p.Buildpack.CacheRoot, Logger: logger}
-	p.Cache = Cache{Cache: cache, Logger: p.Logger}
+	layers := layersCf.Layers{Layers: layersBp.Layers{Root: buildpack.CacheRoot}}
 
-	return p, nil
+	return Packager{buildpack, layers, logger}, nil
+}
+
+func osArgs(index int) (string, error) {
+	if len(os.Args) < index+1 {
+		return "", fmt.Errorf("incorrect number of command line arguments")
+	}
+
+	return os.Args[index], nil
 }

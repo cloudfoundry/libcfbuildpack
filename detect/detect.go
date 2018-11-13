@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package detect
 
 import (
 	"fmt"
 
-	"github.com/buildpack/libbuildpack"
+	"github.com/buildpack/libbuildpack/detect"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
 // Detect is an extension to libbuildpack.Detect that allows additional functionality to be added.
 type Detect struct {
-	libbuildpack.Detect
+	detect.Detect
 
 	// Buildpack represents the metadata associated with a buildpack.
-	Buildpack Buildpack
+	Buildpack buildpack.Buildpack
 
 	// Logger is used to write debug and info to the console.
-	Logger Logger
+	Logger logger.Logger
 }
 
 // String makes Detect satisfy the Stringer interface.
@@ -40,14 +42,14 @@ func (d Detect) String() string {
 
 // DefaultDetect creates a new instance of Detect using default values.
 func DefaultDetect() (Detect, error) {
-	d, err := libbuildpack.DefaultDetect()
+	d, err := detect.DefaultDetect()
 	if err != nil {
 		return Detect{}, err
 	}
 
 	return Detect{
 		d,
-		NewBuildpack(d.Buildpack),
-		Logger{d.Logger},
+		buildpack.NewBuildpack(d.Buildpack),
+		logger.Logger{Logger: d.Logger},
 	}, nil
 }

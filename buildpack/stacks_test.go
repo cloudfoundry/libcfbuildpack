@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package internal
+package buildpack_test
 
 import (
-	"bytes"
+	"testing"
 
-	"github.com/BurntSushi/toml"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
 )
 
-func ToTomlString(v interface{}) (string, error) {
-	var b bytes.Buffer
+func TestStacks(t *testing.T) {
+	spec.Run(t, "Stacks", testStacks, spec.Report(report.Terminal{}))
+}
 
-	if err := toml.NewEncoder(&b).Encode(v); err != nil {
-		return "", err
-	}
+func testStacks(t *testing.T, when spec.G, it spec.S) {
 
-	return b.String(), nil
+	it("does not validate if there is not at least one stack", func() {
+		err := buildpack.Stacks{}.Validate()
+		if err == nil {
+			t.Errorf("Stacks.Validate() = nil expected error")
+		}
+	})
 }

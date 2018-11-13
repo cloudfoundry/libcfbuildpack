@@ -18,24 +18,51 @@ package test
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/cloudfoundry/libjavabuildpack"
+	"github.com/buildpack/libbuildpack/buildpack"
+	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/cloudfoundry/libcfbuildpack/detect"
+	"github.com/cloudfoundry/libcfbuildpack/internal"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
 // DetectFactory is a factory for creating a test Detect.
 type DetectFactory struct {
-	Detect libjavabuildpack.Detect
+	Detect detect.Detect
+}
+
+// AddBuildPlan adds an entry to a build plan.
+func (f *DetectFactory) AddBuildPlan(t *testing.T, name string, dependency buildplan.Dependency) {
+	t.Helper()
+	f.Detect.BuildPlan[name] = dependency
+}
+
+// AddEnv adds an environment variable to the Platform
+func (f *DetectFactory) AddEnv(t *testing.T, name string, value string) {
+	t.Helper()
+
+	if err := layers.WriteToFile(strings.NewReader(value), filepath.Join(f.Detect.Platform.Root, "env", name), 0644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // NewDetectFactory creates a new instance of DetectFactory.
 func NewDetectFactory(t *testing.T) DetectFactory {
 	t.Helper()
-
 	f := DetectFactory{}
 
-	root := ScratchDir(t, "test-detect-factory")
-	f.Detect.Application.Root = filepath.Join(root, "app")
+	root := internal.ScratchDir(t, "test-detect-factory")
+
+	f.Detect.Application.Root = filepath.Join(root, "application")
+
+	f.Detect.Buildpack.Metadata = make(buildpack.Metadata)
+	f.Detect.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
+
+	f.Detect.BuildPlan = make(buildplan.BuildPlan)
+	f.Detect.Platform.Root = filepath.Join(root, "platform")
+	f.Detect.Stack = "test-stack"
 
 	return f
 }

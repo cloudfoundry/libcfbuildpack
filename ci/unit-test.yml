@@ -8,10 +8,10 @@ image_resource:
     tag: latest
 
 inputs:
-- name: libjavabuildpack
+- name: libcfbuildpack
 
 caches:
 - path: go-module-cache
 
 run:
-  path: libjavabuildpack/ci/unit-test.sh
+  path: libcfbuildpack/ci/unit-test.sh
