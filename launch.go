@@ -41,8 +41,8 @@ type Launch struct {
 func (l Launch) DependencyLayer(dependency Dependency) DependencyLaunchLayer {
 	return DependencyLaunchLayer{
 		l.Layer(dependency.ID),
-		l.Logger,
 		dependency,
+		l.Logger,
 		l.Cache.DownloadLayer(dependency),
 	}
 }
@@ -89,22 +89,24 @@ func (l Launch) maximumTypeLength(metadata libbuildpack.LaunchMetadata) int {
 type DependencyLaunchLayer struct {
 	libbuildpack.LaunchLayer
 
+	// Dependency is the dependency provided by this layer
+	Dependency Dependency
+
 	// Logger is used to write debug and info to the console.
 	Logger Logger
 
-	dependency    Dependency
 	downloadLayer DownloadCacheLayer
 }
 
 // ArtifactName returns the name portion of the download path for the dependency.
 func (d DependencyLaunchLayer) ArtifactName() string {
-	return filepath.Base(d.dependency.URI)
+	return filepath.Base(d.Dependency.URI)
 }
 
 // String makes DependencyLaunchLayer satisfy the Stringer interface.
 func (d DependencyLaunchLayer) String() string {
-	return fmt.Sprintf("DependencyLaunchLayer{ LaunchLayer: %s, Logger: %s, dependency: %s, downloadLayer: %s }",
-		d.LaunchLayer, d.Logger, d.dependency, d.dependency)
+	return fmt.Sprintf("DependencyLaunchLayer{ LaunchLayer: %s, Dependency: %s, Logger: %s, downloadLayer: %s }",
+		d.LaunchLayer, d.Dependency, d.Logger, d.downloadLayer)
 }
 
 // LaunchContributor defines a callback function that is called when a dependency needs to be contributed.
@@ -120,22 +122,22 @@ func (d DependencyLaunchLayer) Contribute(contributor LaunchContributor) error {
 		return err
 	}
 
-	if reflect.DeepEqual(d.dependency, m) {
+	if reflect.DeepEqual(d.Dependency, m) {
 		d.Logger.FirstLine("%s: %s cached launch layer",
-			d.Logger.PrettyVersion(d.dependency), color.GreenString("Reusing"))
+			d.Logger.PrettyVersion(d.Dependency), color.GreenString("Reusing"))
 		return nil
 	}
 
-	d.Logger.Debug("Download metadata %s does not match expected %s", m, d.dependency)
+	d.Logger.Debug("Download metadata %s does not match expected %s", m, d.Dependency)
 
 	d.Logger.FirstLine("%s: %s to launch",
-		d.Logger.PrettyVersion(d.dependency), color.YellowString("Contributing"))
+		d.Logger.PrettyVersion(d.Dependency), color.YellowString("Contributing"))
 
 	if err := os.RemoveAll(d.Root); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(d.Root, 0755) ; err != nil {
+	if err := os.MkdirAll(d.Root, 0755); err != nil {
 		return err
 	}
 
@@ -149,7 +151,7 @@ func (d DependencyLaunchLayer) Contribute(contributor LaunchContributor) error {
 		return err;
 	}
 
-	return d.WriteMetadata(d.dependency)
+	return d.WriteMetadata(d.Dependency)
 }
 
 // WriteProfile writes a file to profile.d with this value.
