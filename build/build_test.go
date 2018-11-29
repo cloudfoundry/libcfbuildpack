@@ -138,7 +138,7 @@ test-key = "test-value"
 			t.Fatal(err)
 		}
 
-		if actual != 0 {
+		if actual != buildPkg.SuccessStatusCode {
 			t.Errorf("Build.Success() = %d, expected 0", actual)
 		}
 
