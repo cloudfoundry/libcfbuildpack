@@ -33,7 +33,7 @@ import (
 )
 
 func TestDownloadLayer(t *testing.T) {
-	spec.Run(t, "DownloadLayer", testDownloadLayer, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "DownloadLayer", testDownloadLayer, spec.Report(report.Terminal{}))
 }
 
 func testDownloadLayer(t *testing.T, when spec.G, it spec.S) {

@@ -31,7 +31,7 @@ import (
 )
 
 func TestDependencyLayer(t *testing.T) {
-	spec.Run(t, "DependencyLayer", testDependencyLayer, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "DependencyLayer", testDependencyLayer, spec.Report(report.Terminal{}))
 }
 
 func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {

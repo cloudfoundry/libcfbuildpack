@@ -25,7 +25,7 @@ import (
 )
 
 func TestLicenses(t *testing.T) {
-	spec.Run(t, "Licenses", testLicenses, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "Licenses", testLicenses, spec.Report(report.Terminal{}))
 }
 
 func testLicenses(t *testing.T, when spec.G, it spec.S) {

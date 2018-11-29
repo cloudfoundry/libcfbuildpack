@@ -30,7 +30,7 @@ import (
 )
 
 func TestUtil(t *testing.T) {
-	spec.Run(t, "Util", testUtil, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "Util", testUtil, spec.Report(report.Terminal{}))
 }
 
 func testUtil(t *testing.T, when spec.G, it spec.S) {
@@ -71,7 +71,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 			test.BeFileLike(t, filepath.Join(root, "fileC.txt"), 0644, "")
 		})
 
-	},spec.Random())
+	})
 
 	when("ExtractZip", func() {
 
@@ -109,7 +109,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 			test.BeFileLike(t, filepath.Join(root, "fileC.txt"), 0644, "")
 		})
 
-	}, spec.Random())
+	})
 
 }
 

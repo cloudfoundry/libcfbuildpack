@@ -34,7 +34,11 @@ import (
 
 // BuildFactory is a factory for creating a test Build.
 type BuildFactory struct {
+	// Build is the configured build to use.
 	Build build.Build
+
+	// The BuildPlan output at termination.
+	Output buildplan.BuildPlan
 }
 
 // AddBuildPlan adds an entry to a build plan.
@@ -142,6 +146,11 @@ func NewBuildFactory(t *testing.T) BuildFactory {
 	f.Build.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
 
 	f.Build.BuildPlan = make(buildplan.BuildPlan)
+
+	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
+		f.Output = buildPlan
+		return nil
+	}
 
 	f.Build.Layers.Root = filepath.Join(root, "layers")
 	f.Build.Layers.BuildpackCache = layersBp.Layers{Root: filepath.Join(root, "buildpack-cache")}

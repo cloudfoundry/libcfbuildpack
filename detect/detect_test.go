@@ -36,7 +36,7 @@ import (
 )
 
 func TestDetect(t *testing.T) {
-	spec.Run(t, "Detect", testDetect, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "Detect", testDetect, spec.Report(report.Terminal{}))
 }
 
 func testDetect(t *testing.T, when spec.G, it spec.S) {

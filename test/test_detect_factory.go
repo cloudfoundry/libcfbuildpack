@@ -31,6 +31,8 @@ import (
 // DetectFactory is a factory for creating a test Detect.
 type DetectFactory struct {
 	Detect detect.Detect
+
+	Output buildplan.BuildPlan
 }
 
 // AddBuildPlan adds an entry to a build plan.
@@ -61,6 +63,12 @@ func NewDetectFactory(t *testing.T) DetectFactory {
 	f.Detect.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
 
 	f.Detect.BuildPlan = make(buildplan.BuildPlan)
+
+	f.Detect.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
+		f.Output = buildPlan
+		return nil
+	}
+
 	f.Detect.Platform.Root = filepath.Join(root, "platform")
 	f.Detect.Stack = "test-stack"
 

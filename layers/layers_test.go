@@ -32,7 +32,7 @@ import (
 )
 
 func TestLayers(t *testing.T) {
-	spec.Run(t, "Layers", testLayers, spec.Random(), spec.Report(report.Terminal{}))
+	spec.Run(t, "Layers", testLayers, spec.Report(report.Terminal{}))
 }
 
 func testLayers(t *testing.T, when spec.G, it spec.S) {
