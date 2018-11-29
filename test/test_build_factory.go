@@ -99,7 +99,7 @@ func (f *BuildFactory) cacheFixture(t *testing.T, dependency buildpackCf.Depende
 		t.Fatal(err)
 	}
 
-	d, err := internal.ToTomlString(dependency)
+	d, err := internal.ToTomlString(map[string]interface{}{"metadata": dependency})
 	if err != nil {
 		t.Fatal(err)
 	}
