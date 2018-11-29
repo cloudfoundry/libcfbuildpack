@@ -29,11 +29,11 @@ import (
 	"github.com/sclevine/spec/report"
 )
 
-func TestExtractTarGz(t *testing.T) {
-	spec.Run(t, "ExtractTarGz", testExtractTarGz, spec.Report(report.Terminal{}))
+func TestUtil(t *testing.T) {
+	spec.Run(t, "Util", testUtil, spec.Random(), spec.Report(report.Terminal{}))
 }
 
-func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
+func testUtil(t *testing.T, when spec.G, it spec.S) {
 
 	when("ExtractTarGz", func() {
 
@@ -71,7 +71,7 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 			test.BeFileLike(t, filepath.Join(root, "fileC.txt"), 0644, "")
 		})
 
-	})
+	},spec.Random())
 
 	when("ExtractZip", func() {
 
@@ -109,7 +109,7 @@ func testExtractTarGz(t *testing.T, when spec.G, it spec.S) {
 			test.BeFileLike(t, filepath.Join(root, "fileC.txt"), 0644, "")
 		})
 
-	})
+	}, spec.Random())
 
 }
 

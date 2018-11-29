@@ -25,7 +25,7 @@ import (
 )
 
 func TestDependency(t *testing.T) {
-	spec.Run(t, "Dependency", testDependency, spec.Report(report.Terminal{}))
+	spec.Run(t, "Dependency", testDependency, spec.Random(), spec.Report(report.Terminal{}))
 }
 
 func testDependency(t *testing.T, when spec.G, it spec.S) {

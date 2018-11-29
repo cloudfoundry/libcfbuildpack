@@ -29,7 +29,7 @@ import (
 )
 
 func TestLayer(t *testing.T) {
-	spec.Run(t, "Layer", testLayer, spec.Report(report.Terminal{}))
+	spec.Run(t, "Layer", testLayer, spec.Random(), spec.Report(report.Terminal{}))
 }
 
 func testLayer(t *testing.T, when spec.G, it spec.S) {
@@ -38,6 +38,60 @@ func testLayer(t *testing.T, when spec.G, it spec.S) {
 		Alpha string
 		Bravo int
 	}
+
+	it("identifies matching metadata", func() {
+		root := internal.ScratchDir(t, "layer")
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+
+		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+Alpha = "test-value"
+Bravo = 1
+`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !matches {
+			t.Errorf("Layer.MetadataMatches() = %t, expected true", matches)
+		}
+	})
+
+	it("identifies non-matching metadata", func() {
+		root := internal.ScratchDir(t, "layer")
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+
+		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+Alpha = "test-value"
+Bravo = 2
+`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if matches {
+			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
+		}
+	})
+
+	it("identifies missing metadata", func() {
+		root := internal.ScratchDir(t, "layer")
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+
+		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if matches {
+			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
+		}
+	})
 
 	it("does not call contributor for cached layer", func() {
 		root := internal.ScratchDir(t, "layer")

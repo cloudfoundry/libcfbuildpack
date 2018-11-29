@@ -18,6 +18,7 @@ package layers
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/buildpack/libbuildpack/layers"
@@ -99,26 +100,23 @@ type LayerContributor func(layer Layer) error
 // Contribute facilitates custom contribution of a layer.  If the layer has already been contributed, the contribution
 // is validated and the contributor is not called.
 func (l Layer) Contribute(expected interface{}, contributor LayerContributor, flags ...Flag) error {
-	actual := reflect.New(reflect.TypeOf(expected)).Interface()
-
-	if err := l.ReadMetadata(actual); err != nil {
-		l.Logger.Debug("Dependency metadata is not structured correctly")
+	matches, err := l.MetadataMatches(expected)
+	if err != nil {
 		return err
 	}
 
-	e2 := reflect.New(reflect.TypeOf(expected))
-	e2.Elem().Set(reflect.ValueOf(expected))
-
-	if reflect.DeepEqual(actual, e2.Interface()) {
+	if matches {
 		l.Logger.FirstLine("%s: %s cached layer",
 			l.Logger.PrettyVersion(expected), color.GreenString("Reusing"))
 		return nil
 	}
 
-	l.Logger.Debug("Layer metadata %s does not match expected %s", actual, expected)
-
 	l.Logger.FirstLine("%s: %s to layer",
 		l.Logger.PrettyVersion(expected), color.YellowString("Contributing"))
+
+	if err := os.RemoveAll(l.Root); err != nil {
+		return err
+	}
 
 	if err := contributor(l); err != nil {
 		l.Logger.Debug("Error during contribution")
@@ -126,6 +124,26 @@ func (l Layer) Contribute(expected interface{}, contributor LayerContributor, fl
 	}
 
 	return l.WriteMetadata(expected, flags...)
+}
+
+// MetadataMatches compares the expected metadata for the actual metadata of this layer.
+func (l Layer) MetadataMatches(expected interface{}) (bool, error) {
+	actual := reflect.New(reflect.TypeOf(expected)).Interface()
+
+	if err := l.ReadMetadata(actual); err != nil {
+		l.Logger.Debug("Dependency metadata is not structured correctly")
+		return false, err
+	}
+
+	e2 := reflect.New(reflect.TypeOf(expected))
+	e2.Elem().Set(reflect.ValueOf(expected))
+
+	matches := reflect.DeepEqual(actual, e2.Interface())
+	if !matches {
+		l.Logger.Debug("Layer metadata %s does not match expected %s", actual, expected)
+	}
+
+	return matches, nil
 }
 
 // String makes Layer satisfy the Stringer interface.

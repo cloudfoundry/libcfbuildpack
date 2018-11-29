@@ -32,7 +32,7 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	spec.Run(t, "Logger", testLogger, spec.Report(report.Terminal{}))
+	spec.Run(t, "Logger", testLogger, spec.Random(), spec.Report(report.Terminal{}))
 }
 
 func testLogger(t *testing.T, when spec.G, it spec.S) {

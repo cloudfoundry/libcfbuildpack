@@ -27,7 +27,7 @@ import (
 )
 
 func TestBuildpack(t *testing.T) {
-	spec.Run(t, "Buildpack", testBuildpack, spec.Report(report.Terminal{}))
+	spec.Run(t, "Buildpack", testBuildpack, spec.Random(), spec.Report(report.Terminal{}))
 }
 
 func testBuildpack(t *testing.T, when spec.G, it spec.S) {

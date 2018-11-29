@@ -31,7 +31,7 @@ import (
 )
 
 func TestDependencyLayer(t *testing.T) {
-	spec.Run(t, "DependencyLayer", testDependencyLayer, spec.Report(report.Terminal{}))
+	spec.Run(t, "DependencyLayer", testDependencyLayer, spec.Random(), spec.Report(report.Terminal{}))
 }
 
 func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
@@ -54,13 +54,14 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
 
 		dependency := buildpack.Dependency{
+			ID: "test-id",
 			Version: newVersion(t, "1.0"),
 			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
 			URI:     "http://test.com/test-path",
 		}
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = ""
+  id = "test-id"
   name = ""
   version = "1.0"
   uri = "http://test.com/test-path"
@@ -88,13 +89,14 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
 
 		dependency := buildpack.Dependency{
+			ID: "test-id",
 			Version: newVersion(t, "1.0"),
 			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
 			URI:     "http://test.com/test-path",
 		}
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = ""
+  id = "test-id"
   name = ""
   version = "1.0"
   uri = "http://test.com/test-path"

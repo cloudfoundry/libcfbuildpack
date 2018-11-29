@@ -43,16 +43,17 @@ type DownloadLayer struct {
 // Artifact returns the path to an artifact cached in the layer.  If the artifact has already been downloaded, the cache
 // will be validated and used directly.
 func (l DownloadLayer) Artifact() (string, error) {
-	artifact := filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI))
-
-	if err := l.cacheLayer.Contribute(l.dependency, func(layer Layer) error {
-		return fmt.Errorf("buildpack cached dependency does not exist")
-	}); err == nil {
-		l.logger.SubsequentLine("%s cached download from buildpack", color.GreenString("Reusing"))
-		return artifact, nil
+	matches, err := l.cacheLayer.MetadataMatches(l.dependency)
+	if err != nil {
+		return "", err
 	}
 
-	artifact = filepath.Join(l.Layer.Root, filepath.Base(l.dependency.URI))
+	if matches {
+		l.logger.FirstLine("%s cached download from buildpack", color.GreenString("Reusing"))
+		return filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI)), nil
+	}
+
+	artifact := filepath.Join(l.Layer.Root, filepath.Base(l.dependency.URI))
 
 	if err := l.Layer.Contribute(l.dependency, func(layer Layer) error {
 		l.logger.SubsequentLine("%s from %s", color.YellowString("Downloading"), l.dependency.URI)
