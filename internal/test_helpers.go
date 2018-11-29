@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
 // Console represents the standard console objects, stdin, stdout, and stderr.
@@ -85,36 +84,6 @@ func (c Console) Out(t *testing.T) string {
 	}
 
 	return string(bytes)
-}
-
-// FindRoot returns the root of project being tested.
-func FindRoot(t *testing.T) string {
-	t.Helper()
-
-	dir, err := filepath.Abs(".")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for {
-		if dir == "/" {
-			t.Fatalf("could not find go.mod in the directory hierarchy")
-		}
-		if exist, err := layers.FileExists(filepath.Join(dir, "go.mod")); err != nil {
-			t.Fatal(err)
-		} else if exist {
-			return dir
-		}
-		dir, err = filepath.Abs(filepath.Join(dir, ".."))
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-}
-
-// FixturePath returns the absolute path to the desired fixture.
-func FixturePath(t *testing.T, fixture string) string {
-	t.Helper()
-	return filepath.Join(FindRoot(t), "fixtures", fixture)
 }
 
 // ReplaceArgs replaces the current command line arguments (os.Args) with a new collection of values.  Returns a

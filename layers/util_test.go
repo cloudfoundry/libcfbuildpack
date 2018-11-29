@@ -40,7 +40,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 		it("extracts the archive", func() {
 			root := internal.ScratchDir(t, "util")
 
-			err := layers.ExtractTarGz(internal.FixturePath(t, "test-archive.tar.gz"), root, 0)
+			err := layers.ExtractTarGz(test.FixturePath(t, "test-archive.tar.gz"), root, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -53,7 +53,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 		it("skips stripped components", func() {
 			root := internal.ScratchDir(t, "util")
 
-			err := layers.ExtractTarGz(internal.FixturePath(t, "test-archive.tar.gz"), root, 1)
+			err := layers.ExtractTarGz(test.FixturePath(t, "test-archive.tar.gz"), root, 1)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -78,7 +78,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 		it("extracts the archive", func() {
 			root := internal.ScratchDir(t, "util")
 
-			err := layers.ExtractZip(internal.FixturePath(t, "test-archive.zip"), root, 0)
+			err := layers.ExtractZip(test.FixturePath(t, "test-archive.zip"), root, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -91,7 +91,7 @@ func testUtil(t *testing.T, when spec.G, it spec.S) {
 		it("skips stripped components", func() {
 			root := internal.ScratchDir(t, "util")
 
-			err := layers.ExtractZip(internal.FixturePath(t, "test-archive.zip"), root, 1)
+			err := layers.ExtractZip(test.FixturePath(t, "test-archive.zip"), root, 1)
 			if err != nil {
 				t.Fatal(err)
 			}
