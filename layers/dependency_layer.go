@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
@@ -48,7 +47,7 @@ type DependencyLayerContributor func(artifact string, layer DependencyLayer) err
 
 // Contribute facilitates custom contribution of an artifact to a layer.  If the artifact has already been contributed,
 // the contribution is validated and the contributor is not called.
-func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...layers.Flag) error {
+func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...Flag) error {
 	return l.Layer.Contribute(l.Dependency, func(layer Layer) error {
 		a, err := l.downloadLayer.Artifact()
 		if err != nil {

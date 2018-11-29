@@ -68,7 +68,7 @@ func (l Layers) String() string {
 }
 
 // WriteMetadata writes Launch metadata to the filesystem.
-func (l Layers) WriteMetadata(metadata layers.Metadata) error {
+func (l Layers) WriteMetadata(metadata Metadata) error {
 	l.Logger.FirstLine("Process types:")
 
 	max := l.maximumTypeLength(metadata)
@@ -86,7 +86,7 @@ func (l Layers) WriteMetadata(metadata layers.Metadata) error {
 	return l.Layers.WriteMetadata(metadata)
 }
 
-func (l Layers) maximumTypeLength(metadata layers.Metadata) int {
+func (l Layers) maximumTypeLength(metadata Metadata) int {
 	max := 0
 
 	for _, t := range metadata.Processes {
