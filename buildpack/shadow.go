@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package layers
+package buildpack
 
 import (
-	"github.com/buildpack/libbuildpack/layers"
+	"github.com/buildpack/libbuildpack/buildpack"
 )
 
-type Flag = layers.Flag
+type BuildImages = buildpack.BuildImages
 
-const (
-	// Build indicates that a layer should be used for builds
-	Build = layers.Build
+type Info = buildpack.Info
 
-	// Cache indicates that a layer should be cached
-	Cache = layers.Cache
+type Metadata = buildpack.Metadata
 
-	// Launch indicates that a layer should be used for launch
-	Launch = layers.Launch
-)
+type RunImages = buildpack.RunImages
+
+type Stack = buildpack.Stack
