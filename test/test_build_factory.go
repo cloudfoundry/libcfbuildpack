@@ -134,7 +134,7 @@ func (f *BuildFactory) newDependency(t *testing.T, id string, fixture string) bu
 }
 
 // NewBuildFactory creates a new instance of BuildFactory.
-func NewBuildFactory(t *testing.T) BuildFactory {
+func NewBuildFactory(t *testing.T) *BuildFactory {
 	t.Helper()
 	f := BuildFactory{}
 
@@ -158,5 +158,5 @@ func NewBuildFactory(t *testing.T) BuildFactory {
 	f.Build.Platform.Root = filepath.Join(root, "platform")
 	f.Build.Stack = "test-stack"
 
-	return f
+	return &f
 }

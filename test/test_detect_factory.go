@@ -51,7 +51,7 @@ func (f *DetectFactory) AddEnv(t *testing.T, name string, value string) {
 }
 
 // NewDetectFactory creates a new instance of DetectFactory.
-func NewDetectFactory(t *testing.T) DetectFactory {
+func NewDetectFactory(t *testing.T) *DetectFactory {
 	t.Helper()
 	f := DetectFactory{}
 
@@ -72,5 +72,5 @@ func NewDetectFactory(t *testing.T) DetectFactory {
 	f.Detect.Platform.Root = filepath.Join(root, "platform")
 	f.Detect.Stack = "test-stack"
 
-	return f
+	return &f
 }
