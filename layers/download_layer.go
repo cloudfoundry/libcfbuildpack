@@ -25,7 +25,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
@@ -48,22 +47,34 @@ func (l DownloadLayer) Artifact() (string, error) {
 		return "", err
 	}
 
+	artifact := filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI))
 	if matches {
 		l.logger.FirstLine("%s cached download from buildpack", color.GreenString("Reusing"))
-		return filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI)), nil
+		return artifact, nil
 	}
 
-	artifact := filepath.Join(l.Layer.Root, filepath.Base(l.dependency.URI))
+	matches, err = l.Layer.MetadataMatches(l.dependency)
+	if err != nil {
+		return "", err
+	}
 
-	if err := l.Layer.Contribute(l.dependency, func(layer Layer) error {
-		l.logger.SubsequentLine("%s from %s", color.YellowString("Downloading"), l.dependency.URI)
-		if err := l.download(artifact); err != nil {
-			return err
-		}
+	artifact = filepath.Join(l.Layer.Root, filepath.Base(l.dependency.URI))
+	if matches {
+		l.Logger.SubsequentLine("%s cached download from previous build", color.GreenString("Reusing"))
+		return artifact, nil
+	}
 
-		l.logger.SubsequentLine("Verifying checksum")
-		return l.verify(artifact)
-	}, layers.Build, layers.Cache); err != nil {
+	l.logger.SubsequentLine("%s from %s", color.YellowString("Downloading"), l.dependency.URI)
+	if err := l.download(artifact); err != nil {
+		return "", err
+	}
+
+	l.logger.SubsequentLine("Verifying checksum")
+	if err := l.verify(artifact); err != nil {
+		return "", err
+	}
+
+	if err := l.Layer.WriteMetadata(l.dependency, Build, Cache); err != nil {
 		return "", err
 	}
 
