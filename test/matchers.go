@@ -19,7 +19,11 @@ package test
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/BurntSushi/toml"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
 // BeFileLike tests that a file exists, has a specific mode, and specific content.
@@ -29,6 +33,31 @@ func BeFileLike(t *testing.T, file string, mode os.FileMode, content string) {
 	FileExists(t, file)
 	fileModeMatches(t, file, mode)
 	fileContentMatches(t, file, content)
+}
+
+// BeLayerLike tests that a layer has a specific flag configuration.
+func BeLayerLike(t *testing.T, layer layers.Layer, build bool, cache bool, launch bool) {
+	t.Helper()
+
+	m := make(map[string]interface{})
+	if _, err := toml.DecodeFile(filepath.Join(layer.Metadata), &m); err != nil {
+		t.Fatal(err)
+	}
+
+	b := m["build"].(bool)
+	if b != build {
+		t.Errorf("build flag = %t, expected %t", b, build)
+	}
+
+	c := m["cache"].(bool)
+	if c != cache {
+		t.Errorf("cache flag = %t, expected %t", c, cache)
+	}
+
+	l := m["launch"].(bool)
+	if l != launch {
+		t.Errorf("launch flag = %t, expected %t", l, launch)
+	}
 }
 
 // FileExists tests that a file exists
