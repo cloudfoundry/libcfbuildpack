@@ -14,37 +14,19 @@
  * limitations under the License.
  */
 
-package test
+package internal
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/bouk/monkey"
-	"github.com/cloudfoundry/libjavabuildpack"
+	"github.com/BurntSushi/toml"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 )
-
-// CaptureExitStatus returns a pointer to the exit status code when os.Exit() is called.  Returns a function for use
-// with defer in order to clean up after capture.
-//
-// c, d := CaptureExitStatus(t)
-// defer d()
-func CaptureExitStatus(t *testing.T) (*int, func()) {
-	t.Helper()
-
-	code := math.MinInt64
-	pg := monkey.Patch(os.Exit, func(c int) {
-		code = c
-	})
-
-	return &code, func() {
-		pg.Unpatch()
-	}
-}
 
 // Console represents the standard console objects, stdin, stdout, and stderr.
 type Console struct {
@@ -117,7 +99,7 @@ func FindRoot(t *testing.T) string {
 		if dir == "/" {
 			t.Fatalf("could not find go.mod in the directory hierarchy")
 		}
-		if exist, err := libjavabuildpack.FileExists(filepath.Join(dir, "go.mod")); err != nil {
+		if exist, err := layers.FileExists(filepath.Join(dir, "go.mod")); err != nil {
 			t.Fatal(err)
 		} else if exist {
 			return dir
@@ -133,35 +115,6 @@ func FindRoot(t *testing.T) string {
 func FixturePath(t *testing.T, fixture string) string {
 	t.Helper()
 	return filepath.Join(FindRoot(t), "fixtures", fixture)
-}
-
-// ProtectEnv protects a collection of environment variables.  Returns a function for use with defer in order to reset
-// the previous values.
-//
-// defer ProtectEnv(t, "alpha")()
-func ProtectEnv(t *testing.T, keys ...string) func() {
-	t.Helper()
-
-	type state struct {
-		value string
-		ok    bool
-	}
-
-	previous := make(map[string]state)
-	for _, key := range keys {
-		value, ok := os.LookupEnv(key)
-		previous[key] = state{value, ok}
-	}
-
-	return func() {
-		for k, v := range previous {
-			if v.ok {
-				os.Setenv(k, v.value)
-			} else {
-				os.Unsetenv(k)
-			}
-		}
-	}
 }
 
 // ReplaceArgs replaces the current command line arguments (os.Args) with a new collection of values.  Returns a
@@ -224,13 +177,19 @@ func ReplaceEnv(t *testing.T, key string, value string) func() {
 	t.Helper()
 
 	previous, ok := os.LookupEnv(key)
-	os.Setenv(key, value)
+	if err := os.Setenv(key, value); err != nil {
+		t.Fatal(err)
+	}
 
 	return func() {
 		if ok {
-			os.Setenv(key, previous)
+			if err := os.Setenv(key, previous); err != nil {
+				t.Fatal(err)
+			}
 		} else {
-			os.Unsetenv(key)
+			if err := os.Unsetenv(key); err != nil {
+				t.Fatal(err)
+			}
 		}
 	}
 }
@@ -251,7 +210,11 @@ func ReplaceWorkingDirectory(t *testing.T, dir string) func() {
 		t.Fatal(err)
 	}
 
-	return func() { os.Chdir(previous) }
+	return func() {
+		if err := os.Chdir(previous); err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 // ScratchDir returns a safe scratch directory for tests to modify.
@@ -269,4 +232,14 @@ func ScratchDir(t *testing.T, prefix string) string {
 	}
 
 	return abs
+}
+
+func ToTomlString(v interface{}) (string, error) {
+	var b bytes.Buffer
+
+	if err := toml.NewEncoder(&b).Encode(v); err != nil {
+		return "", err
+	}
+
+	return b.String(), nil
 }

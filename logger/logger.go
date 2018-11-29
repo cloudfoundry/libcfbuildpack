@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package logger
 
 import (
 	"fmt"
 
-	"github.com/buildpack/libbuildpack"
+	"github.com/buildpack/libbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/fatih/color"
 )
 
@@ -34,7 +35,7 @@ func init() {
 
 // Logger is an extension to libbuildpack.Logger to add additional functionality.
 type Logger struct {
-	libbuildpack.Logger
+	logger.Logger
 }
 
 // FirstLine prints the log messages with the first line eye catcher.
@@ -61,10 +62,10 @@ func (l Logger) PrettyVersion(v interface{}) string {
 	var version string
 
 	switch t := v.(type) {
-	case Buildpack:
+	case buildpack.Buildpack:
 		name = t.Info.Name
 		version = t.Info.Version
-	case Dependency:
+	case buildpack.Dependency:
 		name = t.Name
 
 		if t.Version.Version != nil {

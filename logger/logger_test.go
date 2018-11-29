@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package libjavabuildpack_test
+package logger_test
 
 import (
 	"bytes"
@@ -22,8 +22,10 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver"
-	"github.com/buildpack/libbuildpack"
-	"github.com/cloudfoundry/libjavabuildpack"
+	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
+	loggerBp "github.com/buildpack/libbuildpack/logger"
+	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
+	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -38,7 +40,7 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 	it("writes eye catcher on first line", func() {
 		var info bytes.Buffer
 
-		logger := libjavabuildpack.Logger{Logger: libbuildpack.NewLogger(nil, &info)}
+		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, &info)}
 		logger.FirstLine("test %s", "message")
 
 		expected := fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))
@@ -51,7 +53,7 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 	it("writes indent on second line", func() {
 		var info bytes.Buffer
 
-		logger := libjavabuildpack.Logger{Logger: libbuildpack.NewLogger(nil, &info)}
+		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, &info)}
 		logger.SubsequentLine("test %s", "message")
 
 		if info.String() != "       test message\n" {
@@ -60,11 +62,11 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("formats pretty version for buildpack", func() {
-		logger := libjavabuildpack.Logger{Logger: libbuildpack.NewLogger(nil, nil)}
+		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, nil)}
 
-		buildpack := libjavabuildpack.Buildpack{
-			Buildpack: libbuildpack.Buildpack{
-				Info: libbuildpack.BuildpackInfo{Name: "test-name", Version: "test-version"},
+		buildpack := buildpackCf.Buildpack{
+			Buildpack: buildpackBp.Buildpack{
+				Info: buildpackBp.Info{Name: "test-name", Version: "test-version"},
 			},
 		}
 
@@ -78,14 +80,14 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("formats pretty version for dependency", func() {
-		logger := libjavabuildpack.Logger{Logger: libbuildpack.NewLogger(nil, nil)}
+		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, nil)}
 
 		v, err := semver.NewVersion("1.0")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		actual := logger.PrettyVersion(libjavabuildpack.Dependency{Name: "test-name", Version: libjavabuildpack.Version{v}})
+		actual := logger.PrettyVersion(buildpackCf.Dependency{Name: "test-name", Version: buildpackCf.Version{v}})
 		expected := fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
 			color.BlueString("1.0"))
 

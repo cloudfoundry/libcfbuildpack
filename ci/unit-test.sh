@@ -7,5 +7,5 @@ if [[ -d $PWD/go-module-cache && ! -d $GOPATH/pkg/mod ]]; then
   ln -s $PWD/go-module-cache $GOPATH/pkg/mod
 fi
 
-cd libjavabuildpack
+cd libcfbuildpack
 go test ./...

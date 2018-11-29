@@ -14,5 +14,22 @@
  * limitations under the License.
  */
 
-// Package libjavabuildpack contains types and functions for implementing a Java Buildpack-related buildpack.
-package libjavabuildpack
+package buildpack_test
+
+import (
+	"testing"
+
+	"github.com/Masterminds/semver"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+)
+
+func newVersion(t *testing.T, version string) buildpack.Version {
+	t.Helper()
+
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return buildpack.Version{Version: v}
+}

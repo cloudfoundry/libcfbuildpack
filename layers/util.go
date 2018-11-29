@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package libjavabuildpack
+package layers
 
 import (
 	"archive/tar"
@@ -226,12 +226,4 @@ func extractTar(src io.Reader, destDir string, stripComponents int) error {
 		}
 	}
 	return nil
-}
-
-func osArgs(index int) (string, error) {
-	if len(os.Args) < index+1 {
-		return "", fmt.Errorf("incorrect number of command line arguments")
-	}
-
-	return os.Args[index], nil
 }
