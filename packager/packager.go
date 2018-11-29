@@ -205,7 +205,7 @@ func DefaultPackager() (Packager, error) {
 	}
 	buildpack := buildpackCf.NewBuildpack(b)
 
-	layers := layersCf.Layers{Layers: layersBp.Layers{Root: buildpack.CacheRoot}}
+	layers := layersCf.Layers{Layers: layersBp.Layers{Root: buildpack.CacheRoot}, Logger: logger}
 
 	return Packager{buildpack, layers, logger}, nil
 }
