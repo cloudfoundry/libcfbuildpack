@@ -20,6 +20,8 @@ import (
 	"github.com/buildpack/libbuildpack/layers"
 )
 
+type Flag = layers.Flag
+
 const (
 	// Build indicates that a layer should be used for builds
 	Build = layers.Build

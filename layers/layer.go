@@ -98,7 +98,7 @@ type LayerContributor func(layer Layer) error
 
 // Contribute facilitates custom contribution of a layer.  If the layer has already been contributed, the contribution
 // is validated and the contributor is not called.
-func (l Layer) Contribute(expected interface{}, contributor LayerContributor, flags ...layers.Flag) error {
+func (l Layer) Contribute(expected interface{}, contributor LayerContributor, flags ...Flag) error {
 	actual := reflect.New(reflect.TypeOf(expected)).Interface()
 
 	if err := l.ReadMetadata(actual); err != nil {
