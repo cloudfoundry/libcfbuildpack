@@ -38,7 +38,7 @@ type BuildFactory struct {
 	Build build.Build
 
 	// The BuildPlan output at termination.
-	Output *buildplan.BuildPlan
+	Output buildplan.BuildPlan
 }
 
 // AddBuildPlan adds an entry to a build plan.
@@ -148,7 +148,7 @@ func NewBuildFactory(t *testing.T) BuildFactory {
 	f.Build.BuildPlan = make(buildplan.BuildPlan)
 
 	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
-		f.Output = &buildPlan
+		f.Output = buildPlan
 		return nil
 	}
 

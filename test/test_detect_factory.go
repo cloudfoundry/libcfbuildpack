@@ -32,7 +32,7 @@ import (
 type DetectFactory struct {
 	Detect detect.Detect
 
-	Output *buildplan.BuildPlan
+	Output buildplan.BuildPlan
 }
 
 // AddBuildPlan adds an entry to a build plan.
@@ -65,7 +65,7 @@ func NewDetectFactory(t *testing.T) DetectFactory {
 	f.Detect.BuildPlan = make(buildplan.BuildPlan)
 
 	f.Detect.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
-		f.Output = &buildPlan
+		f.Output = buildPlan
 		return nil
 	}
 
