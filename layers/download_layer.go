@@ -49,7 +49,7 @@ func (l DownloadLayer) Artifact() (string, error) {
 
 	artifact := filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI))
 	if matches {
-		l.logger.FirstLine("%s cached download from buildpack", color.GreenString("Reusing"))
+		l.logger.SubsequentLine("%s cached download from buildpack", color.GreenString("Reusing"))
 		return artifact, nil
 	}
 
