@@ -21,10 +21,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Masterminds/semver"
-	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
-	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
 	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
 	"github.com/sclevine/spec"
@@ -61,38 +58,24 @@ func testLogger(t *testing.T, when spec.G, it spec.S) {
 		}
 	})
 
-	it("formats pretty version for buildpack", func() {
+	it("formats pretty identity", func() {
 		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, nil)}
 
-		buildpack := buildpackCf.Buildpack{
-			Buildpack: buildpackBp.Buildpack{
-				Info: buildpackBp.Info{Name: "test-name", Version: "test-version"},
-			},
-		}
-
-		actual := logger.PrettyVersion(buildpack)
+		actual := logger.PrettyIdentity(metadata{"test-name", 1})
 		expected := fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
-			color.BlueString("test-version"))
+			color.BlueString("1"))
 
 		if actual != expected {
-			t.Errorf("PrettyVersion = %s, expected %s", actual, expected)
+			t.Errorf("PrettyIdentity = %s, expected %s", actual, expected)
 		}
 	})
+}
 
-	it("formats pretty version for dependency", func() {
-		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, nil)}
+type metadata struct {
+	Alpha string
+	Bravo int
+}
 
-		v, err := semver.NewVersion("1.0")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		actual := logger.PrettyVersion(buildpackCf.Dependency{Name: "test-name", Version: buildpackCf.Version{v}})
-		expected := fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
-			color.BlueString("1.0"))
-
-		if actual != expected {
-			t.Errorf("PrettyVersion = %s, expected %s", actual, expected)
-		}
-	})
+func (m metadata) Identity() (string, string) {
+	return m.Alpha, fmt.Sprintf("%d", m.Bravo)
 }

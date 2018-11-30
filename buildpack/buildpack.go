@@ -58,6 +58,11 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 	return dependencies, nil
 }
 
+// Identity make Buildpack satisfy the Identifiable interface.
+func (b Buildpack) Identity() (string, string) {
+	return b.Info.Name, b.Info.Version
+}
+
 // IncludeFiles returns the include_files buildpack metadata.
 func (b Buildpack) IncludeFiles() ([]string, error) {
 	i, ok := b.Metadata["include_files"]

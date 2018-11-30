@@ -44,7 +44,7 @@ type Packager struct {
 
 // Create creates a new buildpack package.
 func (p Packager) Create() error {
-	p.Logger.FirstLine("Packaging %s", p.Logger.PrettyVersion(p.Buildpack))
+	p.Logger.FirstLine("Packaging %s", p.Logger.PrettyIdentity(p.Buildpack))
 
 	if err := p.prePackage(); err != nil {
 		return err
@@ -120,7 +120,7 @@ func (p Packager) cacheDependencies() ([]string, error) {
 	}
 
 	for _, dep := range deps {
-		p.Logger.FirstLine("Caching %s", p.Logger.PrettyVersion(dep))
+		p.Logger.FirstLine("Caching %s", p.Logger.PrettyIdentity(dep))
 
 		layer := p.Layers.DownloadLayer(dep)
 

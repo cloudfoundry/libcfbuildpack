@@ -44,6 +44,15 @@ type Dependency struct {
 	Licenses Licenses `mapstruct:"licenses" toml:"licenses"`
 }
 
+// Identity make Buildpack satisfy the Identifiable interface.
+func (d Dependency) Identity() (string, string) {
+	if d.Version.Version != nil {
+		return d.Name, d.Version.Version.Original()
+	}
+
+	return d.Name, ""
+}
+
 // String makes Dependency satisfy the Stringer interface.
 func (d Dependency) String() string {
 	return fmt.Sprintf("Dependency{ ID: %s, Name: %s, Version: %s, URI: %s, SHA256: %s, Stacks: %s, Licenses: %s }",

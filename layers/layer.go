@@ -99,7 +99,7 @@ type LayerContributor func(layer Layer) error
 
 // Contribute facilitates custom contribution of a layer.  If the layer has already been contributed, the contribution
 // is validated and the contributor is not called.
-func (l Layer) Contribute(expected interface{}, contributor LayerContributor, flags ...Flag) error {
+func (l Layer) Contribute(expected logger.Identifiable, contributor LayerContributor, flags ...Flag) error {
 	matches, err := l.MetadataMatches(expected)
 	if err != nil {
 		return err
@@ -107,12 +107,12 @@ func (l Layer) Contribute(expected interface{}, contributor LayerContributor, fl
 
 	if matches {
 		l.Logger.FirstLine("%s: %s cached layer",
-			l.Logger.PrettyVersion(expected), color.GreenString("Reusing"))
+			l.Logger.PrettyIdentity(expected), color.GreenString("Reusing"))
 		return nil
 	}
 
 	l.Logger.FirstLine("%s: %s to layer",
-		l.Logger.PrettyVersion(expected), color.YellowString("Contributing"))
+		l.Logger.PrettyIdentity(expected), color.YellowString("Contributing"))
 
 	if err := os.RemoveAll(l.Root); err != nil {
 		return err

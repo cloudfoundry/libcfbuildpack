@@ -18,9 +18,9 @@ package logger
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/buildpack/libbuildpack/logger"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/fatih/color"
 )
 
@@ -56,27 +56,29 @@ func (l Logger) SubsequentLine(format string, args ...interface{}) {
 	l.Info("%s %s", indent, fmt.Sprintf(format, args...))
 }
 
+// Identifiable is an interface that indicates that a type has an identity.
+type Identifiable interface {
+	// Identity is the method that returns the required name and optional version that make up identity.
+	Identity() (name string, version string)
+}
+
 // PrettyVersion formats a standard pretty version of a dependency.
-func (l Logger) PrettyVersion(v interface{}) string {
-	var name string
-	var version string
+func (l Logger) PrettyIdentity(v Identifiable) string {
+	var sb strings.Builder
 
-	switch t := v.(type) {
-	case buildpack.Buildpack:
-		name = t.Info.Name
-		version = t.Info.Version
-	case buildpack.Dependency:
-		name = t.Name
+	name, version := v.Identity()
 
-		if t.Version.Version != nil {
-			version = t.Version.Version.Original()
-		}
+	_, _ = sb.WriteString(color.New(color.FgBlue, color.Bold).Sprint(name))
+
+	if version != "" {
+		_, _ = sb.WriteString(" ")
+		_, _ = sb.WriteString(color.BlueString(version))
 	}
 
-	return fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint(name), color.BlueString(version))
+	return sb.String()
 }
 
 // String makes Logger satisfy the Stringer interface.
 func (l Logger) String() string {
-	return fmt.Sprintf("Logger{ Logger: %s}", l.Logger)
+	return fmt.Sprintf("Logger{ Logger: %s }", l.Logger)
 }

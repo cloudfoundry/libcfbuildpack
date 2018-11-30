@@ -17,6 +17,7 @@
 package layers_test
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -33,11 +34,6 @@ func TestLayer(t *testing.T) {
 }
 
 func testLayer(t *testing.T, when spec.G, it spec.S) {
-
-	type metadata struct {
-		Alpha string
-		Bravo int
-	}
 
 	it("identifies matching metadata", func() {
 		root := internal.ScratchDir(t, "layer")
@@ -136,4 +132,13 @@ Bravo = 1
 			t.Errorf("Expected contribution but didn't contribute")
 		}
 	})
+}
+
+type metadata struct {
+	Alpha string
+	Bravo int
+}
+
+func (m metadata) Identity() (string, string) {
+	return m.Alpha, fmt.Sprintf("%d", m.Bravo)
 }
