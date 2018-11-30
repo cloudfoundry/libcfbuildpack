@@ -81,7 +81,7 @@ func testDownloadLayer(t *testing.T, when spec.G, it spec.S) {
 		test.BeFileLike(t, expected, 0644, "test-payload")
 
 		expected = filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256))
-		test.BeFileLike(t, expected, 0644, `build = true
+		test.BeFileLike(t, expected, 0644, `build = false
 cache = true
 launch = false
 

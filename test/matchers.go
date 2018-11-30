@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
+	"github.com/buildpack/libbuildpack/buildplan"
 	layersPkg "github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
@@ -95,6 +96,15 @@ func BeLayerLike(t *testing.T, layer layersPkg.Layer, build bool, cache bool, la
 	l := m["launch"].(bool)
 	if l != launch {
 		t.Errorf("launch flag = %t, expected %t", l, launch)
+	}
+}
+
+// BeBuildPlanLike tests that a build plan, like the output of detect or build has specific content.
+func BeBuildPlanLike(t *testing.T, actual buildplan.BuildPlan, expected buildplan.BuildPlan) {
+	t.Helper()
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("BuildPlan = %s, expected %s", actual, expected)
 	}
 }
 
