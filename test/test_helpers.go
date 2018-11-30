@@ -18,6 +18,7 @@ package test
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/layers"
@@ -27,6 +28,14 @@ import (
 func FixturePath(t *testing.T, fixture string) string {
 	t.Helper()
 	return filepath.Join(findRoot(t), "fixtures", fixture)
+}
+
+// TouchFile touches a file with empty content
+func TouchFile(t *testing.T, elem ...string) {
+	t.Helper()
+	if err := layers.WriteToFile(strings.NewReader(""), filepath.Join(elem...), 0644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func findRoot(t *testing.T) string {
