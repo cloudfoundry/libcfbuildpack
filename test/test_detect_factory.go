@@ -23,6 +23,7 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildpack"
 	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/buildpack/libbuildpack/platform"
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
@@ -45,9 +46,12 @@ func (f *DetectFactory) AddBuildPlan(t *testing.T, name string, dependency build
 func (f *DetectFactory) AddEnv(t *testing.T, name string, value string) {
 	t.Helper()
 
-	if err := layers.WriteToFile(strings.NewReader(value), filepath.Join(f.Detect.Platform.Root, "env", name), 0644); err != nil {
+	file := filepath.Join(f.Detect.Platform.Root, "env", name)
+	if err := layers.WriteToFile(strings.NewReader(value), file, 0644); err != nil {
 		t.Fatal(err)
 	}
+
+	f.Detect.Platform.Envs = append(f.Detect.Platform.Envs, platform.EnvironmentVariable{File: file, Name: name})
 }
 
 // NewDetectFactory creates a new instance of DetectFactory.
@@ -70,6 +74,8 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 	}
 
 	f.Detect.Platform.Root = filepath.Join(root, "platform")
+	f.Detect.Platform.Envs = make(platform.EnvironmentVariables, 0)
+
 	f.Detect.Stack = "test-stack"
 
 	return &f

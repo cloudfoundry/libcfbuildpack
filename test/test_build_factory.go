@@ -26,6 +26,7 @@ import (
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
+	"github.com/buildpack/libbuildpack/platform"
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
@@ -60,9 +61,12 @@ func (f *BuildFactory) AddDependency(t *testing.T, id string, fixture string) {
 func (f *BuildFactory) AddEnv(t *testing.T, name string, value string) {
 	t.Helper()
 
-	if err := layersCf.WriteToFile(strings.NewReader(value), filepath.Join(f.Build.Platform.Root, "env", name), 0644); err != nil {
+	file := filepath.Join(f.Build.Platform.Root, "env", name)
+	if err := layersCf.WriteToFile(strings.NewReader(value), file, 0644); err != nil {
 		t.Fatal(err)
 	}
+
+	f.Build.Platform.Envs = append(f.Build.Platform.Envs, platform.EnvironmentVariable{File: file, Name: name})
 }
 
 func (f *BuildFactory) addDependency(t *testing.T, dependency buildpackCf.Dependency) {
@@ -156,6 +160,8 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f.Build.Layers.BuildpackCache = layersBp.Layers{Root: filepath.Join(root, "buildpack-cache")}
 
 	f.Build.Platform.Root = filepath.Join(root, "platform")
+	f.Build.Platform.Envs = make(platform.EnvironmentVariables, 0)
+
 	f.Build.Stack = "test-stack"
 
 	return &f
