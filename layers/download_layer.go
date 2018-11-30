@@ -74,7 +74,7 @@ func (l DownloadLayer) Artifact() (string, error) {
 		return "", err
 	}
 
-	if err := l.Layer.WriteMetadata(l.dependency, Build, Cache); err != nil {
+	if err := l.Layer.WriteMetadata(l.dependency, Cache); err != nil {
 		return "", err
 	}
 

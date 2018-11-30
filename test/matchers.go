@@ -20,10 +20,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
+	layersPkg "github.com/cloudfoundry/libcfbuildpack/layers"
 )
 
 // BeFileLike tests that a file exists, has a specific mode, and specific content.
@@ -36,7 +37,7 @@ func BeFileLike(t *testing.T, file string, mode os.FileMode, content string) {
 }
 
 // BeLayerLike tests that a layer has a specific flag configuration.
-func BeLayerLike(t *testing.T, layer layers.Layer, build bool, cache bool, launch bool) {
+func BeLayerLike(t *testing.T, layer layersPkg.Layer, build bool, cache bool, launch bool) {
 	t.Helper()
 
 	m := make(map[string]interface{})
@@ -57,6 +58,20 @@ func BeLayerLike(t *testing.T, layer layers.Layer, build bool, cache bool, launc
 	l := m["launch"].(bool)
 	if l != launch {
 		t.Errorf("launch flag = %t, expected %t", l, launch)
+	}
+}
+
+// BeLaunchMetadata tests that launch metadata has a specific configuration.
+func BeLaunchMetadataLike(t *testing.T, layers layersPkg.Layers, expected layersPkg.Metadata) {
+	t.Helper()
+
+	var actual layersPkg.Metadata
+	if _, err := toml.DecodeFile(filepath.Join(layers.Root, "launch.toml"), &actual); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("launch.toml = %s, expected %s", actual, expected)
 	}
 }
 
