@@ -38,7 +38,10 @@ type BuildFactory struct {
 	// Build is the configured build to use.
 	Build build.Build
 
-	// The BuildPlan output at termination.
+	// Home is the home directory to use.
+	Home string
+
+	// Output is the BuildPlan output at termination.
 	Output buildplan.BuildPlan
 }
 
@@ -163,6 +166,8 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f.Build.Platform.Envs = make(platform.EnvironmentVariables, 0)
 
 	f.Build.Stack = "test-stack"
+
+	f.Home = filepath.Join(root, "home")
 
 	return &f
 }
