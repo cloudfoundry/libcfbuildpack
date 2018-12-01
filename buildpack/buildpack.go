@@ -123,6 +123,6 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 func NewBuildpack(buildpack buildpack.Buildpack) Buildpack {
 	return Buildpack{
 		buildpack,
-		filepath.Join(buildpack.Root, "cache"),
+		filepath.Join(buildpack.Root, "dependency-cache"),
 	}
 }
