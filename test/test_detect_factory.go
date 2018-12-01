@@ -31,8 +31,13 @@ import (
 
 // DetectFactory is a factory for creating a test Detect.
 type DetectFactory struct {
+	// Detect is the configured detect to use.
 	Detect detect.Detect
 
+	// Home is the home directory to use.
+	Home string
+
+	// Output is the BuildPlan output at termination.
 	Output buildplan.BuildPlan
 }
 
@@ -77,6 +82,8 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 	f.Detect.Platform.Envs = make(platform.EnvironmentVariables, 0)
 
 	f.Detect.Stack = "test-stack"
+
+	f.Home = filepath.Join(root, "home")
 
 	return &f
 }
