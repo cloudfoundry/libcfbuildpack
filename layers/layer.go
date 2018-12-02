@@ -131,8 +131,8 @@ func (l Layer) MetadataMatches(expected interface{}) (bool, error) {
 	actual := reflect.New(reflect.TypeOf(expected)).Interface()
 
 	if err := l.ReadMetadata(actual); err != nil {
-		l.Logger.Debug("Dependency metadata is not structured correctly")
-		return false, err
+		l.Logger.Debug("Dependency metadata is not structured correctly: %s", err.Error())
+		return false, nil
 	}
 
 	e2 := reflect.New(reflect.TypeOf(expected))

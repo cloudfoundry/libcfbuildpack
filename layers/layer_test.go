@@ -75,6 +75,26 @@ Bravo = 2
 		}
 	})
 
+	it("identifies invalid metadata", func() {
+		root := internal.ScratchDir(t, "layer")
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+
+		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+Alpha = "test-value"
+Bravo = "invalid-value"
+`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if matches {
+			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
+		}
+	})
+
 	it("identifies missing metadata", func() {
 		root := internal.ScratchDir(t, "layer")
 		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}

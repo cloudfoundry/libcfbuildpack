@@ -17,7 +17,7 @@
 package internal
 
 import (
-	"bytes"
+	bytesPkg "bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -204,7 +204,7 @@ func ScratchDir(t *testing.T, prefix string) string {
 }
 
 func ToTomlString(v interface{}) (string, error) {
-	var b bytes.Buffer
+	var b bytesPkg.Buffer
 
 	if err := toml.NewEncoder(&b).Encode(v); err != nil {
 		return "", err
