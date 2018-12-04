@@ -127,17 +127,14 @@ func (p packager) addFile(path string) error {
 		return err
 	}
 
-	out, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, stat.Mode())
+	out, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	if _, err := io.Copy(in, out); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = io.Copy(out, in)
+	return err
 }
 
 func (p packager) prePackage() error {
