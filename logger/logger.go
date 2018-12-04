@@ -58,8 +58,8 @@ func (l Logger) SubsequentLine(format string, args ...interface{}) {
 
 // Identifiable is an interface that indicates that a type has an identity.
 type Identifiable interface {
-	// Identity is the method that returns the required name and optional version that make up identity.
-	Identity() (name string, version string)
+	// Identity is the method that returns the required name and optional description that make up identity.
+	Identity() (name string, description string)
 }
 
 // PrettyVersion formats a standard pretty version of a dependency.
