@@ -25,7 +25,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	layersBp "github.com/buildpack/libbuildpack/layers"
@@ -99,16 +98,7 @@ func (p Packager) archivePath() (string, error) {
 
 	info := p.Buildpack.Info
 
-	path := []string{dir}
-	path = append(path, strings.Split(info.ID, ".")...)
-	path = append(path, info.ID, info.Version)
-
-	f := fmt.Sprintf("%s-%s.tgz", info.ID, info.Version)
-	f = strings.Replace(f, "SNAPSHOT", fmt.Sprintf("%s-1", time.Now().Format("20060102.150405")), 1)
-
-	path = append(path, f)
-
-	return filepath.Join(path...), nil
+	return filepath.Join(dir, fmt.Sprintf("%s-%s.tgz", info.ID, info.Version)), nil
 }
 
 func (p Packager) cacheDependencies() ([]string, error) {
