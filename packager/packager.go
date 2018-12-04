@@ -95,10 +95,6 @@ func (p packager) cacheDependencies() ([]string, error) {
 func (p packager) createPackage(files []string) error {
 	p.Logger.FirstLine("Creating package in %s", p.OutputDirectory)
 
-	if err := os.RemoveAll(p.OutputDirectory); err != nil {
-		return err
-	}
-
 	if err := os.MkdirAll(p.OutputDirectory, 0755); err != nil {
 		return err
 	}
