@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package packager
+package main
 
 import (
-	"archive/tar"
-	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -34,15 +31,14 @@ import (
 	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
-// Packager is a root element for packaging up a buildpack
-type Packager struct {
-	Buildpack buildpackCf.Buildpack
-	Layers    layersCf.Layers
-	Logger    loggerCf.Logger
+type packager struct {
+	Buildpack       buildpackCf.Buildpack
+	Layers          layersCf.Layers
+	Logger          loggerCf.Logger
+	OutputDirectory string
 }
 
-// Create creates a new buildpack package.
-func (p Packager) Create() error {
+func (p packager) Create() error {
 	p.Logger.FirstLine("Packaging %s", p.Logger.PrettyIdentity(p.Buildpack))
 
 	if err := p.prePackage(); err != nil {
@@ -59,49 +55,10 @@ func (p Packager) Create() error {
 		return err
 	}
 
-	return p.createArchive(append(includedFiles, dependencyFiles...))
+	return p.createPackage(append(includedFiles, dependencyFiles...))
 }
 
-func (p Packager) addFile(out *tar.Writer, path string) error {
-	p.Logger.SubsequentLine("Adding %s", path)
-
-	file, err := os.Open(filepath.Join(p.Buildpack.Root, path))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	header := new(tar.Header)
-	header.Name = path
-	header.Size = stat.Size()
-	header.Mode = int64(stat.Mode())
-	header.ModTime = stat.ModTime()
-
-	if err := out.WriteHeader(header); err != nil {
-		return err
-	}
-
-	_, err = io.Copy(out, file)
-	return err
-}
-
-func (p Packager) archivePath() (string, error) {
-	dir, err := osArgs(1)
-	if err != nil {
-		return "", err
-	}
-
-	info := p.Buildpack.Info
-
-	return filepath.Join(dir, fmt.Sprintf("%s-%s.tgz", info.ID, info.Version)), nil
-}
-
-func (p Packager) cacheDependencies() ([]string, error) {
+func (p packager) cacheDependencies() ([]string, error) {
 	var files []string
 
 	deps, err := p.Buildpack.Dependencies()
@@ -135,32 +92,19 @@ func (p Packager) cacheDependencies() ([]string, error) {
 	return files, nil
 }
 
-func (p Packager) createArchive(files []string) error {
-	archive, err := p.archivePath()
-	if err != nil {
+func (p packager) createPackage(files []string) error {
+	p.Logger.FirstLine("Creating package at %s", p.OutputDirectory)
+
+	if err := os.RemoveAll(p.OutputDirectory); err != nil {
 		return err
 	}
 
-	p.Logger.FirstLine("Creating archive %s", archive)
-
-	if err = os.MkdirAll(filepath.Dir(archive), 0755); err != nil {
+	if err := os.MkdirAll(p.OutputDirectory, 0755); err != nil {
 		return err
 	}
-
-	file, err := os.OpenFile(archive, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	gw := gzip.NewWriter(file)
-	defer gw.Close()
-
-	tw := tar.NewWriter(gw)
-	defer tw.Close()
 
 	for _, file := range files {
-		if err := p.addFile(tw, file); err != nil {
+		if err := p.addFile(file); err != nil {
 			return err
 		}
 	}
@@ -168,7 +112,39 @@ func (p Packager) createArchive(files []string) error {
 	return nil
 }
 
-func (p Packager) prePackage() error {
+func (p packager) addFile(path string) error {
+	p.Logger.SubsequentLine("Adding %s", path)
+
+	in, err := os.OpenFile(filepath.Join(p.Buildpack.Root, path), os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	stat, err := in.Stat()
+	if err != nil {
+		return err
+	}
+
+	f := filepath.Join(p.OutputDirectory, path)
+	if err := os.MkdirAll(filepath.Dir(f), 0755); err != nil {
+		return err
+	}
+
+	out, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, stat.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(in, out); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p packager) prePackage() error {
 	pp, ok := p.Buildpack.PrePackage()
 	if !ok {
 		return nil
@@ -184,26 +160,22 @@ func (p Packager) prePackage() error {
 	return cmd.Run()
 }
 
-// DefaultPackager creates a new Packager, using the executable to find the root of the buildpack.
-func DefaultPackager() (Packager, error) {
+func defaultPackager(outputDirectory string) (packager, error) {
 	l := loggerBp.DefaultLogger()
 	logger := loggerCf.Logger{Logger: l}
 
 	b, err := buildpackBp.DefaultBuildpack(l)
 	if err != nil {
-		return Packager{}, err
+		return packager{}, err
 	}
 	buildpack := buildpackCf.NewBuildpack(b)
 
 	layers := layersCf.Layers{Layers: layersBp.Layers{Root: buildpack.CacheRoot}, Logger: logger}
 
-	return Packager{buildpack, layers, logger}, nil
-}
-
-func osArgs(index int) (string, error) {
-	if len(os.Args) < index+1 {
-		return "", fmt.Errorf("incorrect number of command line arguments")
-	}
-
-	return os.Args[index], nil
+	return packager{
+		buildpack,
+		layers,
+		logger,
+		outputDirectory,
+	}, nil
 }
