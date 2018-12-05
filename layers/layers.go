@@ -38,6 +38,9 @@ type Layers struct {
 
 	// Logger logger is used to write debug and info to the console.
 	Logger logger.Logger
+
+	// TouchedLayers registers the layers that have been touched during this execution.
+	TouchedLayers TouchedLayers
 }
 
 // DependencyLayer returns a DependencyLayer unique to a dependency.
@@ -55,7 +58,7 @@ func (l Layers) DependencyLayer(dependency buildpack.Dependency) DependencyLayer
 func (l Layers) DownloadLayer(dependency buildpack.Dependency) DownloadLayer {
 	return DownloadLayer{
 		l.Layer(dependency.SHA256),
-		Layer{l.BuildpackCache.Layer(dependency.SHA256), l.Logger},
+		Layer{l.BuildpackCache.Layer(dependency.SHA256), l.Logger, l.TouchedLayers},
 		dependency,
 		l.Logger,
 	}
@@ -63,13 +66,13 @@ func (l Layers) DownloadLayer(dependency buildpack.Dependency) DownloadLayer {
 
 // Layer creates a Layer with a specified name.
 func (l Layers) Layer(name string) Layer {
-	return Layer{l.Layers.Layer(name), l.Logger}
+	return Layer{l.Layers.Layer(name), l.Logger, l.TouchedLayers}
 }
 
 // String makes Layers satisfy the Stringer interface.
 func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Layers: %s, BuildpackCache: %s, DependencyBuildPlans: %s, Logger: %s }",
-		l.Layers, l.BuildpackCache, l.DependencyBuildPlans, l.Logger)
+	return fmt.Sprintf("Layers{ Layers: %s, BuildpackCache: %s, DependencyBuildPlans: %s, Logger: %s, TouchedLayers: %s }",
+		l.Layers, l.BuildpackCache, l.DependencyBuildPlans, l.Logger, l.TouchedLayers)
 }
 
 // WriteMetadata writes Launch metadata to the filesystem.

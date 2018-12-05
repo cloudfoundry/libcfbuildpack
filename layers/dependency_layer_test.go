@@ -28,6 +28,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -40,7 +41,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("creates a dependency layer with the dependency id name", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 		dependency := buildpack.Dependency{ID: "test-id"}
 
 		l := layers.DependencyLayer(dependency)
@@ -53,7 +54,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("calls contributor to contribute dependency layer", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{
 			ID:      "test-id",
@@ -88,7 +89,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("does not call contributor for a cached launch layer", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{
 			ID:      "test-id",
@@ -123,7 +124,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("returns artifact name", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{ID: "test-id", URI: "http://localhost/path/test-artifact-name"}
 
@@ -137,7 +138,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 	it("contributes dependency to build plan", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
 		buildPlan := buildplan.BuildPlan{}
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildPlan}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildPlan, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{
 			ID:      "test-id",

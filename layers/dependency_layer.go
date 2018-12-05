@@ -51,6 +51,8 @@ type DependencyLayerContributor func(artifact string, layer DependencyLayer) err
 // Contribute facilitates custom contribution of an artifact to a layer.  If the artifact has already been contributed,
 // the contribution is validated and the contributor is not called.
 func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...Flag) error {
+	l.Layer.TouchedLayers.Add(l.downloadLayer.Metadata)
+
 	if err := l.Layer.Contribute(l.Dependency, func(layer Layer) error {
 		a, err := l.downloadLayer.Artifact()
 		if err != nil {
@@ -62,6 +64,7 @@ func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flag
 		return err
 	}
 
+	l.Logger.Debug("Contributing %s to bill-of-materials", l.Dependency.ID)
 	l.dependencyBuildPlans[l.Dependency.ID] = buildplan.Dependency{
 		Version: l.Dependency.Version.Original(),
 		Metadata: buildplan.Metadata{

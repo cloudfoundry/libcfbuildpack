@@ -26,6 +26,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
 	"github.com/h2non/gock"
 	"github.com/sclevine/spec"
@@ -40,7 +41,7 @@ func testDownloadLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("creates a download layer with the dependency SHA256 name", func() {
 		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 		dependency := buildpack.Dependency{SHA256: "test-sha256"}
 
 		l := layers.DownloadLayer(dependency)
@@ -53,7 +54,7 @@ func testDownloadLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("downloads a dependency", func() {
 		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{
 			Version: newVersion(t, "1.0"),
@@ -99,6 +100,7 @@ launch = false
 		layers := layersCf.Layers{
 			Layers:         layersBp.Layers{Root: root},
 			BuildpackCache: layersBp.Layers{Root: filepath.Join(root, "buildpack")},
+			TouchedLayers:  layersCf.NewTouchedLayers(root, logger.Logger{}),
 		}
 
 		dependency := buildpack.Dependency{
@@ -130,7 +132,7 @@ launch = false
 
 	it("does not download a previously cached dependency", func() {
 		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		dependency := buildpack.Dependency{
 			Version: newVersion(t, "1.0"),

@@ -62,7 +62,16 @@ func (b Build) Success(buildPlan buildplan.BuildPlan) (int, error) {
 		combined[k] = v
 	}
 
-	return b.Build.Success(combined)
+	code, err := b.Build.Success(combined)
+	if err != nil {
+		return code, err
+	}
+
+	if err := b.Layers.TouchedLayers.Cleanup(); err != nil {
+		return -1, err
+	}
+
+	return code, nil
 }
 
 // DefaultBuild creates a new instance of Build using default values.
@@ -83,6 +92,7 @@ func DefaultBuild() (Build, error) {
 		},
 		DependencyBuildPlans: dependencyBuildPlans,
 		Logger:               logger,
+		TouchedLayers: layersCf.NewTouchedLayers(b.Layers.Root, logger),
 	}
 
 	return Build{

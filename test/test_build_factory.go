@@ -159,9 +159,11 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 		return nil
 	}
 
-	f.Build.Layers.Root = filepath.Join(root, "layers")
-	f.Build.Layers.DependencyBuildPlans = buildplan.BuildPlan{}
+	layersRoot := filepath.Join(root, "layers")
 	f.Build.Layers.BuildpackCache = layersBp.Layers{Root: filepath.Join(root, "buildpack-cache")}
+	f.Build.Layers.DependencyBuildPlans = buildplan.BuildPlan{}
+	f.Build.Layers.Root = layersRoot
+	f.Build.Layers.TouchedLayers = layersCf.TouchedLayers{Root: layersRoot, Touched: make(map[string]struct{})}
 
 	f.Build.Platform.Root = filepath.Join(root, "platform")
 	f.Build.Platform.Envs = make(platform.EnvironmentVariables, 0)
