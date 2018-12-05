@@ -19,6 +19,7 @@ package layers
 import (
 	"fmt"
 
+	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
@@ -32,6 +33,9 @@ type Layers struct {
 	// BuildpackCacheRoot is the root of the cache of dependencies in the buildpack.
 	BuildpackCache layers.Layers
 
+	// DependencyBuildPlans contains all contributed dependencies.
+	DependencyBuildPlans buildplan.BuildPlan
+
 	// Logger logger is used to write debug and info to the console.
 	Logger logger.Logger
 }
@@ -42,6 +46,7 @@ func (l Layers) DependencyLayer(dependency buildpack.Dependency) DependencyLayer
 		l.Layer(dependency.ID),
 		dependency,
 		l.Logger,
+		l.DependencyBuildPlans,
 		l.DownloadLayer(dependency),
 	}
 }
@@ -63,8 +68,8 @@ func (l Layers) Layer(name string) Layer {
 
 // String makes Layers satisfy the Stringer interface.
 func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Layers: %s, Logger: %s }",
-		l.Layers, l.Logger)
+	return fmt.Sprintf("Layers{ Layers: %s, BuildpackCache: %s, DependencyBuildPlans: %s, Logger: %s }",
+		l.Layers, l.BuildpackCache, l.DependencyBuildPlans, l.Logger)
 }
 
 // WriteMetadata writes Launch metadata to the filesystem.

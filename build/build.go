@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/buildpack/libbuildpack/build"
+	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	buildpackPkg "github.com/cloudfoundry/libcfbuildpack/buildpack"
 	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
@@ -32,6 +33,9 @@ type Build struct {
 
 	// Buildpack represents the metadata associated with a buildpack.
 	Buildpack buildpackPkg.Buildpack
+
+	// DependencyBuildPlans contains all contributed dependencies.
+	DependencyBuildPlans buildplan.BuildPlan
 
 	// Layers represents the launch layers contributed by a buildpack.
 	Layers layersCf.Layers
@@ -46,6 +50,21 @@ func (b Build) String() string {
 		b.Build, b.Buildpack, b.Layers, b.Logger)
 }
 
+// Success signals a successful build by exiting with a zero status code.
+func (b Build) Success(buildPlan buildplan.BuildPlan) (int, error) {
+	combined := buildplan.BuildPlan{}
+
+	for k, v := range b.DependencyBuildPlans {
+		combined[k] = v
+	}
+
+	for k, v := range buildPlan {
+		combined[k] = v
+	}
+
+	return b.Build.Success(combined)
+}
+
 // DefaultBuild creates a new instance of Build using default values.
 func DefaultBuild() (Build, error) {
 	b, err := build.DefaultBuild()
@@ -55,18 +74,21 @@ func DefaultBuild() (Build, error) {
 
 	logger := loggerPkg.Logger{Logger: b.Logger}
 	buildpack := buildpackPkg.NewBuildpack(b.Buildpack)
+	dependencyBuildPlans := buildplan.BuildPlan{}
 	layers := layersCf.Layers{
 		Layers: b.Layers,
 		BuildpackCache: layersBp.Layers{
 			Root:   buildpack.CacheRoot,
 			Logger: b.Logger,
 		},
-		Logger: logger,
+		DependencyBuildPlans: dependencyBuildPlans,
+		Logger:               logger,
 	}
 
 	return Build{
 		b,
 		buildpack,
+		dependencyBuildPlans,
 		layers,
 		logger,
 	}, nil
