@@ -160,6 +160,7 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	}
 
 	f.Build.Layers.Root = filepath.Join(root, "layers")
+	f.Build.Layers.DependencyBuildPlans = buildplan.BuildPlan{}
 	f.Build.Layers.BuildpackCache = layersBp.Layers{Root: filepath.Join(root, "buildpack-cache")}
 
 	f.Build.Platform.Root = filepath.Join(root, "platform")
