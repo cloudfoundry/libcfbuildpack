@@ -11,5 +11,5 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/sclevine/spec v1.2.0
-	golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a // indirect
+	golang.org/x/sys v0.0.0-20181206074257-70b957f3b65e // indirect
 )
