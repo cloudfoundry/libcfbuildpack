@@ -62,17 +62,17 @@ type Identifiable interface {
 	Identity() (name string, description string)
 }
 
-// PrettyVersion formats a standard pretty version of a dependency.
+// PrettyIdentity formats a standard pretty identity of a type.
 func (l Logger) PrettyIdentity(v Identifiable) string {
 	var sb strings.Builder
 
-	name, version := v.Identity()
+	name, description := v.Identity()
 
 	_, _ = sb.WriteString(color.New(color.FgBlue, color.Bold).Sprint(name))
 
-	if version != "" {
+	if description != "" {
 		_, _ = sb.WriteString(" ")
-		_, _ = sb.WriteString(color.BlueString(version))
+		_, _ = sb.WriteString(color.BlueString(description))
 	}
 
 	return sb.String()
