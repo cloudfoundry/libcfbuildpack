@@ -19,9 +19,11 @@ package layers_test
 import (
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
@@ -36,9 +38,9 @@ func TestDependencyLayer(t *testing.T) {
 
 func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
-	it("creates a dependency later with the dependency id name", func() {
+	it("creates a dependency layer with the dependency id name", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
 		dependency := buildpack.Dependency{ID: "test-id"}
 
 		l := layers.DependencyLayer(dependency)
@@ -51,10 +53,10 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("calls contributor to contribute dependency layer", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
 
 		dependency := buildpack.Dependency{
-			ID: "test-id",
+			ID:      "test-id",
 			Version: newVersion(t, "1.0"),
 			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
 			URI:     "http://test.com/test-path",
@@ -86,10 +88,10 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("does not call contributor for a cached launch layer", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
 
 		dependency := buildpack.Dependency{
-			ID: "test-id",
+			ID:      "test-id",
 			Version: newVersion(t, "1.0"),
 			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
 			URI:     "http://test.com/test-path",
@@ -121,7 +123,7 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("returns artifact name", func() {
 		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}}
 
 		dependency := buildpack.Dependency{ID: "test-id", URI: "http://localhost/path/test-artifact-name"}
 
@@ -129,6 +131,52 @@ func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
 
 		if l.ArtifactName() != "test-artifact-name" {
 			t.Errorf("DependencyLaunchLayer.ArtifactName = %s, expected test-artifact-name", l.ArtifactName())
+		}
+	})
+
+	it("contributes dependency to build plan", func() {
+		root := internal.ScratchDir(t, "dependency-layer")
+		buildPlan := buildplan.BuildPlan{}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildPlan}
+
+		dependency := buildpack.Dependency{
+			ID:      "test-id",
+			Version: newVersion(t, "1.0"),
+			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+			URI:     "http://test.com/test-path",
+		}
+
+		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+  id = "test-id"
+  name = ""
+  version = "1.0"
+  uri = "http://test.com/test-path"
+  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
+`), filepath.Join(root, fmt.Sprintf("%s.toml", dependency.ID)), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := layers.DependencyLayer(dependency).Contribute(func(artifact string, layer layersCf.DependencyLayer) error {
+			return nil
+		}); err != nil {
+			t.Fatal(err)
+		}
+
+		expected := buildplan.BuildPlan{
+			dependency.ID: buildplan.Dependency{
+				Version: "1.0",
+				Metadata: buildplan.Metadata{
+					"name":     dependency.Name,
+					"uri":      dependency.URI,
+					"sha256":   dependency.SHA256,
+					"stacks":   dependency.Stacks,
+					"licenses": dependency.Licenses,
+				},
+			},
+		}
+
+		if !reflect.DeepEqual(buildPlan, expected) {
+			t.Errorf("Buildplan = %s, expected = %s", buildPlan, expected)
 		}
 	})
 }

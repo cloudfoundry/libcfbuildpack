@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
@@ -33,6 +34,8 @@ type DependencyLayer struct {
 
 	// Logger is used to write debug and info to the console.
 	Logger logger.Logger
+
+	dependencyBuildPlans buildplan.BuildPlan
 
 	downloadLayer DownloadLayer
 }
@@ -48,18 +51,33 @@ type DependencyLayerContributor func(artifact string, layer DependencyLayer) err
 // Contribute facilitates custom contribution of an artifact to a layer.  If the artifact has already been contributed,
 // the contribution is validated and the contributor is not called.
 func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...Flag) error {
-	return l.Layer.Contribute(l.Dependency, func(layer Layer) error {
+	if err := l.Layer.Contribute(l.Dependency, func(layer Layer) error {
 		a, err := l.downloadLayer.Artifact()
 		if err != nil {
 			return err
 		}
 
 		return contributor(a, l)
-	}, flags...)
+	}, flags...); err != nil {
+		return err
+	}
+
+	l.dependencyBuildPlans[l.Dependency.ID] = buildplan.Dependency{
+		Version: l.Dependency.Version.Original(),
+		Metadata: buildplan.Metadata{
+			"name":     l.Dependency.Name,
+			"uri":      l.Dependency.URI,
+			"sha256":   l.Dependency.SHA256,
+			"stacks":   l.Dependency.Stacks,
+			"licenses": l.Dependency.Licenses,
+		},
+	}
+
+	return nil
 }
 
 // String makes DependencyLayer satisfy the Stringer interface.
 func (l DependencyLayer) String() string {
-	return fmt.Sprintf("DependencyLayer{ Layer: %s, Dependency: %s, Logger: %s, downloadLayer: %s }",
-		l.Layer, l.Dependency, l.Logger, l.downloadLayer)
+	return fmt.Sprintf("DependencyLayer{ Layer: %s, Dependency: %s, Logger: %s, dependencyBuildPlans: %s, downloadLayer: %s }",
+		l.Layer, l.Dependency, l.Logger, l.dependencyBuildPlans, l.downloadLayer)
 }
