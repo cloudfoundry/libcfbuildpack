@@ -25,6 +25,7 @@ import (
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -37,7 +38,7 @@ func testLayer(t *testing.T, when spec.G, it spec.S) {
 
 	it("identifies matching metadata", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
 Alpha = "test-value"
@@ -57,7 +58,7 @@ Bravo = 1
 
 	it("identifies non-matching metadata", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
 Alpha = "test-value"
@@ -77,7 +78,7 @@ Bravo = 2
 
 	it("identifies invalid metadata", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
 Alpha = "test-value"
@@ -97,7 +98,7 @@ Bravo = "invalid-value"
 
 	it("identifies missing metadata", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
 		if err != nil {
@@ -111,7 +112,7 @@ Bravo = "invalid-value"
 
 	it("does not call contributor for cached layer", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 		layer := layers.Layer("test-layer")
 
 		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
@@ -137,7 +138,7 @@ Bravo = 1
 
 	it("calls contributor for uncached layer", func() {
 		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}}
+		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
 
 		contributed := false
 

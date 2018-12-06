@@ -146,6 +146,22 @@ func BeProfileLike(t *testing.T, layer layersPkg.Layer, name string, format stri
 	BeFileLike(t, filepath.Join(layer.Root, "profile.d", name), 0644, format, args...)
 }
 
+// FileDoesNotExist tests that a file does not exist
+func FileDoesNotExist(t *testing.T, file string) {
+	t.Helper()
+
+	_, err := os.Stat(file)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+
+		return
+	}
+
+	t.Errorf("File %s does exist", file)
+}
+
 // FileExists tests that a file exists
 func FileExists(t *testing.T, file string) {
 	t.Helper()
