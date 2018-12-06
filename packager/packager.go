@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
+	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
 	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
@@ -163,7 +164,12 @@ func defaultPackager(outputDirectory string) (packager, error) {
 	}
 	buildpack := buildpackCf.NewBuildpack(b)
 
-	layers := layersCf.Layers{Layers: layersBp.Layers{Root: buildpack.CacheRoot}, Logger: logger}
+	layers := layersCf.Layers{
+		Layers:               layersBp.Layers{Root: buildpack.CacheRoot},
+		Logger:               logger,
+		DependencyBuildPlans: buildplan.BuildPlan{},
+		TouchedLayers:        layersCf.NewTouchedLayers(buildpack.CacheRoot, logger),
+	}
 
 	return packager{
 		buildpack,
