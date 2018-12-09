@@ -21,8 +21,11 @@ import (
 	"path/filepath"
 
 	"github.com/buildpack/libbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/mitchellh/mapstructure"
 )
+
+const cacheRoot = "dependency-cache"
 
 // Buildpack is an extension to libbuildpack.Buildpack that adds additional opinionated behaviors.
 type Buildpack struct {
@@ -30,18 +33,15 @@ type Buildpack struct {
 
 	// CacheRoot is the path to the root directory for the buildpack's dependency cache.
 	CacheRoot string
+
+	logger logger.Logger
 }
 
 // Dependencies returns the collection of dependencies extracted from the generic buildpack metadata.
 func (b Buildpack) Dependencies() (Dependencies, error) {
-	d, ok := b.Metadata["dependencies"]
+	deps, ok := b.Metadata["dependencies"].([]map[string]interface{})
 	if !ok {
 		return Dependencies{}, nil
-	}
-
-	deps, ok := d.([]map[string]interface{})
-	if !ok {
-		return Dependencies{}, fmt.Errorf("dependencies have invalid structure")
 	}
 
 	var dependencies Dependencies
@@ -54,7 +54,7 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 		dependencies = append(dependencies, d)
 	}
 
-	b.Logger.Debug("Dependencies: %s", dependencies)
+	b.logger.Debug("Dependencies: %s", dependencies)
 	return dependencies, nil
 }
 
@@ -65,14 +65,9 @@ func (b Buildpack) Identity() (string, string) {
 
 // IncludeFiles returns the include_files buildpack metadata.
 func (b Buildpack) IncludeFiles() ([]string, error) {
-	i, ok := b.Metadata["include_files"]
+	files, ok := b.Metadata["include_files"].([]interface{})
 	if !ok {
 		return []string{}, nil
-	}
-
-	files, ok := i.([]interface{})
-	if !ok {
-		return []string{}, fmt.Errorf("include_files is not an array of strings")
 	}
 
 	var includes []string
@@ -90,13 +85,8 @@ func (b Buildpack) IncludeFiles() ([]string, error) {
 
 // PrePackage returns the pre_package buildpack metadata.
 func (b Buildpack) PrePackage() (string, bool) {
-	p, ok := b.Metadata["pre_package"]
-	if !ok {
-		return "", false
-	}
-
-	s, ok := p.(string)
-	return s, ok
+	p, ok := b.Metadata["pre_package"].(string)
+	return p, ok
 }
 
 func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
@@ -119,10 +109,13 @@ func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
 	return d, nil
 }
 
+// String makes Buildpack satisfy the Stringer interface.
+func (b Buildpack) String() string {
+	return fmt.Sprintf("Buildpack{ Buildpack: %s, CacheRoot: %s, logger: %s }",
+		b.Buildpack, b.CacheRoot, b.logger)
+}
+
 // NewBuildpack creates a new instance of Buildpack from a specified buildpack.Buildpack.
-func NewBuildpack(buildpack buildpack.Buildpack) Buildpack {
-	return Buildpack{
-		buildpack,
-		filepath.Join(buildpack.Root, "dependency-cache"),
-	}
+func NewBuildpack(buildpack buildpack.Buildpack, logger logger.Logger) Buildpack {
+	return Buildpack{buildpack, filepath.Join(buildpack.Root, cacheRoot), logger}
 }

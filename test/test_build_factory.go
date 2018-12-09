@@ -17,20 +17,21 @@
 package test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
 
-	"github.com/Masterminds/semver"
-	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	"github.com/buildpack/libbuildpack/buildplan"
-	layersBp "github.com/buildpack/libbuildpack/layers"
-	"github.com/buildpack/libbuildpack/platform"
+	bp "github.com/buildpack/libbuildpack/layers"
+	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/build"
-	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
 // BuildFactory is a factory for creating a test Build.
@@ -43,37 +44,48 @@ type BuildFactory struct {
 
 	// Output is the BuildPlan output at termination.
 	Output buildplan.BuildPlan
+
+	t *testing.T
 }
 
 // AddBuildPlan adds an entry to a build plan.
-func (f *BuildFactory) AddBuildPlan(t *testing.T, name string, dependency buildplan.Dependency) {
-	t.Helper()
+func (f *BuildFactory) AddBuildPlan(name string, dependency buildplan.Dependency) {
+	f.t.Helper()
+
+	if f.Build.BuildPlan == nil {
+		f.Build.BuildPlan = make(buildplan.BuildPlan)
+	}
+
 	f.Build.BuildPlan[name] = dependency
 }
 
-// AddDependency adds a dependency to the buildpack metadata and copies a fixture into a cached dependency layer.
-func (f *BuildFactory) AddDependency(t *testing.T, id string, fixture string) {
-	t.Helper()
-
-	d := f.newDependency(t, id, fixture)
-	f.cacheFixture(t, d, fixture)
-	f.addDependency(t, d)
+// AddDependency adds a dependency with version 1.0 to the buildpack metadata and copies a fixture into a cached
+// dependency layer.
+func (f *BuildFactory) AddDependency(id string, fixturePath string) {
+	f.t.Helper()
+	f.AddDependencyWithVersion(id, "1.0", fixturePath)
 }
 
-// AddEnv adds an environment variable to the Platform
-func (f *BuildFactory) AddEnv(t *testing.T, name string, value string) {
-	t.Helper()
+// AddDependencyWithVersion adds a dependency to the buildpack metadata and copies a fixture into a cached dependency
+// layer
+func (f *BuildFactory) AddDependencyWithVersion(id string, version string, fixturePath string) {
+	f.t.Helper()
 
-	file := filepath.Join(f.Build.Platform.Root, "env", name)
-	if err := layersCf.WriteToFile(strings.NewReader(value), file, 0644); err != nil {
-		t.Fatal(err)
+	d := f.newDependency(id, version, filepath.Base(fixturePath))
+	f.cacheFixture(d, fixturePath)
+	f.addDependency(d)
+}
+
+func (f *BuildFactory) addDependency(dependency buildpack.Dependency) {
+	f.t.Helper()
+
+	if f.Build.Buildpack.Metadata == nil {
+		f.Build.Buildpack.Metadata = make(buildpack.Metadata)
 	}
 
-	f.Build.Platform.Envs = append(f.Build.Platform.Envs, platform.EnvironmentVariable{File: file, Name: name})
-}
-
-func (f *BuildFactory) addDependency(t *testing.T, dependency buildpackCf.Dependency) {
-	t.Helper()
+	if _, ok := f.Build.Buildpack.Metadata["dependencies"]; !ok {
+		f.Build.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
+	}
 
 	metadata := f.Build.Buildpack.Metadata
 	dependencies := metadata["dependencies"].([]map[string]interface{})
@@ -102,75 +114,52 @@ func (f *BuildFactory) addDependency(t *testing.T, dependency buildpackCf.Depend
 	})
 }
 
-func (f *BuildFactory) cacheFixture(t *testing.T, dependency buildpackCf.Dependency, fixture string) {
-	t.Helper()
+func (f *BuildFactory) cacheFixture(dependency buildpack.Dependency, fixturePath string) {
+	f.t.Helper()
 
 	l := f.Build.Layers.Layer(dependency.SHA256)
-	if err := layersCf.CopyFile(FixturePath(t, fixture), filepath.Join(l.Root, filepath.Base(fixture))); err != nil {
-		t.Fatal(err)
+	if err := helper.CopyFile(fixturePath, filepath.Join(l.Root, dependency.Name)); err != nil {
+		f.t.Fatal(err)
 	}
 
-	d, err := internal.ToTomlString(map[string]interface{}{"metadata": dependency})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := layersCf.WriteToFile(strings.NewReader(d), l.Metadata, 0644); err != nil {
-		t.Fatal(err)
+	if err := internal.WriteTomlFile(l.Metadata, 0644, map[string]interface{}{"metadata": dependency}); err != nil {
+		f.t.Fatal(err)
 	}
 }
 
-func (f *BuildFactory) newDependency(t *testing.T, id string, fixture string) buildpackCf.Dependency {
-	t.Helper()
+func (f *BuildFactory) newDependency(id string, version string, name string) buildpack.Dependency {
+	f.t.Helper()
 
-	version, err := semver.NewVersion("1.0")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return buildpackCf.Dependency{
+	return buildpack.Dependency{
 		ID:      id,
-		Name:    "test-name",
-		Version: buildpackCf.Version{Version: version},
-		URI:     fmt.Sprintf("http://localhost/%s", filepath.Base(fixture)),
-		SHA256:  "test-hash",
-		Stacks:  buildpackCf.Stacks{f.Build.Stack},
-		Licenses: buildpackCf.Licenses{
-			buildpackCf.License{Type: "test-type"},
-		},
+		Name:    name,
+		Version: internal.NewTestVersion(f.t, version),
+		SHA256:  hex.EncodeToString(sha256.New().Sum([]byte(id))),
+		URI:     fmt.Sprintf("http://localhost/%s", name),
+		Stacks:  buildpack.Stacks{f.Build.Stack},
 	}
 }
 
 // NewBuildFactory creates a new instance of BuildFactory.
 func NewBuildFactory(t *testing.T) *BuildFactory {
 	t.Helper()
-	f := BuildFactory{}
 
-	root := internal.ScratchDir(t, "test-build-factory")
+	root := internal.ScratchDir(t, "build")
+
+	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Build.Application.Root = filepath.Join(root, "application")
-
-	f.Build.Buildpack.Metadata = make(buildpackBp.Metadata)
-	f.Build.Buildpack.Metadata["dependencies"] = make([]map[string]interface{}, 0)
-
-	f.Build.BuildPlan = make(buildplan.BuildPlan)
-
 	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
 		f.Output = buildPlan
 		return nil
 	}
 
-	layersRoot := filepath.Join(root, "layers")
-	f.Build.Layers.BuildpackCache = layersBp.Layers{Root: filepath.Join(root, "buildpack-cache")}
-	f.Build.Layers.DependencyBuildPlans = buildplan.BuildPlan{}
-	f.Build.Layers.Root = layersRoot
-	f.Build.Layers.TouchedLayers = layersCf.TouchedLayers{Root: layersRoot, Touched: make(map[string]struct{})}
-
+	f.Build.Layers = layers.NewLayers(
+		bp.Layers{Root: filepath.Join(root, "layers")},
+		bp.Layers{Root: filepath.Join(root, "buildpack-cache")},
+		logger.Logger{})
 	f.Build.Platform.Root = filepath.Join(root, "platform")
-	f.Build.Platform.Envs = make(platform.EnvironmentVariables, 0)
-
-	f.Build.Stack = "test-stack"
-
-	f.Home = filepath.Join(root, "home")
+	f.Build.Stack = stack.Stack("test-stack")
 
 	return &f
 }

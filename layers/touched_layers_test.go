@@ -22,39 +22,43 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestTouchedLayers(t *testing.T) {
-	spec.Run(t, "TouchedLayers", testTouchedLayers, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "TouchedLayers", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testTouchedLayers(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("does not remove touched layers", func() {
-		root := internal.ScratchDir(t, "touched-layers")
-		test.TouchFile(t, filepath.Join(root, "test-layer.toml"))
+		var (
+			root    string
+			touched layers.TouchedLayers
+		)
 
-		tl := layers.TouchedLayers{Root: root, Touched: make(map[string]struct{})}
-		tl.Add(filepath.Join(root, "test-layer.toml"))
-		if err := tl.Cleanup(); err != nil {
-			t.Fatal(err)
-		}
+		it.Before(func() {
+			root = internal.ScratchDir(t, "touched-layers")
+			touched = layers.NewTouchedLayers(root, logger.Logger{})
+		})
 
-		test.FileExists(t, filepath.Join(root, "test-layer.toml"))
-	})
+		it("does not remove touched layers", func() {
+			test.TouchFile(t, root, "test-layer.toml")
 
-	it("removes untouched layers", func() {
-		root := internal.ScratchDir(t, "touched-layers")
-		test.TouchFile(t, filepath.Join(root, "test-layer.toml"))
+			touched.Add(filepath.Join(root, "test-layer.toml"))
+			g.Expect(touched.Cleanup()).To(Succeed())
 
-		tl := layers.TouchedLayers{Root: root, Touched: make(map[string]struct{})}
-		if err := tl.Cleanup(); err != nil {
-			t.Fatal(err)
-		}
+			g.Expect(filepath.Join(root, "test-layer.toml")).To(BeARegularFile())
+		})
 
-		test.FileDoesNotExist(t, filepath.Join(root, "test-layer.toml"))
-	})
+		it("removes untouched layers", func() {
+			test.TouchFile(t, root, "test-layer.toml")
+
+			g.Expect(touched.Cleanup()).To(Succeed())
+
+			g.Expect(filepath.Join(root, "test-layer.toml")).NotTo(BeARegularFile())
+		})
+	}, spec.Report(report.Terminal{}))
 }

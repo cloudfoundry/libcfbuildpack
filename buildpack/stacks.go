@@ -18,10 +18,12 @@ package buildpack
 
 import (
 	"fmt"
+
+	"github.com/buildpack/libbuildpack/stack"
 )
 
 // Stacks is a collection of stack ids.
-type Stacks []string
+type Stacks []stack.Stack
 
 // Validate ensures that there is at least one stack.
 func (s Stacks) Validate() error {
@@ -32,7 +34,7 @@ func (s Stacks) Validate() error {
 	return nil
 }
 
-func (s Stacks) contains(stack string) bool {
+func (s Stacks) contains(stack stack.Stack) bool {
 	for _, v := range s {
 		if v == stack {
 			return true

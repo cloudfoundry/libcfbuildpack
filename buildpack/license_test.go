@@ -20,41 +20,30 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestLicense(t *testing.T) {
-	spec.Run(t, "License", testLicense, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "License", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testLicense(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("validates with type set", func() {
-		err := buildpack.License{Type: "test-type"}.Validate()
-		if err != nil {
-			t.Errorf("License.Validate() = %s expected no error", err)
-		}
-	})
+		it("validates with type set", func() {
+			g.Expect(buildpack.License{Type: "test-type"}.Validate()).To(Succeed())
+		})
 
-	it("validates with uri set", func() {
-		err := buildpack.License{URI: "test-uri"}.Validate()
-		if err != nil {
-			t.Errorf("License.Validate() = %s expected no error", err)
-		}
-	})
+		it("validates with uri set", func() {
+			g.Expect(buildpack.License{URI: "test-uri "}.Validate()).To(Succeed())
+		})
 
-	it("validates with type and uri set", func() {
-		err := buildpack.License{Type: "test-type", URI: "test-uri"}.Validate()
-		if err != nil {
-			t.Errorf("License.Validate() = %s expected no error", err)
-		}
-	})
+		it("validates with type and uri set", func() {
+			g.Expect(buildpack.License{Type: "test-type", URI: "test-uri "}.Validate()).To(Succeed())
+		})
 
-	it("does not validate without type and uri set", func() {
-		err := buildpack.License{}.Validate()
-		if err == nil {
-			t.Errorf("License.Validate() = nil expected error")
-		}
-	})
+		it("does not validate without type and uri set", func() {
+			g.Expect(buildpack.License{}.Validate()).NotTo(Succeed())
+		})
+	}, spec.Report(report.Terminal{}))
 }

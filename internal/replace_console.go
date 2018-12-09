@@ -17,14 +17,10 @@
 package internal
 
 import (
-	bytesPkg "bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
-
-	"github.com/BurntSushi/toml"
 )
 
 // Console represents the standard console objects, stdin, stdout, and stderr.
@@ -86,19 +82,6 @@ func (c Console) Out(t *testing.T) string {
 	return string(bytes)
 }
 
-// ReplaceArgs replaces the current command line arguments (os.Args) with a new collection of values.  Returns a
-// function suitable for use with defer in order to reset the previous values
-//
-//  defer ReplaceArgs(t, "alpha")()
-func ReplaceArgs(t *testing.T, args ...string) func() {
-	t.Helper()
-
-	previous := os.Args
-	os.Args = args
-
-	return func() { os.Args = previous }
-}
-
 // ReplaceConsole replaces the console files (os.Stderr, os.Stdin, os.Stdout).  Returns a function for use with defer in
 // order to reset the previous values
 //
@@ -136,79 +119,4 @@ func ReplaceConsole(t *testing.T) (Console, func()) {
 		os.Stdin = inPrevious
 		os.Stdout = outPrevious
 	}
-}
-
-// ReplaceEnv replaces an environment variable.  Returns a function for use with defer in order to reset the previous
-// value.
-//
-// defer ReplaceEnv(t, "alpha", "bravo")()
-func ReplaceEnv(t *testing.T, key string, value string) func() {
-	t.Helper()
-
-	previous, ok := os.LookupEnv(key)
-	if err := os.Setenv(key, value); err != nil {
-		t.Fatal(err)
-	}
-
-	return func() {
-		if ok {
-			if err := os.Setenv(key, previous); err != nil {
-				t.Fatal(err)
-			}
-		} else {
-			if err := os.Unsetenv(key); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-}
-
-// ReplaceWorkingDirectory replaces the current working directory (os.Getwd()) with a new value.  Returns a function for
-// use with defer in order to reset the previous value
-//
-// defer ReplaceWorkingDirectory(t, "alpha")()
-func ReplaceWorkingDirectory(t *testing.T, dir string) func() {
-	t.Helper()
-
-	previous, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err = os.Chdir(dir); err != nil {
-		t.Fatal(err)
-	}
-
-	return func() {
-		if err := os.Chdir(previous); err != nil {
-			t.Fatal(err)
-		}
-	}
-}
-
-// ScratchDir returns a safe scratch directory for tests to modify.
-func ScratchDir(t *testing.T, prefix string) string {
-	t.Helper()
-
-	tmp, err := ioutil.TempDir("", prefix)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	abs, err := filepath.EvalSymlinks(tmp)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return abs
-}
-
-func ToTomlString(v interface{}) (string, error) {
-	var b bytesPkg.Buffer
-
-	if err := toml.NewEncoder(&b).Encode(v); err != nil {
-		return "", err
-	}
-
-	return b.String(), nil
 }

@@ -20,141 +20,119 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/internal"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestDependency(t *testing.T) {
-	spec.Run(t, "Dependency", testDependency, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Dependency", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testDependency(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("validates", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err != nil {
-			t.Errorf("Dependency.Validate() = %s expected no error", err)
-		}
-	})
+		it("validates", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).To(Succeed())
+		})
 
-	it("does not validate with invalid id", func() {
-		err := buildpack.Dependency{
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid id", func() {
+			g.Expect(buildpack.Dependency{
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid name", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid name", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid version", func() {
-		err := buildpack.Dependency{
-			ID:     "test-id",
-			Name:   "test-name",
-			URI:    "test-uri",
-			SHA256: "test-sha256",
-			Stacks: buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid version", func() {
+			g.Expect(buildpack.Dependency{
+				ID:     "test-id",
+				Name:   "test-name",
+				URI:    "test-uri",
+				SHA256: "test-sha256",
+				Stacks: buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid uri", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			SHA256:  "test-sha256",
-			Stacks:  buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid uri", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid sha256", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			Stacks:  buildpack.Stacks{"test-stack"},
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid sha256", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				Stacks:  buildpack.Stacks{"test-stack"},
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid stacks", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Licenses: buildpack.Licenses{
-				{Type: "test-type"},
-			},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid stacks", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Licenses: buildpack.Licenses{
+					{Type: "test-type"},
+				},
+			}.Validate()).NotTo(Succeed())
+		})
 
-	it("does not validate with invalid licenses", func() {
-		err := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  buildpack.Stacks{"test-stack"},
-		}.Validate()
-		if err == nil {
-			t.Errorf("Dependency.Validate() = nil expected error")
-		}
-	})
+		it("does not validate with invalid licenses", func() {
+			g.Expect(buildpack.Dependency{
+				ID:      "test-id",
+				Name:    "test-name",
+				Version: internal.NewTestVersion(t, "1.0.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack"},
+			}.Validate()).NotTo(Succeed())
+		})
 
+	}, spec.Report(report.Terminal{}))
 }

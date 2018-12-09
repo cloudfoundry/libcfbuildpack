@@ -18,141 +18,91 @@ package layers_test
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 	"testing"
 
-	layersBp "github.com/buildpack/libbuildpack/layers"
+	bp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/test"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestLayer(t *testing.T) {
-	spec.Run(t, "Layer", testLayer, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Layer", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testLayer(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("identifies matching metadata", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+		var (
+			root  string
+			layer layers.Layer
+		)
 
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+		it.Before(func() {
+			root = internal.ScratchDir(t, "layer")
+			layer = layers.NewLayers(bp.Layers{Root: root}, bp.Layers{}, logger.Logger{}).Layer("test-layer")
+		})
+
+		it("identifies matching metadata", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
 Alpha = "test-value"
 Bravo = 1
-`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
-			t.Fatal(err)
-		}
-		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
-		if err != nil {
-			t.Fatal(err)
-		}
+`)
 
-		if !matches {
-			t.Errorf("Layer.MetadataMatches() = %t, expected true", matches)
-		}
-	})
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeTrue())
+		})
 
-	it("identifies non-matching metadata", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+		it("identifies non-matching metadata", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
 Alpha = "test-value"
 Bravo = 2
-`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
-			t.Fatal(err)
-		}
-		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
-		if err != nil {
-			t.Fatal(err)
-		}
+`)
 
-		if matches {
-			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
-		}
-	})
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+		})
 
-	it("identifies invalid metadata", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+		it("identifies invalid metadata", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
 Alpha = "test-value"
 Bravo = "invalid-value"
-`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
-			t.Fatal(err)
-		}
-		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
-		if err != nil {
-			t.Fatal(err)
-		}
+`)
 
-		if matches {
-			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
-		}
-	})
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+		})
 
-	it("identifies missing metadata", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+		it("identifies missing metadata", func() {
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+		})
 
-		matches, err := layers.Layer("test-layer").MetadataMatches(metadata{"test-value", 1})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if matches {
-			t.Errorf("Layer.MetadataMatches() = %t, expected false", matches)
-		}
-	})
-
-	it("does not call contributor for cached layer", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-		layer := layers.Layer("test-layer")
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
+		it("does not call contributor for cached layer", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
 Alpha = "test-value"
 Bravo = 1
-`), filepath.Join(root, "test-layer.toml"), 0644); err != nil {
-			t.Fatal(err)
-		}
+`)
 
-		contributed := false
+			contributed := false
 
-		if err := layer.Contribute(metadata{"test-value", 1}, func(layer layersCf.Layer) error {
-			contributed = true
-			return nil
-		}); err != nil {
-			t.Fatal(err)
-		}
+			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
+				contributed = true
+				return nil
+			})).To(Succeed())
 
-		if contributed {
-			t.Errorf("Expected non-contribution but did contribute")
-		}
-	})
+			g.Expect(contributed).To(BeFalse())
+		})
 
-	it("calls contributor for uncached layer", func() {
-		root := internal.ScratchDir(t, "layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+		it("calls contributor for uncached layer", func() {
+			contributed := false
 
-		contributed := false
+			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
+				contributed = true
+				return nil
+			})).To(Succeed())
 
-		if err := layers.Layer("test-layer").Contribute(metadata{"test-value", 1}, func(layer layersCf.Layer) error {
-			contributed = true
-			return nil
-		}); err != nil {
-			t.Fatal(err)
-		}
-
-		if !contributed {
-			t.Errorf("Expected contribution but didn't contribute")
-		}
-	})
+			g.Expect(contributed).To(BeTrue())
+		})
+	}, spec.Report(report.Terminal{}))
 }
 
 type metadata struct {

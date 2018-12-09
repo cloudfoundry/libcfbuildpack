@@ -21,54 +21,45 @@ import (
 	"fmt"
 	"testing"
 
-	loggerBp "github.com/buildpack/libbuildpack/logger"
-	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
+	bp "github.com/buildpack/libbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestLogger(t *testing.T) {
-	spec.Run(t, "Logger", testLogger, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Logger", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testLogger(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("writes eye catcher on first line", func() {
-		var info bytes.Buffer
+		it("writes eye catcher on first line", func() {
+			var info bytes.Buffer
 
-		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, &info)}
-		logger.FirstLine("test %s", "message")
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.FirstLine("test %s", "message")
 
-		expected := fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))))
+		})
 
-		if info.String() != expected {
-			t.Errorf("FirstLine = %s, expected %s", info.String(), expected)
-		}
-	})
+		it("writes indent on second line", func() {
+			var info bytes.Buffer
 
-	it("writes indent on second line", func() {
-		var info bytes.Buffer
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.SubsequentLine("test %s", "message")
 
-		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, &info)}
-		logger.SubsequentLine("test %s", "message")
+			g.Expect(info.String()).To(Equal("       test message\n"))
+		})
 
-		if info.String() != "       test message\n" {
-			t.Errorf("SubsequentLine = %s, expected -----> test message", info.String())
-		}
-	})
+		it("formats pretty identity", func() {
+			logger := logger.Logger{Logger: bp.NewLogger(nil, nil)}
 
-	it("formats pretty identity", func() {
-		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, nil)}
-
-		actual := logger.PrettyIdentity(metadata{"test-name", 1})
-		expected := fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
-			color.BlueString("1"))
-
-		if actual != expected {
-			t.Errorf("PrettyIdentity = %s, expected %s", actual, expected)
-		}
-	})
+			g.Expect(logger.PrettyIdentity(metadata{"test-name", 1})).
+				To(Equal(fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
+					color.BlueString("1"))))
+		})
+	}, spec.Report(report.Terminal{}))
 }
 
 type metadata struct {

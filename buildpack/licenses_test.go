@@ -20,42 +20,32 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestLicenses(t *testing.T) {
-	spec.Run(t, "Licenses", testLicenses, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Licenses", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testLicenses(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("does not validate if there is not at least one license", func() {
-		err := buildpack.Licenses{}.Validate()
-		if err == nil {
-			t.Errorf("Licenses.Validate() = nil expected error")
-		}
-	})
+		it("does not validate if there is not at least one license", func() {
+			g.Expect(buildpack.Licenses{}.Validate()).NotTo(Succeed())
+		})
 
-	it("validates when all licenses are valid", func() {
-		err := buildpack.Licenses{
-			{Type: "test-type"},
-			{URI: "test-uri"},
-		}.Validate()
+		it("validates when all licenses are valid", func() {
+			g.Expect(buildpack.Licenses{
+				{Type: "test-type"},
+				{URI: "test-uri"},
+			}.Validate()).To(Succeed())
+		})
 
-		if err != nil {
-			t.Errorf("Licenses.Validate() = %s expected no error", err)
-		}
-	})
-
-	it("does not validate when a license is invalid", func() {
-		err := buildpack.Licenses{
-			{Type: "test-type"},
-			{},
-		}.Validate()
-
-		if err == nil {
-			t.Errorf("Licenses.Validate() = nil expected error")
-		}
-	})
+		it("does not validate when a license is invalid", func() {
+			g.Expect(buildpack.Licenses{
+				{Type: "test-type"},
+				{},
+			}.Validate()).NotTo(Succeed())
+		})
+	}, spec.Report(report.Terminal{}))
 }

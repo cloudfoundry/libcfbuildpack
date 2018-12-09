@@ -22,50 +22,49 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
 )
 
 // TouchedLayers contains information about the layers that have been touched as part of this execution.
 type TouchedLayers struct {
-	// Logger logger is used to write debug and info to the console.
-	Logger logger.Logger
-
 	// Root is the root location of all layers to inspect for unused layers.
 	Root string
 
-	// Touched is the set of layers that have been touched
-	Touched map[string]struct{}
+	logger  logger.Logger
+	touched internal.Set
 }
 
 // Add registers that a given layer has been touched
 func (t TouchedLayers) Add(metadata string) {
-	t.Logger.Debug("Layer %s touched", metadata)
-	t.Touched[metadata] = struct{}{}
+	t.logger.Debug("Layer %s touched", metadata)
+	t.touched.Add(metadata)
 }
 
 // Cleanup removes all layers that have not been touched as part of this execution.
 func (t TouchedLayers) Cleanup() error {
-	candidates, err := filepath.Glob(filepath.Join(t.Root, "*.toml"))
+	candidates, err := t.candidates()
 	if err != nil {
 		return err
 	}
 
-	if t.Logger.IsDebugEnabled() {
-		t.Logger.Debug("Existing Layers: %s", candidates)
-		t.Logger.Debug("Touched Layers: %s", t.keys(t.Touched))
+	if t.logger.IsDebugEnabled() {
+		t.logger.Debug("Existing Layers: %s", candidates)
+		t.logger.Debug("Touched Layers: %s", t.touched)
 	}
 
-	remove := t.union(candidates, t.Touched)
-	if len(remove) == 0 {
+	remove := candidates.Difference(t.touched)
+	if remove.Size() == 0 {
 		return nil
 	}
 
-	t.Logger.FirstLine("%s unused layers", color.YellowString("Removing"))
-	for _, r := range remove {
-		t.Logger.SubsequentLine(strings.TrimSuffix(filepath.Base(r), ".toml"))
+	t.logger.FirstLine("%s unused layers", color.YellowString("Removing"))
+	for r := range remove.Iterator() {
+		f := r.(string)
+		t.logger.SubsequentLine(strings.TrimSuffix(filepath.Base(f), ".toml"))
 
-		if err := os.RemoveAll(r); err != nil {
+		if err := os.RemoveAll(f); err != nil {
 			return err
 		}
 	}
@@ -75,34 +74,25 @@ func (t TouchedLayers) Cleanup() error {
 
 // String makes TouchedLayers satisfy the Stringer interface.
 func (t TouchedLayers) String() string {
-	return fmt.Sprintf("TouchedLayers{ Logger: %s, Root: %s, Touched: %s }",
-		t.Logger, t.Root, t.Touched)
+	return fmt.Sprintf("TouchedLayers{ Root: %s, logger: %s, touched: %s }",
+		t.Root, t.logger, t.touched)
 }
 
-func (t TouchedLayers) keys(m map[string]struct{}) []string {
-	keys := make([]string, len(t.Touched))
-	for k := range t.Touched {
-		keys = append(keys, k)
+func (t TouchedLayers) candidates() (internal.Set, error) {
+	files, err := filepath.Glob(filepath.Join(t.Root, "*.toml"))
+	if err != nil {
+		return internal.Set{}, err
 	}
 
-	return keys
-}
-
-func (t TouchedLayers) union(a []string, b map[string]struct{}) []string {
-	union := make([]string, 0)
-	for _, c := range a {
-		if _, ok := b[c]; !ok {
-			union = append(union, c)
-		}
+	candidates := internal.NewSet()
+	for _, f := range files {
+		candidates.Add(f)
 	}
 
-	return union
+	return candidates, nil
 }
 
+// NewTouchedLayers creates a new instance that monitors a given root.
 func NewTouchedLayers(root string, logger logger.Logger) TouchedLayers {
-	return TouchedLayers{
-		logger,
-		root,
-		make(map[string]struct{}),
-	}
+	return TouchedLayers{root, logger, internal.NewSet()}
 }

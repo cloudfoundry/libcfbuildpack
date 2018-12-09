@@ -21,6 +21,7 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver"
+	"github.com/buildpack/libbuildpack/stack"
 )
 
 // Dependencies is a collection of Dependency instances.
@@ -29,7 +30,7 @@ type Dependencies []Dependency
 // Best returns the best (latest version) dependency within a collection of Dependencies.  The candidate set is first
 // filtered by id, version, and stack, then the remaining candidates are sorted for the best result.  If the
 // versionConstraint is not specified (""), then the latest wildcard ("*") is used.
-func (d Dependencies) Best(id string, versionConstraint string, stack string) (Dependency, error) {
+func (d Dependencies) Best(id string, versionConstraint string, stack stack.Stack) (Dependency, error) {
 	var candidates Dependencies
 
 	vc := versionConstraint
@@ -52,22 +53,9 @@ func (d Dependencies) Best(id string, versionConstraint string, stack string) (D
 		return Dependency{}, fmt.Errorf("no valid dependencies for %s, %s, and %s in %s", id, vc, stack, d)
 	}
 
-	sort.Sort(candidates)
+	sort.Slice(candidates, func(i int, j int) bool {
+		return d[i].Version.LessThan(d[j].Version.Version)
+	})
 
 	return candidates[len(candidates)-1], nil
-}
-
-// Len makes Dependencies satisfy the sort.Interface interface.
-func (d Dependencies) Len() int {
-	return len(d)
-}
-
-// Less makes Dependencies satisfy the sort.Interface interface.
-func (d Dependencies) Less(i int, j int) bool {
-	return d[i].Version.LessThan(d[j].Version.Version)
-}
-
-// Swap makes Dependencies satisfy the sort.Interface interface.
-func (d Dependencies) Swap(i int, j int) {
-	d[i], d[j] = d[j], d[i]
 }

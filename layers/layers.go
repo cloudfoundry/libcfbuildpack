@@ -30,17 +30,14 @@ import (
 type Layers struct {
 	layers.Layers
 
-	// BuildpackCacheRoot is the root of the cache of dependencies in the buildpack.
-	BuildpackCache layers.Layers
-
 	// DependencyBuildPlans contains all contributed dependencies.
 	DependencyBuildPlans buildplan.BuildPlan
 
-	// Logger logger is used to write debug and info to the console.
-	Logger logger.Logger
-
 	// TouchedLayers registers the layers that have been touched during this execution.
 	TouchedLayers TouchedLayers
+
+	buildpackCache layers.Layers
+	logger         logger.Logger
 }
 
 // DependencyLayer returns a DependencyLayer unique to a dependency.
@@ -48,9 +45,9 @@ func (l Layers) DependencyLayer(dependency buildpack.Dependency) DependencyLayer
 	return DependencyLayer{
 		l.Layer(dependency.ID),
 		dependency,
-		l.Logger,
 		l.DependencyBuildPlans,
 		l.DownloadLayer(dependency),
+		l.logger,
 	}
 }
 
@@ -58,37 +55,31 @@ func (l Layers) DependencyLayer(dependency buildpack.Dependency) DependencyLayer
 func (l Layers) DownloadLayer(dependency buildpack.Dependency) DownloadLayer {
 	return DownloadLayer{
 		l.Layer(dependency.SHA256),
-		Layer{l.BuildpackCache.Layer(dependency.SHA256), l.Logger, l.TouchedLayers},
+		Layer{l.buildpackCache.Layer(dependency.SHA256), l.logger, l.TouchedLayers},
 		dependency,
-		l.Logger,
+		l.logger,
 	}
 }
 
 // Layer creates a Layer with a specified name.
 func (l Layers) Layer(name string) Layer {
-	return Layer{l.Layers.Layer(name), l.Logger, l.TouchedLayers}
+	return Layer{l.Layers.Layer(name), l.logger, l.TouchedLayers}
 }
 
 // String makes Layers satisfy the Stringer interface.
 func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Layers: %s, BuildpackCache: %s, DependencyBuildPlans: %s, Logger: %s, TouchedLayers: %s }",
-		l.Layers, l.BuildpackCache, l.DependencyBuildPlans, l.Logger, l.TouchedLayers)
+	return fmt.Sprintf("Layers{ Layers: %s, DependencyBuildPlans: %s, TouchedLayers: %s, buildpackCache: %s, logger: %s }",
+		l.Layers, l.DependencyBuildPlans, l.TouchedLayers, l.buildpackCache, l.logger)
 }
 
 // WriteMetadata writes Launch metadata to the filesystem.
 func (l Layers) WriteMetadata(metadata Metadata) error {
-	l.Logger.FirstLine("Process types:")
+	l.logger.FirstLine("Process types:")
 
 	max := l.maximumTypeLength(metadata)
-
-	for _, t := range metadata.Processes {
-		s := color.CyanString(t.Type) + ":"
-
-		for i := 0; i < (max - len(t.Type)); i++ {
-			s += " "
-		}
-
-		l.Logger.SubsequentLine("%s %s", s, t.Command)
+	for _, p := range metadata.Processes {
+		format := fmt.Sprintf("%%s:%%-%ds %%s", max-len(p.Type))
+		l.logger.SubsequentLine(format, color.CyanString(p.Type), "", p.Command)
 	}
 
 	return l.Layers.WriteMetadata(metadata)
@@ -98,12 +89,21 @@ func (l Layers) maximumTypeLength(metadata Metadata) int {
 	max := 0
 
 	for _, t := range metadata.Processes {
-		l := len(t.Type)
-
-		if l > max {
+		if l := len(t.Type); l > max {
 			max = l
 		}
 	}
 
 	return max
+}
+
+// NewLayers creates a new instance of Layers.
+func NewLayers(layers layers.Layers, buildpackCache layers.Layers, logger logger.Logger) Layers {
+	return Layers{
+		Layers:               layers,
+		DependencyBuildPlans: make(buildplan.BuildPlan),
+		TouchedLayers:        NewTouchedLayers(layers.Root, logger),
+		buildpackCache:       buildpackCache,
+		logger:               logger,
+	}
 }
