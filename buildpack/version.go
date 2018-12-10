@@ -23,8 +23,14 @@ import (
 	"github.com/Masterminds/semver"
 )
 
+// Version is an extension to semver.Version to make it marshalable.
 type Version struct {
 	*semver.Version
+}
+
+// String makes Version satisfy the Stringer interface.
+func (v Version) String() string {
+	return fmt.Sprintf("Version{ Version: %s }", v.Version)
 }
 
 // MarshalText makes Version satisfy the encoding.TextMarshaler interface.

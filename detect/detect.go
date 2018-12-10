@@ -40,16 +40,24 @@ func (d Detect) String() string {
 	return fmt.Sprintf("Detect{ Detect: %s, Buildpack: %s, Logger: %s }", d.Detect, d.Buildpack, d.Logger)
 }
 
-// DefaultDetect creates a new instance of Detect using default values.
+// DefaultDetect creates a new instance of Detect using default values.  During initialization, all platform environment
+// variables are set in the current process environment.
 func DefaultDetect() (Detect, error) {
 	d, err := detect.DefaultDetect()
 	if err != nil {
 		return Detect{}, err
 	}
 
+	if err := d.Platform.EnvironmentVariables.SetAll(); err != nil {
+		return Detect{}, err
+	}
+
+	logger := logger.Logger{Logger: d.Logger}
+	buildpack := buildpack.NewBuildpack(d.Buildpack, logger)
+
 	return Detect{
 		d,
-		buildpack.NewBuildpack(d.Buildpack),
-		logger.Logger{Logger: d.Logger},
+		buildpack,
+		logger,
 	}, nil
 }

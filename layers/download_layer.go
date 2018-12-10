@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/fatih/color"
 )
@@ -53,14 +54,14 @@ func (l DownloadLayer) Artifact() (string, error) {
 		return artifact, nil
 	}
 
-	matches, err = l.Layer.MetadataMatches(l.dependency)
+	matches, err = l.MetadataMatches(l.dependency)
 	if err != nil {
 		return "", err
 	}
 
-	artifact = filepath.Join(l.Layer.Root, filepath.Base(l.dependency.URI))
+	artifact = filepath.Join(l.Root, filepath.Base(l.dependency.URI))
 	if matches {
-		l.Logger.SubsequentLine("%s cached download from previous build", color.GreenString("Reusing"))
+		l.logger.SubsequentLine("%s cached download from previous build", color.GreenString("Reusing"))
 		return artifact, nil
 	}
 
@@ -74,7 +75,7 @@ func (l DownloadLayer) Artifact() (string, error) {
 		return "", err
 	}
 
-	if err := l.Layer.WriteMetadata(l.dependency, Cache); err != nil {
+	if err := l.WriteMetadata(l.dependency, Cache); err != nil {
 		return "", err
 	}
 
@@ -98,7 +99,7 @@ func (l DownloadLayer) download(file string) error {
 		return fmt.Errorf("could not download: %bd", resp.StatusCode)
 	}
 
-	return WriteToFile(resp.Body, file, 0644)
+	return helper.WriteFileFromReader(file, 0644, resp.Body)
 }
 
 func (l DownloadLayer) verify(file string) error {

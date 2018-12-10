@@ -19,48 +19,64 @@ package layers_test
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
-	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/test"
 	"github.com/fatih/color"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestLayers(t *testing.T) {
-	spec.Run(t, "Layers", testLayers, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Layers", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testLayers(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("logs process types", func() {
-		root := internal.ScratchDir(t, "launch")
+		var (
+			root string
+			info bytes.Buffer
+			l    layers.Layers
+		)
 
-		var info bytes.Buffer
-		logger := loggerCf.Logger{Logger: loggerBp.NewLogger(nil, &info)}
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, Logger: logger}
+		it.Before(func() {
+			root = internal.ScratchDir(t, "layers")
+			logger := logger.Logger{Logger: loggerBp.NewLogger(nil, &info)}
+			l = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, logger)
+		})
 
-		if err := layers.WriteMetadata(layersBp.Metadata{
-			Processes: []layersBp.Process{
-				{"short", "test-command-1"},
-				{"a-very-long-type", "test-command-2"},
-			},
-		}); err != nil {
-			t.Fatal(err)
-		}
+		it("logs process types", func() {
+			g.Expect(l.WriteMetadata(layers.Metadata{
+				Processes: []layers.Process{
+					{"short", "test-command-1"},
+					{"a-very-long-type", "test-command-2"},
+				},
+			})).To(Succeed())
 
-		expected := fmt.Sprintf(`%s Process types:
+			g.Expect(info.String()).To(Equal(fmt.Sprintf(`%s Process types:
        %s:            test-command-1
        %s: test-command-2
 `, color.New(color.FgRed, color.Bold).Sprint("----->"), color.CyanString("short"),
-			color.CyanString("a-very-long-type"))
+				color.CyanString("a-very-long-type"))))
+		})
 
-		if info.String() != expected {
-			t.Errorf("Process types log = %s, expected %s", info.String(), expected)
-		}
-	})
+		it("registers touched layers", func() {
+			test.TouchFile(t, l.Root, "test-layer-1.toml")
+			test.TouchFile(t, l.Root, "test-layer-2.toml")
+
+			g.Expect(l.Layer("test-layer-1").Contribute(nil, func(layer layers.Layer) error {
+				return nil
+			})).To(Succeed())
+
+			g.Expect(l.TouchedLayers.Cleanup()).To(Succeed())
+			g.Expect(filepath.Join(l.Root, "test-layer-1.toml")).To(BeAnExistingFile())
+			g.Expect(filepath.Join(l.Root, "test-layer-2.toml")).NotTo(BeAnExistingFile())
+		})
+	}, spec.Report(report.Terminal{}))
 }

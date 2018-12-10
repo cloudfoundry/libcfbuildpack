@@ -17,215 +17,178 @@
 package buildpack_test
 
 import (
-	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/internal"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestDependencies(t *testing.T) {
-	spec.Run(t, "Dependencies", testDependencies, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Dependencies", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testDependencies(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("filters by id", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
-				ID:      "test-id-1",
-				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-			buildpack.Dependency{
+		it("filters by id", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id-1",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+			}
+
+			expected := buildpack.Dependency{
 				ID:      "test-id-2",
 				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
+				Version: internal.NewTestVersion(t, "1.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-		}
+				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-		expected := buildpack.Dependency{
-			ID:      "test-id-2",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  []string{"test-stack-1", "test-stack-2"}}
+			g.Expect(d.Best("test-id-2", "1.0", "test-stack-1")).To(Equal(expected))
+		})
 
-		actual, err := d.Best("test-id-2", "1.0", "test-stack-1")
-		if err != nil {
-			t.Fatal(err)
-		}
+		it("filters by version constraint", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "2.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+			}
 
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
-		}
-	})
-
-	it("filters by version constraint", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
+			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
+				Version: internal.NewTestVersion(t, "2.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-			buildpack.Dependency{
+				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
+
+			g.Expect(d.Best("test-id", "2.0", "test-stack-1")).To(Equal(expected))
+		})
+
+		it("filters by stack", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
+			}
+
+			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: newVersion(t, "2.0"),
+				Version: internal.NewTestVersion(t, "1.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-		}
+				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}}
 
-		expected := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "2.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  []string{"test-stack-1", "test-stack-2"}}
+			g.Expect(d.Best("test-id", "1.0", "test-stack-3")).To(Equal(expected))
+		})
 
-		actual, err := d.Best("test-id", "2.0", "test-stack-1")
-		if err != nil {
-			t.Fatal(err)
-		}
+		it("returns the best dependency", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
+			}
 
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
-		}
-	})
-
-	it("filters by stack", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
+			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
+				Version: internal.NewTestVersion(t, "1.1"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-			buildpack.Dependency{
+				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
+
+			g.Expect(d.Best("test-id", "1.*", "test-stack-1")).To(Equal(expected))
+		})
+
+		it("returns error if there are no matching dependencies", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
+			}
+
+			_, err := d.Best("test-id-2", "1.0", "test-stack-1")
+			g.Expect(err).To(HaveOccurred())
+		})
+
+		it("substitutes all wildcard for unspecified version constraint", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+			}
+
+			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
+				Version: internal.NewTestVersion(t, "1.1"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-3"}},
-		}
+				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-		expected := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.0"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  []string{"test-stack-1", "test-stack-3"}}
-
-		actual, err := d.Best("test-id", "1.0", "test-stack-3")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
-		}
-	})
-
-	it("returns the best dependency", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
-				ID:      "test-id",
-				Name:    "test-name",
-				Version: newVersion(t, "1.1"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-			buildpack.Dependency{
-				ID:      "test-id",
-				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-3"}},
-		}
-
-		expected := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.1"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  []string{"test-stack-1", "test-stack-2"}}
-
-		actual, err := d.Best("test-id", "1.*", "test-stack-1")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
-		}
-	})
-
-	it("returns error if there are no matching dependencies", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
-				ID:      "test-id",
-				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-			buildpack.Dependency{
-				ID:      "test-id",
-				Name:    "test-name",
-				Version: newVersion(t, "1.0"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-3"}},
-		}
-
-		_, err := d.Best("test-id-2", "1.0", "test-stack-1")
-		if !strings.HasPrefix(err.Error(), "no valid dependencies") {
-			t.Errorf("Dependencies.Best = %s, expected no valid dependencies...", err.Error())
-		}
-	})
-
-	it("substitutes all wildcard for unspecified version constraint", func() {
-		d := buildpack.Dependencies{
-			buildpack.Dependency{
-				ID:      "test-id",
-				Name:    "test-name",
-				Version: newVersion(t, "1.1"),
-				URI:     "test-uri",
-				SHA256:  "test-sha256",
-				Stacks:  []string{"test-stack-1", "test-stack-2"}},
-		}
-
-		expected := buildpack.Dependency{
-			ID:      "test-id",
-			Name:    "test-name",
-			Version: newVersion(t, "1.1"),
-			URI:     "test-uri",
-			SHA256:  "test-sha256",
-			Stacks:  []string{"test-stack-1", "test-stack-2"}}
-
-		actual, err := d.Best("test-id", "", "test-stack-1")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("Dependencies.Best = %s, expected %s", actual, expected)
-		}
-	})
+			g.Expect(d.Best("test-id", "", "test-stack-1")).To(Equal(expected))
+		})
+	}, spec.Report(report.Terminal{}))
 }

@@ -22,10 +22,14 @@ import (
 
 type BuildImages = buildpack.BuildImages
 
+type BuildImage = buildpack.BuildImage
+
 type Info = buildpack.Info
 
 type Metadata = buildpack.Metadata
 
 type RunImages = buildpack.RunImages
+
+type RunImage = buildpack.RunImage
 
 type Stack = buildpack.Stack

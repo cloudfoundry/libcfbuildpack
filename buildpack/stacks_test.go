@@ -20,20 +20,18 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestStacks(t *testing.T) {
-	spec.Run(t, "Stacks", testStacks, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "Stacks", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testStacks(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("does not validate if there is not at least one stack", func() {
-		err := buildpack.Stacks{}.Validate()
-		if err == nil {
-			t.Errorf("Stacks.Validate() = nil expected error")
-		}
-	})
+		it("does not validate if there is not at least one stack", func() {
+			g.Expect(buildpack.Stacks{}.Validate()).NotTo(Succeed())
+		})
+	}, spec.Report(report.Terminal{}))
 }

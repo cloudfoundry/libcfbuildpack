@@ -19,165 +19,109 @@ package layers_test
 import (
 	"fmt"
 	"path/filepath"
-	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/test"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestDependencyLayer(t *testing.T) {
-	spec.Run(t, "DependencyLayer", testDependencyLayer, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "DependencyLayer", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testDependencyLayer(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("creates a dependency layer with the dependency id name", func() {
-		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-		dependency := buildpack.Dependency{ID: "test-id"}
+		var (
+			root       string
+			dependency buildpack.Dependency
+			ls         layers.Layers
+			layer      layers.DependencyLayer
+		)
 
-		l := layers.DependencyLayer(dependency)
+		it.Before(func() {
+			root = internal.ScratchDir(t, "download-layer")
 
-		expected := filepath.Join(root, "test-id")
-		if l.Root != expected {
-			t.Errorf("DependencyLayer.Root = %s, expected %s", l.Root, expected)
-		}
-	})
+			dependency = buildpack.Dependency{
+				ID:      "test-id",
+				Version: internal.NewTestVersion(t, "1.0"),
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     "http://test.com/test-path",
+			}
 
-	it("calls contributor to contribute dependency layer", func() {
-		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+			ls = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, logger.Logger{})
+			layer = ls.DependencyLayer(dependency)
+		})
 
-		dependency := buildpack.Dependency{
-			ID:      "test-id",
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
+		it("creates a dependency layer with the dependency id name", func() {
+			g.Expect(layer.Root).To(Equal(filepath.Join(root, dependency.ID)))
+		})
 
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = "test-id"
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`), filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256)), 0644); err != nil {
-			t.Fatal(err)
-		}
+		it("calls contributor to contribute dependency layer", func() {
+			test.WriteFile(t, filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256)), `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-		contributed := false
+			contributed := false
+			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
+				contributed = true;
+				return nil
+			})).To(Succeed())
 
-		if err := layers.DependencyLayer(dependency).Contribute(func(artifact string, layer layersCf.DependencyLayer) error {
-			contributed = true;
-			return nil
-		}); err != nil {
-			t.Fatal(err)
-		}
+			g.Expect(contributed).To(BeTrue())
+		})
 
-		if !contributed {
-			t.Errorf("Expected contribution but didn't contribute")
-		}
-	})
+		it("does not call contributor for a cached layer", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-	it("does not call contributor for a cached launch layer", func() {
-		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+			contributed := false
+			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
+				contributed = true;
+				return nil
+			})).To(Succeed())
 
-		dependency := buildpack.Dependency{
-			ID:      "test-id",
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
+			g.Expect(contributed).To(BeFalse())
+		})
 
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = "test-id"
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`), filepath.Join(root, fmt.Sprintf("%s.toml", dependency.ID)), 0644); err != nil {
-			t.Fatal(err)
-		}
+		it("returns artifact name", func() {
+			g.Expect(layer.ArtifactName()).To(Equal("test-path"))
+		})
 
-		contributed := false
+		it("contributes dependency to build plan", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-		if err := layers.DependencyLayer(dependency).Contribute(func(artifact string, layer layersCf.DependencyLayer) error {
-			contributed = true;
-			return nil
-		}); err != nil {
-			t.Fatal(err)
-		}
+			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
+				return nil
+			})).To(Succeed())
 
-		if contributed {
-			t.Errorf("Expected non-contribution but did contribute")
-		}
-	})
-
-	it("returns artifact name", func() {
-		root := internal.ScratchDir(t, "dependency-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildplan.BuildPlan{}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-
-		dependency := buildpack.Dependency{ID: "test-id", URI: "http://localhost/path/test-artifact-name"}
-
-		l := layers.DependencyLayer(dependency)
-
-		if l.ArtifactName() != "test-artifact-name" {
-			t.Errorf("DependencyLaunchLayer.ArtifactName = %s, expected test-artifact-name", l.ArtifactName())
-		}
-	})
-
-	it("contributes dependency to build plan", func() {
-		root := internal.ScratchDir(t, "dependency-layer")
-		buildPlan := buildplan.BuildPlan{}
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, DependencyBuildPlans: buildPlan, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-
-		dependency := buildpack.Dependency{
-			ID:      "test-id",
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = "test-id"
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`), filepath.Join(root, fmt.Sprintf("%s.toml", dependency.ID)), 0644); err != nil {
-			t.Fatal(err)
-		}
-
-		if err := layers.DependencyLayer(dependency).Contribute(func(artifact string, layer layersCf.DependencyLayer) error {
-			return nil
-		}); err != nil {
-			t.Fatal(err)
-		}
-
-		expected := buildplan.BuildPlan{
-			dependency.ID: buildplan.Dependency{
-				Version: "1.0",
-				Metadata: buildplan.Metadata{
-					"name":     dependency.Name,
-					"uri":      dependency.URI,
-					"sha256":   dependency.SHA256,
-					"stacks":   dependency.Stacks,
-					"licenses": dependency.Licenses,
+			g.Expect(ls.DependencyBuildPlans).To(Equal(buildplan.BuildPlan{
+				dependency.ID: buildplan.Dependency{
+					Version: "1.0",
+					Metadata: buildplan.Metadata{
+						"name":     dependency.Name,
+						"uri":      dependency.URI,
+						"sha256":   dependency.SHA256,
+						"stacks":   dependency.Stacks,
+						"licenses": dependency.Licenses,
+					},
 				},
-			},
-		}
-
-		if !reflect.DeepEqual(buildPlan, expected) {
-			t.Errorf("Buildplan = %s, expected = %s", buildPlan, expected)
-		}
-	})
+			}))
+		})
+	}, spec.Report(report.Terminal{}))
 }

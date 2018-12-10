@@ -56,14 +56,12 @@ func (l Logger) SubsequentLine(format string, args ...interface{}) {
 	l.Info("%s %s", indent, fmt.Sprintf(format, args...))
 }
 
-// Identifiable is an interface that indicates that a type has an identity.
-type Identifiable interface {
-	// Identity is the method that returns the required name and optional description that make up identity.
-	Identity() (name string, description string)
-}
-
 // PrettyIdentity formats a standard pretty identity of a type.
 func (l Logger) PrettyIdentity(v Identifiable) string {
+	if v == nil {
+		return ""
+	}
+
 	var sb strings.Builder
 
 	name, description := v.Identity()

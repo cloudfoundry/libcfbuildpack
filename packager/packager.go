@@ -17,36 +17,35 @@
 package main
 
 import (
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
-	"github.com/buildpack/libbuildpack/buildplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
-	buildpackCf "github.com/cloudfoundry/libcfbuildpack/buildpack"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
-	loggerCf "github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
 type packager struct {
-	Buildpack       buildpackCf.Buildpack
-	Layers          layersCf.Layers
-	Logger          loggerCf.Logger
-	OutputDirectory string
+	buildpack       buildpack.Buildpack
+	layers          layers.Layers
+	logger          logger.Logger
+	outputDirectory string
 }
 
 func (p packager) Create() error {
-	p.Logger.FirstLine("Packaging %s", p.Logger.PrettyIdentity(p.Buildpack))
+	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
 
 	if err := p.prePackage(); err != nil {
 		return err
 	}
 
-	includedFiles, err := p.Buildpack.IncludeFiles()
+	includedFiles, err := p.buildpack.IncludeFiles()
 	if err != nil {
 		return err
 	}
@@ -55,34 +54,34 @@ func (p packager) Create() error {
 	if err != nil {
 		return err
 	}
-
+	//
 	return p.createPackage(append(includedFiles, dependencyFiles...))
 }
 
 func (p packager) cacheDependencies() ([]string, error) {
 	var files []string
 
-	deps, err := p.Buildpack.Dependencies()
+	deps, err := p.buildpack.Dependencies()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, dep := range deps {
-		p.Logger.FirstLine("Caching %s", p.Logger.PrettyIdentity(dep))
+		p.logger.FirstLine("Caching %s", p.logger.PrettyIdentity(dep))
 
-		layer := p.Layers.DownloadLayer(dep)
+		layer := p.layers.DownloadLayer(dep)
 
 		a, err := layer.Artifact()
 		if err != nil {
 			return nil, err
 		}
 
-		artifact, err := filepath.Rel(p.Buildpack.Root, a)
+		artifact, err := filepath.Rel(p.buildpack.Root, a)
 		if err != nil {
 			return nil, err
 		}
 
-		metadata, err := filepath.Rel(p.Buildpack.Root, layer.Metadata)
+		metadata, err := filepath.Rel(p.buildpack.Root, layer.Metadata)
 		if err != nil {
 			return nil, err
 		}
@@ -94,14 +93,11 @@ func (p packager) cacheDependencies() ([]string, error) {
 }
 
 func (p packager) createPackage(files []string) error {
-	p.Logger.FirstLine("Creating package in %s", p.OutputDirectory)
-
-	if err := os.MkdirAll(p.OutputDirectory, 0755); err != nil {
-		return err
-	}
+	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
 
 	for _, file := range files {
-		if err := p.addFile(file); err != nil {
+		p.logger.SubsequentLine("Adding %s", file)
+		if err := helper.CopyFile(filepath.Join(p.buildpack.Root, file), filepath.Join(p.outputDirectory, file)); err != nil {
 			return err
 		}
 	}
@@ -109,37 +105,8 @@ func (p packager) createPackage(files []string) error {
 	return nil
 }
 
-func (p packager) addFile(path string) error {
-	p.Logger.SubsequentLine("Adding %s", path)
-
-	in, err := os.OpenFile(filepath.Join(p.Buildpack.Root, path), os.O_RDONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	stat, err := in.Stat()
-	if err != nil {
-		return err
-	}
-
-	f := filepath.Join(p.OutputDirectory, path)
-	if err := os.MkdirAll(filepath.Dir(f), 0755); err != nil {
-		return err
-	}
-
-	out, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	return err
-}
-
 func (p packager) prePackage() error {
-	pp, ok := p.Buildpack.PrePackage()
+	pp, ok := p.buildpack.PrePackage()
 	if !ok {
 		return nil
 	}
@@ -147,29 +114,24 @@ func (p packager) prePackage() error {
 	cmd := exec.Command(pp)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = p.Buildpack.Root
+	cmd.Dir = p.buildpack.Root
 
-	p.Logger.FirstLine("Pre-Package with %s", strings.Join(cmd.Args, " "))
+	p.logger.FirstLine("Pre-Package with %s", strings.Join(cmd.Args, " "))
 
 	return cmd.Run()
 }
 
 func defaultPackager(outputDirectory string) (packager, error) {
 	l := loggerBp.DefaultLogger()
-	logger := loggerCf.Logger{Logger: l}
+	logger := logger.Logger{Logger: l}
 
 	b, err := buildpackBp.DefaultBuildpack(l)
 	if err != nil {
 		return packager{}, err
 	}
-	buildpack := buildpackCf.NewBuildpack(b)
+	buildpack := buildpack.NewBuildpack(b, logger)
 
-	layers := layersCf.Layers{
-		Layers:               layersBp.Layers{Root: buildpack.CacheRoot},
-		Logger:               logger,
-		DependencyBuildPlans: buildplan.BuildPlan{},
-		TouchedLayers:        layersCf.NewTouchedLayers(buildpack.CacheRoot, logger),
-	}
+	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), logger)
 
 	return packager{
 		buildpack,

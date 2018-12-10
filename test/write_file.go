@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package buildpack_test
+package test
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
-
-	"github.com/Masterminds/semver"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 )
 
-func newVersion(t *testing.T, version string) buildpack.Version {
+// WriteTestFile writes a file during testing.
+func WriteFile(t *testing.T, filename string, format string, args ...interface{}) {
 	t.Helper()
 
-	v, err := semver.NewVersion(version)
-	if err != nil {
+	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	return buildpack.Version{Version: v}
+	if err := ioutil.WriteFile(filename, []byte(fmt.Sprintf(format, args...)), 0644); err != nil {
+		t.Fatal(err)
+	}
 }

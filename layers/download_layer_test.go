@@ -18,146 +18,86 @@ package layers_test
 
 import (
 	"fmt"
+	"net/http"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	layersCf "github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	"github.com/h2non/gock"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
 func TestDownloadLayer(t *testing.T) {
-	spec.Run(t, "DownloadLayer", testDownloadLayer, spec.Report(report.Terminal{}))
-}
+	spec.Run(t, "DownloadLayer", func(t *testing.T, _ spec.G, it spec.S) {
 
-func testDownloadLayer(t *testing.T, when spec.G, it spec.S) {
+		g := NewGomegaWithT(t)
 
-	it("creates a download layer with the dependency SHA256 name", func() {
-		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-		dependency := buildpack.Dependency{SHA256: "test-sha256"}
+		var (
+			root       string
+			dependency buildpack.Dependency
+			layer      layers.DownloadLayer
+			server     *ghttp.Server
+		)
 
-		l := layers.DownloadLayer(dependency)
+		it.Before(func() {
+			root = internal.ScratchDir(t, "download-layer")
 
-		expected := filepath.Join(root, "test-sha256")
-		if l.Root != expected {
-			t.Errorf("DownloadLayer.Root = %s, expected %s", l.Root, expected)
-		}
-	})
+			server = ghttp.NewServer()
 
-	it("downloads a dependency", func() {
-		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
+			dependency = buildpack.Dependency{
+				ID:      "test-id",
+				Version: internal.NewTestVersion(t, "1.0"),
+				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
+				URI:     fmt.Sprintf("%s/test-path", server.URL()),
+			}
 
-		dependency := buildpack.Dependency{
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
+			layers := layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{Root: filepath.Join(root, "buildpack")}, logger.Logger{})
+			layer = layers.DownloadLayer(dependency)
+		})
 
-		defer gock.Off()
+		it.After(func() {
+			server.Close()
+		})
 
-		gock.New("http://test.com").
-			Get("/test-path").
-			Reply(200).
-			BodyString("test-payload")
+		it("creates a download layer with the dependency SHA256 name", func() {
+			g.Expect(layer.Root).To(Equal(filepath.Join(root, dependency.SHA256)))
+		})
 
-		a, err := layers.DownloadLayer(dependency).Artifact()
-		if err != nil {
-			t.Fatal(err)
-		}
+		it("downloads a dependency", func() {
+			server.AppendHandlers(ghttp.RespondWith(http.StatusOK, "test-payload"))
 
-		expected := filepath.Join(root, dependency.SHA256, "test-path")
-		if a != expected {
-			t.Errorf("DownloadLayer.Artifact() = %s, expected %s", a, expected)
-		}
+			g.Expect(layer.Artifact()).To(SatisfyAll(
+				Equal(filepath.Join(layer.Root, "test-path")),
+				test.HaveContent("test-payload")))
 
-		test.BeFileLike(t, expected, 0644, "test-payload")
+			g.Expect(layer).To(test.HaveLayerMetadata(false, true, false))
+		})
 
-		expected = filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256))
-		test.BeFileLike(t, expected, 0644, `build = false
-cache = true
-launch = false
+		it("does not download a buildpack cached dependency", func() {
+			test.WriteFile(t, filepath.Join(root, "buildpack", fmt.Sprintf("%s.toml", dependency.SHA256)), `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-[metadata]
-  id = ""
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`)
-	})
+			g.Expect(layer.Artifact()).To(Equal(filepath.Join(root, "buildpack", dependency.SHA256, "test-path")))
+		})
 
-	it("does not download a buildpack cached dependency", func() {
-		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{
-			Layers:         layersBp.Layers{Root: root},
-			BuildpackCache: layersBp.Layers{Root: filepath.Join(root, "buildpack")},
-			TouchedLayers:  layersCf.NewTouchedLayers(root, logger.Logger{}),
-		}
+		it("does not download a previously cached dependency", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-		dependency := buildpack.Dependency{
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = ""
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`), filepath.Join(root, "buildpack", fmt.Sprintf("%s.toml", dependency.SHA256)), 0644); err != nil {
-			t.Fatal(err)
-		}
-
-		a, err := layers.DownloadLayer(dependency).Artifact()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		expected := filepath.Join(root, "buildpack", dependency.SHA256, "test-path")
-		if a != expected {
-			t.Errorf("DownloadLayer.Artifact() = %s, expected %s", a, expected)
-		}
-	})
-
-	it("does not download a previously cached dependency", func() {
-		root := internal.ScratchDir(t, "download-layer")
-		layers := layersCf.Layers{Layers: layersBp.Layers{Root: root}, TouchedLayers: layersCf.NewTouchedLayers(root, logger.Logger{})}
-
-		dependency := buildpack.Dependency{
-			Version: newVersion(t, "1.0"),
-			SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
-			URI:     "http://test.com/test-path",
-		}
-
-		if err := layersCf.WriteToFile(strings.NewReader(`[metadata]
-  id = ""
-  name = ""
-  version = "1.0"
-  uri = "http://test.com/test-path"
-  sha256 = "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273"
-`), filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256)), 0644); err != nil {
-			t.Fatal(err)
-		}
-
-		a, err := layers.DownloadLayer(dependency).Artifact()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		expected := filepath.Join(root, dependency.SHA256, "test-path")
-		if a != expected {
-			t.Errorf("DownloadLayer.Artifact() = %s, expected %s", a, expected)
-		}
-	})
+			g.Expect(layer.Artifact()).To(Equal(filepath.Join(layer.Root, "test-path")))
+		})
+	}, spec.Report(report.Terminal{}))
 }
