@@ -85,8 +85,12 @@ func (t TouchedLayers) candidates() (internal.Set, error) {
 	}
 
 	candidates := internal.NewSet()
+
+	launch := filepath.Join(t.Root, "launch.toml")
 	for _, f := range files {
-		candidates.Add(f)
+		if f != launch {
+			candidates.Add(f)
+		}
 	}
 
 	return candidates, nil
