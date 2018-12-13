@@ -59,6 +59,7 @@ func (b Build) Success(buildPlan buildplan.BuildPlan) (int, error) {
 		return -1, err
 	}
 
+	b.Logger.Info("")
 	return code, nil
 }
 

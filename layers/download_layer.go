@@ -43,6 +43,8 @@ type DownloadLayer struct {
 // Artifact returns the path to an artifact cached in the layer.  If the artifact has already been downloaded, the cache
 // will be validated and used directly.
 func (l DownloadLayer) Artifact() (string, error) {
+	l.Touch()
+
 	matches, err := l.cacheLayer.MetadataMatches(l.dependency)
 	if err != nil {
 		return "", err
