@@ -17,12 +17,22 @@
 package test
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
-// WriteFile writes a file during testing.
-func WriteFile(t *testing.T, filename string, format string, args ...interface{}) {
+// WriteFileWithPerm writes a file with specific permissions during testing.
+func WriteFileWithPerm(t *testing.T, filename string, perm os.FileMode, format string, args ...interface{}) {
 	t.Helper()
 
-	WriteFileWithPerm(t, filename, 0644, format, args...)
+	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ioutil.WriteFile(filename, []byte(fmt.Sprintf(format, args...)), perm); err != nil {
+		t.Fatal(err)
+	}
 }
