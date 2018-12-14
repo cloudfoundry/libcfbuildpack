@@ -144,7 +144,7 @@ func (f *BuildFactory) newDependency(id string, version string, name string) bui
 func NewBuildFactory(t *testing.T) *BuildFactory {
 	t.Helper()
 
-	root := internal.ScratchDir(t, "build")
+	root := ScratchDir(t, "build")
 
 	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
 

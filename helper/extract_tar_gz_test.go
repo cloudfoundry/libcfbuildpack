@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
+	"github.com/cloudfoundry/libcfbuildpack/test"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -35,7 +35,7 @@ func TestExtractTarGz(t *testing.T) {
 		var root string
 
 		it.Before(func() {
-			root = internal.ScratchDir(t, "extract-tar-gz")
+			root = test.ScratchDir(t, "extract-tar-gz")
 		})
 
 		it("extracts the archive", func() {

@@ -38,7 +38,7 @@ func TestBuild(t *testing.T) {
 		var root string
 
 		it.Before(func() {
-			root = internal.ScratchDir(t, "detect")
+			root = test.ScratchDir(t, "detect")
 		})
 
 		it("contains default values", func() {

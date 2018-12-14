@@ -20,7 +20,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -40,7 +39,7 @@ func TestTouchedLayers(t *testing.T) {
 		)
 
 		it.Before(func() {
-			root = internal.ScratchDir(t, "touched-layers")
+			root = test.ScratchDir(t, "touched-layers")
 			touched = layers.NewTouchedLayers(root, logger.Logger{})
 		})
 

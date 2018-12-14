@@ -47,7 +47,7 @@ func TestDownloadLayer(t *testing.T) {
 		)
 
 		it.Before(func() {
-			root = internal.ScratchDir(t, "download-layer")
+			root = test.ScratchDir(t, "download-layer")
 
 			server = ghttp.NewServer()
 

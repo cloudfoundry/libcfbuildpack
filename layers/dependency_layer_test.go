@@ -46,7 +46,7 @@ func TestDependencyLayer(t *testing.T) {
 		)
 
 		it.Before(func() {
-			root = internal.ScratchDir(t, "download-layer")
+			root = test.ScratchDir(t, "download-layer")
 
 			dependency = buildpack.Dependency{
 				ID:      "test-id",

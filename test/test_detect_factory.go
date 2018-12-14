@@ -23,7 +23,6 @@ import (
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/detect"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 )
 
 // DetectFactory is a factory for creating a test Detect.
@@ -55,7 +54,7 @@ func (f *DetectFactory) AddBuildPlan(name string, dependency buildplan.Dependenc
 func NewDetectFactory(t *testing.T) *DetectFactory {
 	t.Helper()
 
-	root := internal.ScratchDir(t, "detect")
+	root := ScratchDir(t, "detect")
 
 	f := DetectFactory{Home: filepath.Join(root, "home"), t: t}
 
