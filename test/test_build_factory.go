@@ -149,11 +149,11 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Build.Application.Root = filepath.Join(root, "application")
+	f.Build.Buildpack.Root = filepath.Join(root, "buildpack")
 	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
 		f.Output = buildPlan
 		return nil
 	}
-
 	f.Build.Layers = layers.NewLayers(
 		bp.Layers{Root: filepath.Join(root, "layers")},
 		bp.Layers{Root: filepath.Join(root, "buildpack-cache")},
