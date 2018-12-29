@@ -59,6 +59,7 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 	f := DetectFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Detect.Application.Root = filepath.Join(root, "application")
+	f.Detect.Buildpack.Info.Version = "1.0"
 	f.Detect.Buildpack.Root = filepath.Join(root, "buildpack")
 	f.Detect.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
 		f.Output = buildPlan

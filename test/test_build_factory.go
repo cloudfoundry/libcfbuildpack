@@ -149,6 +149,7 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Build.Application.Root = filepath.Join(root, "application")
+	f.Build.Buildpack.Info.Version = "1.0"
 	f.Build.Buildpack.Root = filepath.Join(root, "buildpack")
 	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
 		f.Output = buildPlan
