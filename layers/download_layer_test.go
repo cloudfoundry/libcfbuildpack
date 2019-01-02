@@ -99,5 +99,15 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			g.Expect(layer.Artifact()).To(Equal(filepath.Join(layer.Root, "test-path")))
 		})
+
+		it("cleans directory when downloadling dependency", func() {
+			server.AppendHandlers(ghttp.RespondWith(http.StatusOK, "test-payload"))
+			test.TouchFile(t, layer.Root, "test-file")
+
+			_, err := layer.Artifact()
+			g.Expect(err).NotTo(HaveOccurred())
+
+			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(BeAnExistingFile())
+		})
 	}, spec.Report(report.Terminal{}))
 }

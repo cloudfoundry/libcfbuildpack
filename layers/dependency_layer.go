@@ -18,6 +18,7 @@ package layers
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/buildpack/libbuildpack/buildplan"
@@ -46,9 +47,14 @@ func (l DependencyLayer) ArtifactName() string {
 type DependencyLayerContributor func(artifact string, layer DependencyLayer) error
 
 // Contribute facilitates custom contribution of an artifact to a layer.  If the artifact has already been contributed,
-// the contribution is validated and the contributor is not called.
+// the contribution is validated and the contributor is not called.  If the contribution is out of date, the layer is
+// completely removed before contribution occurs.
 func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...Flag) error {
 	l.downloadLayer.Touch()
+
+	if err := os.RemoveAll(l.Root); err != nil {
+		return err
+	}
 
 	if err := l.Layer.Contribute(l.Dependency, func(layer Layer) error {
 		a, err := l.downloadLayer.Artifact()
