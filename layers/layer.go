@@ -18,7 +18,6 @@ package layers
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/buildpack/libbuildpack/layers"
@@ -109,7 +108,8 @@ func (l Layer) OverrideSharedEnv(name string, format string, args ...interface{}
 type LayerContributor func(layer Layer) error
 
 // Contribute facilitates custom contribution of a layer.  If the layer has already been contributed, the contribution
-// is validated and the contributor is not called.
+// is validated and the contributor is not called.  If the contribution is out of date, the layer is
+// // completely removed before contribution occurs.
 func (l Layer) Contribute(expected logger.Identifiable, contributor LayerContributor, flags ...Flag) error {
 	l.Touch()
 
@@ -126,10 +126,6 @@ func (l Layer) Contribute(expected logger.Identifiable, contributor LayerContrib
 
 	l.Logger.FirstLine("%s: %s to layer",
 		l.Logger.PrettyIdentity(expected), color.YellowString("Contributing"))
-
-	if err := os.RemoveAll(l.Root); err != nil {
-		return err
-	}
 
 	if err := contributor(l); err != nil {
 		l.Logger.Debug("Error during contribution")

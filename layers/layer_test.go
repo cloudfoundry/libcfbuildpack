@@ -18,6 +18,7 @@ package layers_test
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	bp "github.com/buildpack/libbuildpack/layers"
@@ -100,6 +101,16 @@ Bravo = 1
 			})).To(Succeed())
 
 			g.Expect(contributed).To(BeTrue())
+		})
+
+		it("does not clean directory for non-matching metadata", func() {
+			test.TouchFile(t, layer.Root, "test-file")
+
+			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
+				return nil
+			})).To(Succeed())
+
+			g.Expect(filepath.Join(layer.Root, "test-file")).To(BeARegularFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

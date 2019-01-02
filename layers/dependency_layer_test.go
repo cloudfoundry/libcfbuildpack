@@ -123,5 +123,20 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 				},
 			}))
 		})
+
+		it("cleans layer when contributing dependency layer", func() {
+			test.WriteFile(t, filepath.Join(root, fmt.Sprintf("%s.toml", dependency.SHA256)), `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
+			test.TouchFile(t, layer.Root, "test-file")
+
+			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
+				return nil
+			})).To(Succeed())
+
+			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(BeAnExistingFile())
+		})
 	}, spec.Report(report.Terminal{}))
 }
