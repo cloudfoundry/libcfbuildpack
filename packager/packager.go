@@ -122,7 +122,11 @@ func (p packager) prePackage() error {
 }
 
 func defaultPackager(outputDirectory string) (packager, error) {
-	l := loggerBp.DefaultLogger()
+	l, err := loggerBp.DefaultLogger("")
+	if err != nil {
+		return packager{}, err
+	}
+
 	logger := logger.Logger{Logger: l}
 
 	b, err := buildpackBp.DefaultBuildpack(l)

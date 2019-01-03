@@ -52,11 +52,11 @@ type DependencyLayerContributor func(artifact string, layer DependencyLayer) err
 func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flags ...Flag) error {
 	l.downloadLayer.Touch()
 
-	if err := os.RemoveAll(l.Root); err != nil {
-		return err
-	}
-
 	if err := l.Layer.Contribute(l.Dependency, func(layer Layer) error {
+		if err := os.RemoveAll(l.Root); err != nil {
+			return err
+		}
+
 		a, err := l.downloadLayer.Artifact()
 		if err != nil {
 			return err
