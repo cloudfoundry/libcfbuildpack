@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/buildpack/libbuildpack/services"
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 )
@@ -50,6 +51,17 @@ func (f *DetectFactory) AddBuildPlan(name string, dependency buildplan.Dependenc
 	f.Detect.BuildPlan[name] = dependency
 }
 
+// AddService adds an entry to the collection of services.
+func (f *DetectFactory) AddService(name string, credentials services.Credentials, tags ...string) {
+	f.t.Helper()
+
+	f.Detect.Services = append(f.Detect.Services, services.Service{
+		BindingName: name,
+		Credentials: credentials,
+		Tags:        tags,
+	})
+}
+
 // NewDetectFactory creates a new instance of DetectFactory.
 func NewDetectFactory(t *testing.T) *DetectFactory {
 	t.Helper()
@@ -66,6 +78,7 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 		return nil
 	}
 	f.Detect.Platform.Root = filepath.Join(root, "platform")
+	f.Detect.Services = services.Services{}
 	f.Detect.Stack = stack.Stack("test-stack")
 
 	f.Home = filepath.Join(root, "home")

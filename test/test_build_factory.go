@@ -25,6 +25,7 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	bp "github.com/buildpack/libbuildpack/layers"
+	"github.com/buildpack/libbuildpack/services"
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
@@ -74,6 +75,17 @@ func (f *BuildFactory) AddDependencyWithVersion(id string, version string, fixtu
 	d := f.newDependency(id, version, filepath.Base(fixturePath))
 	f.cacheFixture(d, fixturePath)
 	f.addDependency(d)
+}
+
+// AddService adds an entry to the collection of services.
+func (f *BuildFactory) AddService(name string, credentials services.Credentials, tags ...string) {
+	f.t.Helper()
+
+	f.Build.Services = append(f.Build.Services, services.Service{
+		BindingName: name,
+		Credentials: credentials,
+		Tags:        tags,
+	})
 }
 
 func (f *BuildFactory) addDependency(dependency buildpack.Dependency) {
@@ -160,6 +172,7 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 		bp.Layers{Root: filepath.Join(root, "buildpack-cache")},
 		logger.Logger{})
 	f.Build.Platform.Root = filepath.Join(root, "platform")
+	f.Build.Services = services.Services{}
 	f.Build.Stack = stack.Stack("test-stack")
 
 	return &f
