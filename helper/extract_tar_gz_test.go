@@ -49,7 +49,6 @@ func TestExtractTarGz(t *testing.T) {
 			g.Expect(helper.ExtractTarGz(filepath.Join("testdata", "test-archive.tar.gz"), root, 1)).To(Succeed())
 			g.Expect(filepath.Join(root, "fileB.txt")).To(BeARegularFile())
 			g.Expect(filepath.Join(root, "fileC.txt")).To(BeARegularFile())
-
 		})
 	}, spec.Report(report.Terminal{}))
 }

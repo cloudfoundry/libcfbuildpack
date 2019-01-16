@@ -21,9 +21,10 @@ import (
 	"testing"
 
 	"github.com/buildpack/libbuildpack/buildplan"
-	"github.com/buildpack/libbuildpack/services"
+	bp "github.com/buildpack/libbuildpack/services"
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/detect"
+	"github.com/cloudfoundry/libcfbuildpack/services"
 )
 
 // DetectFactory is a factory for creating a test Detect.
@@ -55,7 +56,7 @@ func (f *DetectFactory) AddBuildPlan(name string, dependency buildplan.Dependenc
 func (f *DetectFactory) AddService(name string, credentials services.Credentials, tags ...string) {
 	f.t.Helper()
 
-	f.Detect.Services = append(f.Detect.Services, services.Service{
+	f.Detect.Services.Services = append(f.Detect.Services.Services, bp.Service{
 		BindingName: name,
 		Credentials: credentials,
 		Tags:        tags,
@@ -78,7 +79,7 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 		return nil
 	}
 	f.Detect.Platform.Root = filepath.Join(root, "platform")
-	f.Detect.Services = services.Services{}
+	f.Detect.Services = services.Services{Services: bp.Services{}}
 	f.Detect.Stack = stack.Stack("test-stack")
 
 	f.Home = filepath.Join(root, "home")
