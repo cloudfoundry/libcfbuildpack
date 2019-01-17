@@ -25,6 +25,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/services"
 )
 
 // Build is an extension to libbuildpack.Build that allows additional functionality to be added.
@@ -39,12 +40,15 @@ type Build struct {
 
 	// Logger is used to write debug and info to the console.
 	Logger logger.Logger
+
+	// Services represents the services bound to the application.
+	Services services.Services
 }
 
 // String makes Build satisfy the Stringer interface.
 func (b Build) String() string {
-	return fmt.Sprintf("Build{ Build: %s, Buildpack: %s, Layers: %s, Logger: %s }",
-		b.Build, b.Buildpack, b.Layers, b.Logger)
+	return fmt.Sprintf("Build{ Build: %s, Buildpack: %s, Layers: %s, Logger: %s, Services: %s }",
+		b.Build, b.Buildpack, b.Layers, b.Logger, b.Services)
 }
 
 // Success signals a successful build by exiting with a zero status code.  Combines specied build plan with build
@@ -90,11 +94,13 @@ func DefaultBuild() (Build, error) {
 	logger := logger.Logger{Logger: b.Logger}
 	buildpack := buildpack.NewBuildpack(b.Buildpack, logger)
 	layers := layers.NewLayers(b.Layers, bp.NewLayers(buildpack.CacheRoot, b.Logger), logger)
+	services := services.Services{Services: b.Services}
 
 	return Build{
 		b,
 		buildpack,
 		layers,
 		logger,
+		services,
 	}, nil
 }

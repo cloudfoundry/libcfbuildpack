@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/buildpack/libbuildpack/buildplan"
-	bp "github.com/buildpack/libbuildpack/layers"
-	"github.com/buildpack/libbuildpack/services"
+	bpLayers "github.com/buildpack/libbuildpack/layers"
+	bpServices "github.com/buildpack/libbuildpack/services"
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
@@ -33,6 +33,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/services"
 )
 
 // BuildFactory is a factory for creating a test Build.
@@ -81,7 +82,7 @@ func (f *BuildFactory) AddDependencyWithVersion(id string, version string, fixtu
 func (f *BuildFactory) AddService(name string, credentials services.Credentials, tags ...string) {
 	f.t.Helper()
 
-	f.Build.Services = append(f.Build.Services, services.Service{
+	f.Build.Services.Services = append(f.Build.Services.Services, bpServices.Service{
 		BindingName: name,
 		Credentials: credentials,
 		Tags:        tags,
@@ -168,11 +169,11 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 		return nil
 	}
 	f.Build.Layers = layers.NewLayers(
-		bp.Layers{Root: filepath.Join(root, "layers")},
-		bp.Layers{Root: filepath.Join(root, "buildpack-cache")},
+		bpLayers.Layers{Root: filepath.Join(root, "layers")},
+		bpLayers.Layers{Root: filepath.Join(root, "buildpack-cache")},
 		logger.Logger{})
 	f.Build.Platform.Root = filepath.Join(root, "platform")
-	f.Build.Services = services.Services{}
+	f.Build.Services = services.Services{Services: bpServices.Services{}}
 	f.Build.Stack = stack.Stack("test-stack")
 
 	return &f

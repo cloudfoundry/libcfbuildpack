@@ -59,3 +59,15 @@ func (d Dependencies) Best(id string, versionConstraint string, stack stack.Stac
 
 	return candidates[len(candidates)-1], nil
 }
+
+// Has indicates whether the collection of dependencies has any dependency of a specific id.  This is used primarily to
+// determine whether an optional dependency exists, before calling Best() which would throw an error if one did not.
+func (d Dependencies) Has(id string) bool {
+	for _, c := range d {
+		if c.ID == id {
+			return true
+		}
+	}
+
+	return false
+}

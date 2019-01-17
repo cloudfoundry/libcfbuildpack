@@ -190,5 +190,25 @@ func TestDependencies(t *testing.T) {
 
 			g.Expect(d.Best("test-id", "", "test-stack-1")).To(Equal(expected))
 		})
+
+		it("indicates that dependency exists", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
+			}
+
+			g.Expect(d.Has("test-id")).To(BeTrue())
+		})
+
+		it("indicates that dependency does not exist", func() {
+			d := buildpack.Dependencies{}
+
+			g.Expect(d.Has("test-id")).To(BeFalse())
+		})
 	}, spec.Report(report.Terminal{}))
 }
