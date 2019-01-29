@@ -43,7 +43,7 @@ func TestBuild(t *testing.T) {
 
 		it("contains default values", func() {
 			defer internal.ReplaceWorkingDirectory(t, root)()
-			defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 			defer internal.ProtectEnv(t, "TEST_KEY")
 
@@ -91,7 +91,7 @@ test-key = "test-value"
 
 		it("returns 0 when successful", func() {
 			defer internal.ReplaceWorkingDirectory(t, root)()
-			defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
 			console, d := internal.ReplaceConsole(t)
@@ -114,7 +114,7 @@ test-key = "test-value"
 
 		it("returns code when failing", func() {
 			defer internal.ReplaceWorkingDirectory(t, root)()
-			defer test.ReplaceEnv(t, "PACK_STACK_ID", "test-stack")()
+			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
 			console, d := internal.ReplaceConsole(t)
