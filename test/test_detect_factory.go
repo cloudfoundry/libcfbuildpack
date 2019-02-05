@@ -17,6 +17,7 @@
 package test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -72,6 +73,9 @@ func NewDetectFactory(t *testing.T) *DetectFactory {
 	f := DetectFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Detect.Application.Root = filepath.Join(root, "application")
+	if err := os.MkdirAll(f.Detect.Application.Root, 0755); err != nil {
+		t.Fatal(err)
+	}
 	f.Detect.Buildpack.Info.Version = "1.0"
 	f.Detect.Buildpack.Root = filepath.Join(root, "buildpack")
 	f.Detect.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {

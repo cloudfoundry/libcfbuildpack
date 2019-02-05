@@ -20,6 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -162,6 +163,9 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
 
 	f.Build.Application.Root = filepath.Join(root, "application")
+	if err := os.MkdirAll(f.Build.Application.Root, 0755); err != nil {
+		t.Fatal(err)
+	}
 	f.Build.Buildpack.Info.Version = "1.0"
 	f.Build.Buildpack.Root = filepath.Join(root, "buildpack")
 	f.Build.BuildPlanWriter = func(buildPlan buildplan.BuildPlan) error {
