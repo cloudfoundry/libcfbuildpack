@@ -37,6 +37,7 @@ type DownloadLayer struct {
 
 	cacheLayer Layer
 	dependency buildpack.Dependency
+	info       buildpack.Info
 	logger     logger.Logger
 }
 
@@ -91,12 +92,20 @@ func (l DownloadLayer) Artifact() (string, error) {
 
 // String makes DownloadLayer satisfy the Stringer interface.
 func (l DownloadLayer) String() string {
-	return fmt.Sprintf("DownloadLayer{ Layer: %s, cacheLayer:%s, dependency: %s, logger: %s }",
-		l.Layer, l.cacheLayer, l.dependency, l.logger)
+	return fmt.Sprintf("DownloadLayer{ Layer: %s, cacheLayer:%s, dependency: %s, info: %s, logger: %s }",
+		l.Layer, l.cacheLayer, l.dependency, l.info, l.logger)
 }
 
 func (l DownloadLayer) download(file string) error {
-	resp, err := http.Get(l.dependency.URI)
+	req, err := http.NewRequest("GET", l.dependency.URI, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", l.info.ID, l.info.Version))
+
+	client := http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}

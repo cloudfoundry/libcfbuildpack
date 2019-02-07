@@ -93,7 +93,7 @@ func DefaultBuild() (Build, error) {
 
 	logger := logger.Logger{Logger: b.Logger}
 	buildpack := buildpack.NewBuildpack(b.Buildpack, logger)
-	layers := layers.NewLayers(b.Layers, bp.NewLayers(buildpack.CacheRoot, b.Logger), logger)
+	layers := layers.NewLayers(b.Layers, bp.NewLayers(buildpack.CacheRoot, b.Logger), buildpack.Info, logger)
 	services := services.Services{Services: b.Services}
 
 	return Build{

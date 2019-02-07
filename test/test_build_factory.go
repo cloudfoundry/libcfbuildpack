@@ -175,6 +175,7 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	f.Build.Layers = layers.NewLayers(
 		bpLayers.Layers{Root: filepath.Join(root, "layers")},
 		bpLayers.Layers{Root: filepath.Join(root, "buildpack-cache")},
+		f.Build.Buildpack.Info,
 		logger.Logger{})
 	f.Build.Platform.Root = filepath.Join(root, "platform")
 	f.Build.Services = services.Services{Services: bpServices.Services{}}

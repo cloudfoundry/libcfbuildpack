@@ -55,7 +55,7 @@ func TestDependencyLayer(t *testing.T) {
 				URI:     "http://test.com/test-path",
 			}
 
-			ls = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, logger.Logger{})
+			ls = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, buildpack.Info{}, logger.Logger{})
 			layer = ls.DependencyLayer(dependency)
 		})
 

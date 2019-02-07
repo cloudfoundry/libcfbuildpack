@@ -135,7 +135,7 @@ func defaultPackager(outputDirectory string) (packager, error) {
 	}
 	buildpack := buildpack.NewBuildpack(b, logger)
 
-	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), logger)
+	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack.Info, logger)
 
 	return packager{
 		buildpack,

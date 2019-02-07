@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	bp "github.com/buildpack/libbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -42,7 +43,7 @@ func TestLayer(t *testing.T) {
 
 		it.Before(func() {
 			root = test.ScratchDir(t, "layer")
-			layer = layers.NewLayers(bp.Layers{Root: root}, bp.Layers{}, logger.Logger{}).Layer("test-layer")
+			layer = layers.NewLayers(bp.Layers{Root: root}, bp.Layers{}, buildpack.Info{}, logger.Logger{}).Layer("test-layer")
 		})
 
 		it("identifies matching metadata", func() {

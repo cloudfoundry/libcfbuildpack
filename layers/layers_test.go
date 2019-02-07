@@ -24,6 +24,7 @@ import (
 
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -47,7 +48,7 @@ func TestLayers(t *testing.T) {
 		it.Before(func() {
 			root = test.ScratchDir(t, "layers")
 			logger := logger.Logger{Logger: loggerBp.NewLogger(nil, &info)}
-			l = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, logger)
+			l = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, buildpack.Info{}, logger)
 		})
 
 		it("logs process types", func() {
