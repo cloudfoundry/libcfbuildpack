@@ -43,6 +43,24 @@ func TestLogger(t *testing.T) {
 			g.Expect(info.String()).To(Equal(fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))))
 		})
 
+		it("writes eye catcher on warning", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.Warning("test %s", "message")
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("%s test message\n", color.New(color.FgYellow, color.Bold).Sprint("----->"))))
+		})
+
+		it("writes eye catcher on error", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.Error("test %s", "message")
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))))
+		})
+
 		it("writes indent on second line", func() {
 			var info bytes.Buffer
 
