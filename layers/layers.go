@@ -18,6 +18,7 @@ package layers
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/buildpack/libbuildpack/layers"
@@ -78,8 +79,13 @@ func (l Layers) String() string {
 func (l Layers) WriteMetadata(metadata Metadata) error {
 	l.logger.FirstLine("Process types:")
 
-	max := l.maximumTypeLength(metadata)
-	for _, p := range metadata.Processes {
+	p := metadata.Processes
+	sort.Slice(p, func(i int, j int) bool {
+		return p[i].Type < p[j].Type
+	})
+
+	max := l.maximumTypeLength(p)
+	for _, p := range p {
 		format := fmt.Sprintf("%%s:%%-%ds %%s", max-len(p.Type))
 		l.logger.SubsequentLine(format, color.CyanString(p.Type), "", p.Command)
 	}
@@ -87,10 +93,10 @@ func (l Layers) WriteMetadata(metadata Metadata) error {
 	return l.Layers.WriteMetadata(metadata)
 }
 
-func (l Layers) maximumTypeLength(metadata Metadata) int {
+func (l Layers) maximumTypeLength(processes Processes) int {
 	max := 0
 
-	for _, t := range metadata.Processes {
+	for _, t := range processes {
 		if l := len(t.Type); l > max {
 			max = l
 		}
