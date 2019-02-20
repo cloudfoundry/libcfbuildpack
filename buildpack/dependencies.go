@@ -50,7 +50,7 @@ func (d Dependencies) Best(id string, versionConstraint string, stack stack.Stac
 	}
 
 	if len(candidates) == 0 {
-		return Dependency{}, fmt.Errorf("no valid dependencies for %s, %s, and %s in %s", id, vc, stack, d)
+		return Dependency{}, fmt.Errorf("no valid dependencies for %s, %s, and %s in%s", id, vc, stack, d.missing())
 	}
 
 	sort.Slice(candidates, func(i int, j int) bool {
@@ -70,4 +70,14 @@ func (d Dependencies) Has(id string) bool {
 	}
 
 	return false
+}
+
+func (d Dependencies) missing() string {
+	var result string
+
+	for _, c := range d {
+		result = fmt.Sprintf("%s\nID: %s Version: %s Stacks: %s", result, c.ID, c.Version.Version, c.Stacks)
+	}
+
+	return result
 }
