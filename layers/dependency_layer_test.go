@@ -72,7 +72,7 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			contributed := false
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
-				contributed = true;
+				contributed = true
 				return nil
 			})).To(Succeed())
 
@@ -88,7 +88,7 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			contributed := false
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
-				contributed = true;
+				contributed = true
 				return nil
 			})).To(Succeed())
 
