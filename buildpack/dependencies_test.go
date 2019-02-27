@@ -174,10 +174,7 @@ func TestDependencies(t *testing.T) {
 
 			_, err := d.Best("test-id-2", "1.0", "test-stack-1")
 			g.Expect(err).To(HaveOccurred())
-			expectedError := `no valid dependencies for test-id-2, 1.0, and test-stack-1 in
-ID: test-id Version: 1.0.0 Stacks: [test-stack-1 test-stack-2]
-ID: test-id Version: 1.0.0 Stacks: [test-stack-1 test-stack-3]
-ID: test-id-2 Version: 1.1.0 Stacks: [test-stack-1 test-stack-3]`
+			expectedError := "no valid dependencies for test-id-2, 1.0, and test-stack-1 in [(test-id, 1.0, [test-stack-1 test-stack-2]), (test-id, 1.0, [test-stack-1 test-stack-3]), (test-id-2, 1.1, [test-stack-1 test-stack-3])]"
 			g.Expect(err).To(MatchError(expectedError))
 		})
 
