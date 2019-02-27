@@ -37,8 +37,8 @@ type Layers struct {
 	// TouchedLayers registers the layers that have been touched during this execution.
 	TouchedLayers TouchedLayers
 
+	buildpack      buildpack.Buildpack
 	buildpackCache layers.Layers
-	info           buildpack.Info
 	logger         logger.Logger
 }
 
@@ -59,7 +59,19 @@ func (l Layers) DownloadLayer(dependency buildpack.Dependency) DownloadLayer {
 		l.Layer(dependency.SHA256),
 		Layer{l.buildpackCache.Layer(dependency.SHA256), l.logger, l.TouchedLayers},
 		dependency,
-		l.info,
+		l.buildpack.Info,
+		l.logger,
+	}
+}
+
+// HelperLayer returns a HelperLayer unique to a buildpack provided dependency.
+func (l Layers) HelperLayer(id string, name string) HelperLayer {
+	return HelperLayer{
+		l.Layer(id),
+		id,
+		l.buildpack,
+		l.DependencyBuildPlans,
+		name,
 		l.logger,
 	}
 }
@@ -71,8 +83,8 @@ func (l Layers) Layer(name string) Layer {
 
 // String makes Layers satisfy the Stringer interface.
 func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Layers: %s, DependencyBuildPlans: %s, TouchedLayers: %s, buildpackCache: %s, info :%s, logger: %s }",
-		l.Layers, l.DependencyBuildPlans, l.TouchedLayers, l.buildpackCache, l.info, l.logger)
+	return fmt.Sprintf("Layers{ Layers: %s, DependencyBuildPlans: %s, TouchedLayers: %s, buildpack: %s, buildpackCache: %s, logger: %s }",
+		l.Layers, l.DependencyBuildPlans, l.TouchedLayers, l.buildpack, l.buildpackCache, l.logger)
 }
 
 // WriteApplicationMetadata writes application metadata to the filesystem.
@@ -118,13 +130,13 @@ func (l Layers) maximumTypeLength(processes Processes) int {
 }
 
 // NewLayers creates a new instance of Layers.
-func NewLayers(layers layers.Layers, buildpackCache layers.Layers, info buildpack.Info, logger logger.Logger) Layers {
+func NewLayers(layers layers.Layers, buildpackCache layers.Layers, buildpack buildpack.Buildpack, logger logger.Logger) Layers {
 	return Layers{
 		Layers:               layers,
 		DependencyBuildPlans: make(buildplan.BuildPlan),
 		TouchedLayers:        NewTouchedLayers(layers.Root, logger),
+		buildpack:            buildpack,
 		buildpackCache:       buildpackCache,
-		info:                 info,
 		logger:               logger,
 	}
 }

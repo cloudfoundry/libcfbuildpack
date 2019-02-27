@@ -48,7 +48,7 @@ func TestLayers(t *testing.T) {
 		it.Before(func() {
 			root = test.ScratchDir(t, "layers")
 			logger := logger.Logger{Logger: loggerBp.NewLogger(nil, &info)}
-			l = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, buildpack.Info{}, logger)
+			l = layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{}, buildpack.Buildpack{}, logger)
 		})
 
 		it("logs process types", func() {

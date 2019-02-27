@@ -58,7 +58,7 @@ func TestDownloadLayer(t *testing.T) {
 				URI:     fmt.Sprintf("%s/test-path", server.URL()),
 			}
 
-			layers := layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{Root: filepath.Join(root, "buildpack")}, buildpack.Info{}, logger.Logger{})
+			layers := layers.NewLayers(layersBp.Layers{Root: root}, layersBp.Layers{Root: filepath.Join(root, "buildpack")}, buildpack.Buildpack{}, logger.Logger{})
 			layer = layers.DownloadLayer(dependency)
 		})
 
