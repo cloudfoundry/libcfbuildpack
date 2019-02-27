@@ -80,10 +80,10 @@ func TestHelperLayer(t *testing.T) {
 
 		it("does not call contributor for a cached layer", func() {
 			test.WriteFile(t, layer.Metadata, `[metadata]
-  ID = "%s"
-  Name = "%s"
-  Version = "%s"
-  DisplayName = "Test Name"`, bp.Info.ID, bp.Info.Name, bp.Info.Version)
+  id = "%s"
+  name = "%s"
+  version = "%s"
+  display_name = "Test Name"`, bp.Info.ID, bp.Info.Name, bp.Info.Version)
 
 			contributed := false
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
@@ -95,11 +95,6 @@ func TestHelperLayer(t *testing.T) {
 		})
 
 		it("contributes dependency to build plan", func() {
-			test.WriteFile(t, layer.Metadata, `[metadata]
-  ID = "%s"
-  Name = "%s"
-  Version = "%s"`, bp.Info.ID, bp.Info.Name, bp.Info.Version)
-
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
 				return nil
 			})).To(Succeed())

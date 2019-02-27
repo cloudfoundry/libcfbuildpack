@@ -84,7 +84,7 @@ func (l *HelperLayer) contributeToBuildPlan() {
 type marker struct {
 	buildpack.Info
 
-	DisplayName string `toml:"DisplayName"`
+	DisplayName string `toml:"display_name"`
 }
 
 func (m marker) Identity() (string, string) {
