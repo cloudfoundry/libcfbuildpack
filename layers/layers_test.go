@@ -52,7 +52,7 @@ func TestLayers(t *testing.T) {
 		})
 
 		it("logs process types", func() {
-			g.Expect(l.WriteMetadata(layers.Metadata{
+			g.Expect(l.WriteApplicationMetadata(layers.Metadata{
 				Processes: []layers.Process{
 					{"short", "test-command-1"},
 					{"a-very-long-type", "test-command-2"},
@@ -64,6 +64,18 @@ func TestLayers(t *testing.T) {
        %s:            test-command-1
 `, color.New(color.FgRed, color.Bold).Sprint("----->"), color.CyanString("a-very-long-type"),
 				color.CyanString("short"))))
+		})
+
+		it("logs number of slices", func() {
+			g.Expect(l.WriteApplicationMetadata(layers.Metadata{
+				Slices: layers.Slices{
+					layers.Slice{},
+					layers.Slice{},
+				},
+			})).To(Succeed())
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf(`%s 2 application slices
+`, color.New(color.FgRed, color.Bold).Sprint("----->"))))
 		})
 
 		it("registers touched layers", func() {
