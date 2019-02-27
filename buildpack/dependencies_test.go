@@ -163,10 +163,19 @@ func TestDependencies(t *testing.T) {
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name",
+					Version: internal.NewTestVersion(t, "1.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
 			}
 
 			_, err := d.Best("test-id-2", "1.0", "test-stack-1")
 			g.Expect(err).To(HaveOccurred())
+			expectedError := "no valid dependencies for test-id-2, 1.0, and test-stack-1 in [(test-id, 1.0, [test-stack-1 test-stack-2]), (test-id, 1.0, [test-stack-1 test-stack-3]), (test-id-2, 1.1, [test-stack-1 test-stack-3])]"
+			g.Expect(err).To(MatchError(expectedError))
 		})
 
 		it("substitutes all wildcard for unspecified version constraint", func() {
