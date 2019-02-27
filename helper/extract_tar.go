@@ -17,24 +17,17 @@
 package helper
 
 import (
-	"compress/gzip"
 	"os"
 )
 
-// ExtractTarGz extracts source GZIP'd TAR file to a destination directory.  An arbitrary number of top-level directory
+// ExtractTar extracts a source TAR file to a destination directory.  An arbitrary number of top-level directory
 // components can be stripped from each path.
-func ExtractTarGz(source string, destination string, stripComponents int) error {
+func ExtractTar(source string, destination string, stripComponents int) error {
 	f, err := os.Open(source)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	gz, err := gzip.NewReader(f)
-	if err != nil {
-		return err
-	}
-	defer gz.Close()
-
-	return handleTar(gz, destination, stripComponents)
+	return handleTar(f, destination, stripComponents)
 }
