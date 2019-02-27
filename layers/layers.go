@@ -75,22 +75,28 @@ func (l Layers) String() string {
 		l.Layers, l.DependencyBuildPlans, l.TouchedLayers, l.buildpackCache, l.info, l.logger)
 }
 
-// WriteMetadata writes Launch metadata to the filesystem.
-func (l Layers) WriteMetadata(metadata Metadata) error {
-	l.logger.FirstLine("Process types:")
-
-	p := metadata.Processes
-	sort.Slice(p, func(i int, j int) bool {
-		return p[i].Type < p[j].Type
-	})
-
-	max := l.maximumTypeLength(p)
-	for _, p := range p {
-		format := fmt.Sprintf("%%s:%%-%ds %%s", max-len(p.Type))
-		l.logger.SubsequentLine(format, color.CyanString(p.Type), "", p.Command)
+// WriteApplicationMetadata writes application metadata to the filesystem.
+func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
+	if len(metadata.Slices) > 0 {
+		l.logger.FirstLine("%d application slices", len(metadata.Slices))
 	}
 
-	return l.Layers.WriteMetadata(metadata)
+	if len(metadata.Processes) > 0 {
+		l.logger.FirstLine("Process types:")
+
+		p := metadata.Processes
+		sort.Slice(p, func(i int, j int) bool {
+			return p[i].Type < p[j].Type
+		})
+
+		max := l.maximumTypeLength(p)
+		for _, p := range p {
+			format := fmt.Sprintf("%%s:%%-%ds %%s", max-len(p.Type))
+			l.logger.SubsequentLine(format, color.CyanString(p.Type), "", p.Command)
+		}
+	}
+
+	return l.Layers.WriteApplicationMetadata(metadata)
 }
 
 func (l Layers) maximumTypeLength(processes Processes) int {
