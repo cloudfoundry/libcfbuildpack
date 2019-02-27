@@ -99,6 +99,12 @@ func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
 	return l.Layers.WriteApplicationMetadata(metadata)
 }
 
+// WritePersistentMetadata writes persistent metadata to the filesystem.
+func (l Layers) WritePersistentMetadata(metadata interface{}) error {
+	l.logger.SubsequentLine("Writing persistent metadata")
+	return l.Layers.WritePersistentMetadata(metadata)
+}
+
 func (l Layers) maximumTypeLength(processes Processes) int {
 	max := 0
 
