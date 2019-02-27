@@ -43,7 +43,7 @@ func TestLayer(t *testing.T) {
 
 		it.Before(func() {
 			root = test.ScratchDir(t, "layer")
-			layer = layers.NewLayers(bp.Layers{Root: root}, bp.Layers{}, buildpack.Info{}, logger.Logger{}).Layer("test-layer")
+			layer = layers.NewLayers(bp.Layers{Root: root}, bp.Layers{}, buildpack.Buildpack{}, logger.Logger{}).Layer("test-layer")
 		})
 
 		it("identifies matching metadata", func() {
