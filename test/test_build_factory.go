@@ -48,6 +48,9 @@ type BuildFactory struct {
 	// Output is the BuildPlan output at termination.
 	Output buildplan.BuildPlan
 
+	// Runner is the used to capture commands executed outside the process.
+	Runner *Runner
+
 	t *testing.T
 }
 
@@ -159,8 +162,9 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 	t.Helper()
 
 	root := ScratchDir(t, "build")
+	runner := &Runner{}
 
-	f := BuildFactory{Home: filepath.Join(root, "home"), t: t}
+	f := BuildFactory{Home: filepath.Join(root, "home"), Runner: runner, t: t}
 
 	f.Build.Application.Root = filepath.Join(root, "application")
 	if err := os.MkdirAll(f.Build.Application.Root, 0755); err != nil {
@@ -176,6 +180,7 @@ func NewBuildFactory(t *testing.T) *BuildFactory {
 		bpLayers.Layers{Root: filepath.Join(root, "layers")},
 		bpLayers.Layers{Root: filepath.Join(root, "buildpack-cache")}, f.Build.Buildpack, logger.Logger{})
 	f.Build.Platform.Root = filepath.Join(root, "platform")
+	f.Build.Runner = runner
 	f.Build.Services = services.Services{Services: bpServices.Services{}}
 	f.Build.Stack = stack.Stack("test-stack")
 
