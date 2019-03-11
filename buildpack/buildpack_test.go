@@ -35,7 +35,7 @@ func TestBuildpack(t *testing.T) {
 		it("returns dependencies", func() {
 			b := bp.Buildpack{
 				Metadata: bp.Metadata{
-					"dependencies": []map[string]interface{}{
+					buildpack.DependenciesMetadata: []map[string]interface{}{
 						{
 							"id":      "test-id-1",
 							"name":    "test-name-1",
@@ -139,6 +139,57 @@ func TestBuildpack(t *testing.T) {
 
 			_, ok := buildpack.Buildpack{Buildpack: b}.PrePackage()
 			g.Expect(ok).To(BeFalse())
+		})
+
+		it("returns a default dependency if it exists", func() {
+			id := "test-id-1"
+			version := "1.0"
+
+			b := bp.Buildpack{
+				Metadata: bp.Metadata{
+					buildpack.DefaultVersions: map[string]interface{}{
+						id: version,
+					},
+				},
+			}
+
+			ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
+			g.Expect(ver).To(Equal(version))
+			g.Expect(err).ToNot(HaveOccurred())
+
+			ver, err = buildpack.Buildpack{}.DefaultVersion("invalid-id")
+			g.Expect(ver).To(Equal(""))
+			g.Expect(err).ToNot(HaveOccurred())
+		})
+
+		it("returns empty string if DefaultVersions has incorrect structure", func() {
+			id := "test-id-1"
+
+			b := bp.Buildpack{
+				Metadata: bp.Metadata{
+					buildpack.DefaultVersions: "foo",
+				},
+			}
+
+			ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
+			g.Expect(ver).To(Equal(""))
+			g.Expect(err).ToNot(HaveOccurred())
+		})
+
+		it("returns an error if the type of values that DefaultVersions maps to are not strings", func() {
+			id := "test-id-1"
+
+			b := bp.Buildpack{
+				Metadata: bp.Metadata{
+					buildpack.DefaultVersions: map[string]interface{}{
+						id: 1,
+					},
+				},
+			}
+
+			ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
+			g.Expect(ver).To(Equal(""))
+			g.Expect(err).To(HaveOccurred())
 		})
 
 	}, spec.Report(report.Terminal{}))
