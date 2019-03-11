@@ -27,8 +27,6 @@ import (
 	"github.com/sclevine/spec/report"
 )
 
-
-
 func TestBuildpack(t *testing.T) {
 	spec.Run(t, "Buildpack", func(t *testing.T, _ spec.G, it spec.S) {
 
