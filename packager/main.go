@@ -17,12 +17,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
 
 func main() {
-	d := os.Args[1]
+	uncached := flag.Bool("uncached", false, "cache dependencies")
+	archive := flag.Bool("archive", false, "tar resulting buildpack")
+	flag.Parse()
+
+	cached := !*uncached
+	d := flag.Args()[0]
 
 	packager, err := defaultPackager(d)
 	if err != nil {
@@ -30,8 +36,15 @@ func main() {
 		os.Exit(101)
 	}
 
-	if err := packager.Create(); err != nil {
-		packager.logger.Info(err.Error())
+	if err := packager.Create(cached); err != nil {
+		packager.logger.Error("Failed to create: %s\n", err)
 		os.Exit(102)
+	}
+
+	if *archive {
+		if err := packager.Archive(); err != nil {
+			packager.logger.Error("Failed to archive: %s\n", err)
+			os.Exit(103)
+		}
 	}
 }

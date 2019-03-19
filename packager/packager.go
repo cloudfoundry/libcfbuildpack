@@ -17,6 +17,9 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,7 +41,7 @@ type packager struct {
 	outputDirectory string
 }
 
-func (p packager) Create() error {
+func (p packager) Create(cache bool) error {
 	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
 
 	if err := p.prePackage(); err != nil {
@@ -50,15 +53,19 @@ func (p packager) Create() error {
 		return err
 	}
 
-	dependencyFiles, err := p.cacheDependencies()
-	if err != nil {
-		return err
+	var dependencyFiles []string
+	if cache {
+		dependencyFiles, err = p.CacheDependencies()
+		if err != nil {
+			return err
+		}
+		includedFiles = append(includedFiles, dependencyFiles...)
 	}
-	//
-	return p.createPackage(append(includedFiles, dependencyFiles...))
+
+	return p.createPackage(includedFiles)
 }
 
-func (p packager) cacheDependencies() ([]string, error) {
+func (p packager) CacheDependencies() ([]string, error) {
 	var files []string
 
 	deps, err := p.buildpack.Dependencies()
@@ -92,6 +99,53 @@ func (p packager) cacheDependencies() ([]string, error) {
 	return files, nil
 }
 
+func (p packager) Archive() error {
+	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), filepath.Base(p.outputDirectory+".tgz"))
+
+	file, err := os.Create(tarFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	gw := gzip.NewWriter(file)
+	defer gw.Close()
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	filepath.Walk(p.outputDirectory, func(path string, info os.FileInfo, err error) error {
+		return p.addTarFile(tw, info, path)
+	})
+
+	return nil
+}
+
+func (p packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if header, err := tar.FileInfoHeader(info, path); err == nil {
+		header.Name = stripBaseDirectory(p.outputDirectory, path)
+
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		if err := tw.WriteHeader(header); err != nil {
+			return err
+		}
+
+		if _, err := io.Copy(tw, file); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
 func (p packager) createPackage(files []string) error {
 	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
 
@@ -101,7 +155,6 @@ func (p packager) createPackage(files []string) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -134,7 +187,6 @@ func defaultPackager(outputDirectory string) (packager, error) {
 		return packager{}, err
 	}
 	buildpack := buildpack.NewBuildpack(b, logger)
-
 	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
 
 	return packager{
@@ -143,4 +195,8 @@ func defaultPackager(outputDirectory string) (packager, error) {
 		logger,
 		outputDirectory,
 	}, nil
+}
+
+func stripBaseDirectory(base, path string) string {
+	return strings.TrimPrefix(strings.Replace(path, base, "", -1), string(filepath.Separator))
 }
