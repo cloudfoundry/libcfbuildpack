@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -35,7 +34,7 @@ func TestDependency(t *testing.T) {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack"},
@@ -48,7 +47,7 @@ func TestDependency(t *testing.T) {
 		it("does not validate with invalid id", func() {
 			g.Expect(buildpack.Dependency{
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack"},
@@ -61,7 +60,7 @@ func TestDependency(t *testing.T) {
 		it("does not validate with invalid name", func() {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack"},
@@ -88,7 +87,7 @@ func TestDependency(t *testing.T) {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack"},
 				Licenses: buildpack.Licenses{
@@ -101,7 +100,7 @@ func TestDependency(t *testing.T) {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				Stacks:  buildpack.Stacks{"test-stack"},
 				Licenses: buildpack.Licenses{
@@ -114,7 +113,7 @@ func TestDependency(t *testing.T) {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Licenses: buildpack.Licenses{
@@ -127,7 +126,7 @@ func TestDependency(t *testing.T) {
 			g.Expect(buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0.0"),
+				Version: test.NewTestVersion(t, "1.0.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack"},

@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -36,14 +35,14 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id-1",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 				buildpack.Dependency{
 					ID:      "test-id-2",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
@@ -52,7 +51,7 @@ func TestDependencies(t *testing.T) {
 			expected := buildpack.Dependency{
 				ID:      "test-id-2",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0"),
+				Version: test.NewTestVersion(t, "1.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
@@ -65,14 +64,14 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "2.0"),
+					Version: test.NewTestVersion(t, "2.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
@@ -81,7 +80,7 @@ func TestDependencies(t *testing.T) {
 			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "2.0"),
+				Version: test.NewTestVersion(t, "2.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
@@ -94,14 +93,14 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
@@ -110,7 +109,7 @@ func TestDependencies(t *testing.T) {
 			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.0"),
+				Version: test.NewTestVersion(t, "1.0"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}}
@@ -123,14 +122,14 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.1"),
+					Version: test.NewTestVersion(t, "1.1"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
@@ -139,7 +138,7 @@ func TestDependencies(t *testing.T) {
 			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.1"),
+				Version: test.NewTestVersion(t, "1.1"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
@@ -152,21 +151,21 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
 				buildpack.Dependency{
 					ID:      "test-id-2",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.1"),
+					Version: test.NewTestVersion(t, "1.1"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}},
@@ -183,7 +182,7 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.1"),
+					Version: test.NewTestVersion(t, "1.1"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
@@ -192,7 +191,7 @@ func TestDependencies(t *testing.T) {
 			expected := buildpack.Dependency{
 				ID:      "test-id",
 				Name:    "test-name",
-				Version: internal.NewTestVersion(t, "1.1"),
+				Version: test.NewTestVersion(t, "1.1"),
 				URI:     "test-uri",
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
@@ -205,7 +204,7 @@ func TestDependencies(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id",
 					Name:    "test-name",
-					Version: internal.NewTestVersion(t, "1.1"),
+					Version: test.NewTestVersion(t, "1.1"),
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},

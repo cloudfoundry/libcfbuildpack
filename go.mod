@@ -11,3 +11,5 @@ require (
 	github.com/onsi/gomega v1.4.3
 	github.com/sclevine/spec v1.2.0
 )
+
+replace github.com/buildpack/libbuildpack => /users/pivotal/workspace/buildpack/libbuildpack

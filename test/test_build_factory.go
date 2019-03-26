@@ -166,7 +166,7 @@ func (f *BuildFactory) newDependency(id string, version string, name string) bui
 	return buildpack.Dependency{
 		ID:      id,
 		Name:    name,
-		Version: internal.NewTestVersion(f.t, version),
+		Version: test.NewTestVersion(f.t, version),
 		SHA256:  hex.EncodeToString(sha256.New().Sum([]byte(id))),
 		URI:     fmt.Sprintf("http://localhost/%s", name),
 		Stacks:  buildpack.Stacks{f.Build.Stack},

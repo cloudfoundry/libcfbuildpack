@@ -21,7 +21,6 @@ import (
 
 	bp "github.com/buildpack/libbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -80,7 +79,7 @@ func TestBuildpack(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id-1",
 					Name:    "test-name-1",
-					Version: internal.NewTestVersion(t, "1.0"),
+					Version: test.NewTestVersion(t, "1.0"),
 					URI:     "test-uri-1",
 					SHA256:  "test-sha256-1",
 					Stacks:  buildpack.Stacks{"test-stack-1a", "test-stack-1b"},
@@ -92,7 +91,7 @@ func TestBuildpack(t *testing.T) {
 				buildpack.Dependency{
 					ID:      "test-id-2",
 					Name:    "test-name-2",
-					Version: internal.NewTestVersion(t, "2.0"),
+					Version: test.NewTestVersion(t, "2.0"),
 					URI:     "test-uri-2",
 					SHA256:  "test-sha256-2",
 					Stacks:  buildpack.Stacks{"test-stack-2a", "test-stack-2b"},

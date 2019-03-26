@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package main
+package packager
 
 import (
 	"archive/tar"
@@ -29,7 +29,7 @@ import (
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
+	//"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
@@ -151,9 +151,9 @@ func (p packager) createPackage(files []string) error {
 
 	for _, file := range files {
 		p.logger.SubsequentLine("Adding %s", file)
-		if err := helper.CopyFile(filepath.Join(p.buildpack.Root, file), filepath.Join(p.outputDirectory, file)); err != nil {
-			return err
-		}
+		//if err := helper.CopyFile(filepath.Join(p.buildpack.Root, file), filepath.Join(p.outputDirectory, file)); err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }
@@ -174,7 +174,7 @@ func (p packager) prePackage() error {
 	return cmd.Run()
 }
 
-func defaultPackager(outputDirectory string) (packager, error) {
+func DefaultPackager(outputDirectory string) (packager, error) {
 	l, err := loggerBp.DefaultLogger("")
 	if err != nil {
 		return packager{}, err

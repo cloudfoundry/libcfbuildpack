@@ -42,7 +42,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		it("contains default values", func() {
-			defer internal.ReplaceWorkingDirectory(t, root)()
+			defer test.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 			defer internal.ProtectEnv(t, "TEST_KEY")
@@ -91,7 +91,7 @@ test-key = "test-value"
 		})
 
 		it("returns code when erroring", func() {
-			defer internal.ReplaceWorkingDirectory(t, root)()
+			defer test.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
@@ -104,7 +104,7 @@ test-key = "test-value"
 		})
 
 		it("returns 100 when failing", func() {
-			defer internal.ReplaceWorkingDirectory(t, root)()
+			defer test.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
@@ -117,7 +117,7 @@ test-key = "test-value"
 		})
 
 		it("returns 0 and BuildPlan when passing", func() {
-			defer internal.ReplaceWorkingDirectory(t, root)()
+			defer test.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 

@@ -24,7 +24,6 @@ import (
 
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -53,7 +52,7 @@ func TestDownloadLayer(t *testing.T) {
 
 			dependency = buildpack.Dependency{
 				ID:      "test-id",
-				Version: internal.NewTestVersion(t, "1.0"),
+				Version: test.NewTestVersion(t, "1.0"),
 				SHA256:  "6f06dd0e26608013eff30bb1e951cda7de3fdd9e78e907470e0dd5c0ed25e273",
 				URI:     fmt.Sprintf("%s/test-path", server.URL()),
 			}
