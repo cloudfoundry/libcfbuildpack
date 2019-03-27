@@ -34,14 +34,38 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
-type packager struct {
+type Packager struct {
 	buildpack       buildpack.Buildpack
 	layers          layers.Layers
 	logger          logger.Logger
 	outputDirectory string
 }
 
-func (p packager) Create(cache bool) error {
+
+func DefaultPackager(outputDirectory string) (Packager, error) {
+	l, err := loggerBp.DefaultLogger("")
+	if err != nil {
+		return Packager{}, err
+	}
+
+	logger := logger.Logger{Logger: l}
+
+	b, err := buildpackBp.DefaultBuildpack(l)
+	if err != nil {
+		return Packager{}, err
+	}
+	buildpack := buildpack.NewBuildpack(b, logger)
+	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
+
+	return Packager{
+		buildpack,
+		layers,
+		logger,
+		outputDirectory,
+	}, nil
+}
+
+func (p Packager) Create(cache bool) error {
 	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
 
 	if err := p.prePackage(); err != nil {
@@ -65,7 +89,7 @@ func (p packager) Create(cache bool) error {
 	return p.createPackage(includedFiles)
 }
 
-func (p packager) CacheDependencies() ([]string, error) {
+func (p Packager) CacheDependencies() ([]string, error) {
 	var files []string
 
 	deps, err := p.buildpack.Dependencies()
@@ -99,9 +123,9 @@ func (p packager) CacheDependencies() ([]string, error) {
 	return files, nil
 }
 
-func (p packager) Archive() error {
+func (p Packager) Archive() error {
+	defer os.RemoveAll(p.outputDirectory)
 	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), filepath.Base(p.outputDirectory+".tgz"))
-
 	file, err := os.Create(tarFile)
 	if err != nil {
 		return err
@@ -120,7 +144,7 @@ func (p packager) Archive() error {
 	return nil
 }
 
-func (p packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) error {
+func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -146,7 +170,7 @@ func (p packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) erro
 	return nil
 }
 
-func (p packager) createPackage(files []string) error {
+func (p Packager) createPackage(files []string) error {
 	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
 
 	for _, file := range files {
@@ -158,7 +182,7 @@ func (p packager) createPackage(files []string) error {
 	return nil
 }
 
-func (p packager) prePackage() error {
+func (p Packager) prePackage() error {
 	pp, ok := p.buildpack.PrePackage()
 	if !ok {
 		return nil
@@ -172,29 +196,6 @@ func (p packager) prePackage() error {
 	p.logger.FirstLine("Pre-Package with %s", strings.Join(cmd.Args, " "))
 
 	return cmd.Run()
-}
-
-func defaultPackager(outputDirectory string) (packager, error) {
-	l, err := loggerBp.DefaultLogger("")
-	if err != nil {
-		return packager{}, err
-	}
-
-	logger := logger.Logger{Logger: l}
-
-	b, err := buildpackBp.DefaultBuildpack(l)
-	if err != nil {
-		return packager{}, err
-	}
-	buildpack := buildpack.NewBuildpack(b, logger)
-	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
-
-	return packager{
-		buildpack,
-		layers,
-		logger,
-		outputDirectory,
-	}, nil
 }
 
 func stripBaseDirectory(base, path string) string {

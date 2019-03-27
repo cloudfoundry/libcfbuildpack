@@ -23,27 +23,43 @@ import (
 )
 
 func main() {
-	uncached := flag.Bool("uncached", false, "cache dependencies")
-	archive := flag.Bool("archive", false, "tar resulting buildpack")
-	flag.Parse()
+	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
+	uncached := pflags.Bool("uncached", false, "cache dependencies")
+	archive := pflags.Bool("archive", false, "tar resulting buildpack")
 
-	cached := !*uncached
-	d := flag.Args()[0]
+	if err := pflags.Parse(os.Args[1:]); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse flags: %s\n", err)
+		os.Exit(99)
+	}
 
-	packager, err := defaultPackager(d)
+	pflags.Usage = func() {
+		pflags.PrintDefaults()
+		fmt.Println("-----")
+		fmt.Println("Note that the destination should be the last argument")
+		fmt.Println("Example: packager --archive --uncached </path/to/destination>")
+	}
+
+	if len(pflags.Args()) != 1 {
+		pflags.Usage()
+		os.Exit(100)
+	}
+
+	destination := pflags.Args()[0]
+	defaultPackager, err := DefaultPackager(destination)
+
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
 		os.Exit(101)
 	}
 
-	if err := packager.Create(cached); err != nil {
-		packager.logger.Error("Failed to create: %s\n", err)
+	if err := defaultPackager.Create(!*uncached); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to create: %s\n", err)
 		os.Exit(102)
 	}
 
 	if *archive {
-		if err := packager.Archive(); err != nil {
-			packager.logger.Error("Failed to archive: %s\n", err)
+		if err := defaultPackager.Archive(); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Failed to archive: %s\n", err)
 			os.Exit(103)
 		}
 	}
