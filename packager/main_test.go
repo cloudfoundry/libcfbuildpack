@@ -23,7 +23,7 @@ func TestUnitPackager(t *testing.T) {
 
 func testPackager(t *testing.T, _ spec.G, it spec.S) {
 	var (
-		pkgr        packager
+		pkgr        Packager
 		err         error
 		outputDir   string
 		cnbDir      string
@@ -91,7 +91,7 @@ id = 'stack-id'
 		defer internal.ReplaceArgs(t, filepath.Join(cnbDir, "buildpack.toml"))()
 		defer internal.ReplaceWorkingDirectory(t, cnbDir)()
 
-		pkgr, err = defaultPackager(outputDir)
+		pkgr, err = DefaultPackager(outputDir)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -125,6 +125,8 @@ id = 'stack-id'
 
 		tarball := filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
 		Expect(tarball).To(BeAnExistingFile())
+		Expect(outputDir).NotTo(BeAnExistingFile())
+
 		os.RemoveAll(tarball)
 	})
 }
