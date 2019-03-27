@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"os"
 )
 
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	destination := pflags.Args()[0]
-	defaultPackager, err := DefaultPackager(destination)
+	defaultPackager, err := cnbpackager.DefaultPackager(destination)
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)

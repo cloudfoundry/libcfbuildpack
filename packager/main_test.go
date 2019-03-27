@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -23,7 +24,7 @@ func TestUnitPackager(t *testing.T) {
 
 func testPackager(t *testing.T, _ spec.G, it spec.S) {
 	var (
-		pkgr        Packager
+		pkgr        cnbpackager.Packager
 		err         error
 		outputDir   string
 		cnbDir      string
@@ -91,7 +92,7 @@ id = 'stack-id'
 		defer internal.ReplaceArgs(t, filepath.Join(cnbDir, "buildpack.toml"))()
 		defer internal.ReplaceWorkingDirectory(t, cnbDir)()
 
-		pkgr, err = DefaultPackager(outputDir)
+		pkgr, err = cnbpackager.DefaultPackager(outputDir)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
