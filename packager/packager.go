@@ -18,7 +18,9 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -33,6 +35,48 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
+
+type WriterFactory interface {
+	NewWriter(path string) (io.Writer, error)
+}
+
+type FileWriterFactory struct {
+
+}
+
+type TgzWriterFactory struct{
+
+}
+
+func (f * FileWriterFactory) NewWriter(path string) (io.Writer, error) {
+	if exists, err := helper.FileExists(path); err != nil {
+		return nil, err
+	} else if exists {
+		return nil, fmt.Errorf("file has already been written")
+	}
+	fileHandle, err := os.OpenFile(path, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	// Watch out for leaking file descriptors may need to return something that implements Close()
+	return bufio.NewWriter(fileHandle), nil
+}
+
+func (f * TgzWriterFactory) NewWriter(path string) (io.Writer, error) {
+	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), filepath.Base(p.outputDirectory+".tgz"))
+	file, err := os.OpenFile(tarFile, os.O_CREATE | os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	gw := gzip.NewWriter(file)
+	tw := tar.NewWriter(gw)
+
+	return tar.NewWriter(gw), nil
+}
+
+
 
 type Packager struct {
 	buildpack       buildpack.Buildpack
@@ -79,7 +123,7 @@ func (p Packager) Create(cache bool) error {
 
 	var dependencyFiles []string
 	if cache {
-		dependencyFiles, err = p.CacheDependencies()
+		dependencyFiles, err = p.cacheDependencies()
 		if err != nil {
 			return err
 		}
@@ -89,7 +133,7 @@ func (p Packager) Create(cache bool) error {
 	return p.createPackage(includedFiles)
 }
 
-func (p Packager) CacheDependencies() ([]string, error) {
+func (p Packager) cacheDependencies() ([]string, error) {
 	var files []string
 
 	deps, err := p.buildpack.Dependencies()
