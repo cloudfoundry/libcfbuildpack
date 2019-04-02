@@ -62,7 +62,12 @@ func (Services) matchesBindingName(service Service, filter string) bool {
 }
 
 func (s Services) matchesCredentials(service Service, credentials []string) bool {
-	candidates := service.Credentials
+	cr := service.Credentials
+
+	candidates := make([]string, 0, len(cr))
+	for k := range cr {
+		candidates = append(candidates, k)
+	}
 
 	for _, c := range credentials {
 		if !s.any(s.equality, c, candidates) {
