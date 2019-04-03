@@ -57,7 +57,7 @@ func TestServices(t *testing.T) {
 		it("matches single service with Credentials", func() {
 			s := services.Services{Services: bp.Services{services.Service{
 				BindingName: "test-service-1",
-				Credentials: services.Credentials{"test-credential"},
+				Credentials: services.Credentials{"test-credential": "test-payload"},
 			}}}
 
 			g.Expect(s.HasService("test-service", "test-credential")).To(BeTrue())
