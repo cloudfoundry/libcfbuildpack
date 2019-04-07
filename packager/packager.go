@@ -54,7 +54,7 @@ func (p packager) Create() error {
 	if err != nil {
 		return err
 	}
-	//
+
 	return p.createPackage(append(includedFiles, dependencyFiles...))
 }
 
