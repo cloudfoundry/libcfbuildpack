@@ -71,7 +71,7 @@ func TestHelperLayer(t *testing.T) {
 		it("calls contributor to contribute dependency layer", func() {
 			contributed := false
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
-				contributed = true;
+				contributed = true
 				return nil
 			})).To(Succeed())
 
@@ -87,7 +87,7 @@ func TestHelperLayer(t *testing.T) {
 
 			contributed := false
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
-				contributed = true;
+				contributed = true
 				return nil
 			})).To(Succeed())
 

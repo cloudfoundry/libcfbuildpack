@@ -25,7 +25,7 @@ import (
 
 func main() {
 	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
-	uncached := pflags.Bool("uncached", false, "cache dependencies")
+	cached := !*pflags.Bool("uncached", false, "cache dependencies")
 	archive := pflags.Bool("archive", false, "tar resulting buildpack")
 
 	if err := pflags.Parse(os.Args[1:]); err != nil {
@@ -46,21 +46,21 @@ func main() {
 	}
 
 	destination := pflags.Args()[0]
-	defaultPackager, err := cnbpackager.DefaultPackager(destination)
+	defaultPackager, err := cnbpackager.DefaultPackager(destination, cached)
 
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "failed to initialize Packager: %s\n", err)
 		os.Exit(101)
 	}
 
-	if err := defaultPackager.Create(!*uncached); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to create: %s\n", err)
+	if err := defaultPackager.Create(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "failed to create: %s\n", err)
 		os.Exit(102)
 	}
 
 	if *archive {
 		if err := defaultPackager.Archive(); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to archive: %s\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "failed to archive: %s\n", err)
 			os.Exit(103)
 		}
 	}

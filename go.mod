@@ -10,4 +10,8 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/gomega v1.5.0
 	github.com/sclevine/spec v1.2.0
+	golang.org/x/net v0.0.0-20190415214537-1da14a5a36f2 // indirect
+	golang.org/x/sys v0.0.0-20190416152802-12500544f89f // indirect
 )
+
+replace github.com/buildpack/libbuildpack => /Users/pivotal/workspace/cnblibbuildpack

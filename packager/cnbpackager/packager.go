@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
-	layersBp "github.com/buildpack/libbuildpack/layers"
-	loggerBp "github.com/buildpack/libbuildpack/logger"
+	buildpackSpec "github.com/buildpack/libbuildpack/buildpack"
+	layersSpec "github.com/buildpack/libbuildpack/layers"
+	loggerSpec "github.com/buildpack/libbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
@@ -39,33 +39,56 @@ type Packager struct {
 	layers          layers.Layers
 	logger          logger.Logger
 	outputDirectory string
+	cached          bool
 }
 
-
-func DefaultPackager(outputDirectory string) (Packager, error) {
-	l, err := loggerBp.DefaultLogger("")
+func DefaultPackager(outputDirectory string, cached bool) (Packager, error) {
+	l, err := loggerSpec.DefaultLogger("")
 	if err != nil {
 		return Packager{}, err
 	}
 
 	logger := logger.Logger{Logger: l}
 
-	b, err := buildpackBp.DefaultBuildpack(l)
+	b, err := buildpackSpec.DefaultBuildpack(l)
 	if err != nil {
 		return Packager{}, err
 	}
 	buildpack := buildpack.NewBuildpack(b, logger)
-	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
+	layers := layers.NewLayers(layersSpec.NewLayers(buildpack.CacheRoot, l), layersSpec.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
 
 	return Packager{
 		buildpack,
 		layers,
 		logger,
 		outputDirectory,
+		cached,
 	}, nil
 }
 
-func (p Packager) Create(cache bool) error {
+func New(bpDir, outputDir string, cached bool) (Packager, error) {
+	l, err := loggerSpec.DefaultLogger("")
+	if err != nil {
+		return Packager{}, err
+	}
+	specBP, err := buildpackSpec.New(bpDir, l)
+	if err != nil {
+		return Packager{}, err
+	}
+
+	log := logger.Logger{Logger: l}
+	b := buildpack.NewBuildpack(specBP, log)
+
+	return Packager{
+		b,
+		layers.NewLayers(layersSpec.NewLayers(b.CacheRoot, l), layersSpec.NewLayers(b.CacheRoot, l), b, log),
+		log,
+		outputDir,
+		cached,
+	}, nil
+}
+
+func (p Packager) Create() error {
 	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
 
 	if err := p.prePackage(); err != nil {
@@ -78,7 +101,7 @@ func (p Packager) Create(cache bool) error {
 	}
 
 	var dependencyFiles []string
-	if cache {
+	if p.cached {
 		dependencyFiles, err = p.cacheDependencies()
 		if err != nil {
 			return err
@@ -125,8 +148,13 @@ func (p Packager) cacheDependencies() ([]string, error) {
 
 func (p Packager) Archive() error {
 	defer os.RemoveAll(p.outputDirectory)
-	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), filepath.Base(p.outputDirectory+".tgz"))
-	file, err := os.Create(tarFile)
+
+	fileName := p.outputDirectory
+	if p.cached {
+		fileName = fileName + "-cached"
+	}
+
+	file, err := os.Create(fileName+".tgz")
 	if err != nil {
 		return err
 	}
