@@ -26,62 +26,138 @@ import (
 )
 
 func TestServices(t *testing.T) {
-	spec.Run(t, "Services", func(t *testing.T, _ spec.G, it spec.S) {
+	spec.Run(t, "Services", func(t *testing.T, when spec.G, it spec.S) {
 
 		g := NewGomegaWithT(t)
 
-		it("matches single service by BindingName", func() {
-			s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
+		when("FindServiceCredentials", func() {
+			it("matches single service by BindingName", func() {
+				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
 
-			g.Expect(s.HasService("test-service")).To(BeTrue())
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeTrue())
+			})
+
+			it("matches single service by InstanceName", func() {
+				s := services.Services{Services: bp.Services{services.Service{InstanceName: "test-service-1"}}}
+
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeTrue())
+			})
+
+			it("matches single service by Label", func() {
+				s := services.Services{Services: bp.Services{services.Service{Label: "test-service-1"}}}
+
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeTrue())
+			})
+
+			it("matches single service by Tags", func() {
+				s := services.Services{Services: bp.Services{services.Service{Tags: []string{"test-service-1"}}}}
+
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeTrue())
+			})
+
+			it("matches single service with Credentials", func() {
+				s := services.Services{Services: bp.Services{services.Service{
+					BindingName: "test-service-1",
+					Credentials: services.Credentials{"test-credential": "test-payload"},
+				}}}
+
+				c, ok := s.FindServiceCredentials("test-service", "test-credential")
+
+				g.Expect(c).To(Equal(services.Credentials{"test-credential": "test-payload"}))
+				g.Expect(ok).To(BeTrue())
+			})
+
+			it("does not match no service", func() {
+				s := services.Services{Services: bp.Services{}}
+
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeFalse())
+			})
+
+			it("does not match multiple services", func() {
+				s := services.Services{Services: bp.Services{
+					services.Service{BindingName: "test-service-1"},
+					services.Service{BindingName: "test-service-2"},
+				}}
+
+				_, ok := s.FindServiceCredentials("test-service")
+
+				g.Expect(ok).To(BeFalse())
+			})
+
+			it("does not match without Credentials", func() {
+				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
+
+				_, ok := s.FindServiceCredentials("test-service", "test-credential")
+
+				g.Expect(ok).To(BeFalse())
+			})
 		})
 
-		it("matches single service by InstanceName", func() {
-			s := services.Services{Services: bp.Services{services.Service{InstanceName: "test-service-1"}}}
+		when("HasService", func() {
 
-			g.Expect(s.HasService("test-service")).To(BeTrue())
-		})
+			it("matches single service by BindingName", func() {
+				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
 
-		it("matches single service by Label", func() {
-			s := services.Services{Services: bp.Services{services.Service{Label: "test-service-1"}}}
+				g.Expect(s.HasService("test-service")).To(BeTrue())
+			})
 
-			g.Expect(s.HasService("test-service")).To(BeTrue())
-		})
+			it("matches single service by InstanceName", func() {
+				s := services.Services{Services: bp.Services{services.Service{InstanceName: "test-service-1"}}}
 
-		it("matches single service by Tags", func() {
-			s := services.Services{Services: bp.Services{services.Service{Tags: []string{"test-service-1"}}}}
+				g.Expect(s.HasService("test-service")).To(BeTrue())
+			})
 
-			g.Expect(s.HasService("test-service")).To(BeTrue())
-		})
+			it("matches single service by Label", func() {
+				s := services.Services{Services: bp.Services{services.Service{Label: "test-service-1"}}}
 
-		it("matches single service with Credentials", func() {
-			s := services.Services{Services: bp.Services{services.Service{
-				BindingName: "test-service-1",
-				Credentials: services.Credentials{"test-credential": "test-payload"},
-			}}}
+				g.Expect(s.HasService("test-service")).To(BeTrue())
+			})
 
-			g.Expect(s.HasService("test-service", "test-credential")).To(BeTrue())
-		})
+			it("matches single service by Tags", func() {
+				s := services.Services{Services: bp.Services{services.Service{Tags: []string{"test-service-1"}}}}
 
-		it("does not match no service", func() {
-			s := services.Services{Services: bp.Services{}}
+				g.Expect(s.HasService("test-service")).To(BeTrue())
+			})
 
-			g.Expect(s.HasService("test-service")).To(BeFalse())
-		})
+			it("matches single service with Credentials", func() {
+				s := services.Services{Services: bp.Services{services.Service{
+					BindingName: "test-service-1",
+					Credentials: services.Credentials{"test-credential": "test-payload"},
+				}}}
 
-		it("does not match multiple services", func() {
-			s := services.Services{Services: bp.Services{
-				services.Service{BindingName: "test-service-1"},
-				services.Service{BindingName: "test-service-2"},
-			}}
+				g.Expect(s.HasService("test-service", "test-credential")).To(BeTrue())
+			})
 
-			g.Expect(s.HasService("test-service")).To(BeFalse())
-		})
+			it("does not match no service", func() {
+				s := services.Services{Services: bp.Services{}}
 
-		it("does not match without Credentials", func() {
-			s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
+				g.Expect(s.HasService("test-service")).To(BeFalse())
+			})
 
-			g.Expect(s.HasService("test-service", "test-credential")).To(BeFalse())
+			it("does not match multiple services", func() {
+				s := services.Services{Services: bp.Services{
+					services.Service{BindingName: "test-service-1"},
+					services.Service{BindingName: "test-service-2"},
+				}}
+
+				g.Expect(s.HasService("test-service")).To(BeFalse())
+			})
+
+			it("does not match without Credentials", func() {
+				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
+
+				g.Expect(s.HasService("test-service", "test-credential")).To(BeFalse())
+			})
 		})
 	})
 }
