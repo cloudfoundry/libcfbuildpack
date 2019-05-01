@@ -59,7 +59,7 @@ func main() {
 	}
 
 	if *archive {
-		if err := defaultPackager.Archive(); err != nil {
+		if err := defaultPackager.Archive(!*uncached); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Failed to archive: %s\n", err)
 			os.Exit(103)
 		}

@@ -65,6 +65,27 @@ func DefaultPackager(outputDirectory string) (Packager, error) {
 	}, nil
 }
 
+func New(bpDir, outputDir string) (Packager, error) {
+	l, err := loggerBp.DefaultLogger("")
+	if err != nil {
+		return Packager{}, err
+	}
+	specBP, err := buildpackBp.New(bpDir, l)
+	if err != nil {
+		return Packager{}, err
+	}
+
+	log := logger.Logger{Logger: l}
+	b := buildpack.NewBuildpack(specBP, log)
+
+	return Packager{
+		b,
+		layers.NewLayers(layersBp.NewLayers(b.CacheRoot, l), layersBp.NewLayers(b.CacheRoot, l), b, log),
+		log,
+		outputDir,
+	}, nil
+}
+
 func (p Packager) Create(cache bool) error {
 	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
 
@@ -123,9 +144,14 @@ func (p Packager) cacheDependencies() ([]string, error) {
 	return files, nil
 }
 
-func (p Packager) Archive() error {
+func (p Packager) Archive(cached bool) error {
 	defer os.RemoveAll(p.outputDirectory)
-	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), filepath.Base(p.outputDirectory+".tgz"))
+	fileName := filepath.Base(p.outputDirectory)
+	if cached {
+		fileName = fileName + "-cached"
+	}
+	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), fileName+".tgz")
+
 	file, err := os.Create(tarFile)
 	if err != nil {
 		return err
