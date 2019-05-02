@@ -16,11 +16,54 @@
 
 package runner
 
-// Runner defines methods for executing commands.
-type Runner interface {
-	// Run configures a command and executes it, sending output to stdout and stderr.
-	Run(bin string, dir string, args ...string) error
+import (
+	"bytes"
+	"io"
+	"os"
+	"os/exec"
+	"strings"
+)
 
-	// RunWithOutput configures a command and executes it, collecting output and returning it.
-	RunWithOutput(bin string, dir string, args ...string) ([]byte, error)
+type Runner interface {
+	Run(dir, program string, args ...string) error
+	RunWithOutput(dir string, program string, args ...string) (string, error)
+	CustomRun(dir string, addedEnv []string, stdout, stderr io.Writer, program string, args ...string) error
+}
+
+type CommandRunner struct{}
+
+func (r *CommandRunner) Run(dir, program string, args ...string) error {
+	return r.run("", nil, nil, nil, program, args...)
+}
+
+func (r *CommandRunner) RunWithOutput(dir string, program string, args ...string) (string, error) {
+	logs := &bytes.Buffer{}
+
+	if err := r.run(dir, nil, io.MultiWriter(os.Stdout, logs), io.MultiWriter(os.Stderr, logs), program, args...); err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(logs.String()), nil
+}
+
+func (r *CommandRunner) CustomRun(dir string, addedEnv []string, stdout, stderr io.Writer, program string, args ...string) error {
+	return r.run(dir, addedEnv, stdout, stderr, program, args...)
+}
+
+func (r *CommandRunner) run(dir string, addedEnv []string, stdout, stderr io.Writer, program string, args ...string) error {
+	cmd := exec.Command(program, args...)
+	if stdout != nil {
+		cmd.Stdout = stdout
+	}
+	if stderr != nil {
+		cmd.Stderr = stderr
+	}
+	if dir != "" {
+		cmd.Dir = dir
+	}
+	if addedEnv != nil {
+		cmd.Env = append(os.Environ(), addedEnv...)
+	}
+
+	return cmd.Run()
 }
