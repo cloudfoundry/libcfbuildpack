@@ -18,9 +18,6 @@ package runner
 
 // Runner defines methods for executing commands.
 type Runner interface {
-	// Run configures a command and executes it, sending output to stdout and stderr.
-	Run(bin string, dir string, args ...string) error
-
-	// RunWithOutput configures a command and executes it, collecting output and returning it.
-	RunWithOutput(bin string, dir string, args ...string) ([]byte, error)
+	// Run accepts configurations for a command and executes it, collecting output and returning it.
+	Run(program string, args []string, dir string, env map[string]string) (string, error)
 }

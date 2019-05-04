@@ -17,7 +17,6 @@
 package runner
 
 import (
-	"os"
 	"os/exec"
 )
 
@@ -26,17 +25,24 @@ type CommandRunner struct {
 }
 
 // Run makes CommandRunner satisfy the Runner interface.  This implementation delegates to exec.Command.
-func (r CommandRunner) Run(bin string, dir string, args ...string) error {
-	cmd := exec.Command(bin, args...)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
+func (c *CommandRunner) Run(program string, args []string, dir string, env map[string]string) (string, error) {
+	var cmd *exec.Cmd
+	if args == nil {
+		cmd = exec.Command(program)
+	} else {
+		cmd = exec.Command(program, args...)
+	}
 
-// RunWithOutput makes CommandRunner satisfy the Runner interface.  This implementation delegates to exec.Command.
-func (r CommandRunner) RunWithOutput(bin string, dir string, args ...string) ([]byte, error) {
-	cmd := exec.Command(bin, args...)
-	cmd.Dir = dir
-	return cmd.CombinedOutput()
+	if dir != "" {
+		cmd.Dir = dir
+	}
+
+	if env != nil {
+		for k, v := range env {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+
+	out, err := cmd.CombinedOutput()
+	return string(out), err
 }
