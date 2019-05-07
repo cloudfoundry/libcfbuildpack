@@ -19,6 +19,7 @@ package cnbpackager
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -40,7 +41,6 @@ type Packager struct {
 	logger          logger.Logger
 	outputDirectory string
 }
-
 
 func DefaultPackager(outputDirectory string) (Packager, error) {
 	l, err := loggerBp.DefaultLogger("")
@@ -197,6 +197,10 @@ func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) erro
 }
 
 func (p Packager) createPackage(files []string) error {
+	if len(files) == 0 {
+		return errors.New("no files included")
+	}
+
 	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
 
 	for _, file := range files {
