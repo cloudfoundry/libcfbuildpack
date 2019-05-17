@@ -20,10 +20,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
@@ -230,4 +232,89 @@ func (p Packager) prePackage() error {
 
 func stripBaseDirectory(base, path string) string {
 	return strings.TrimPrefix(strings.Replace(path, base, "", -1), string(filepath.Separator))
+}
+
+func joinStacks(stackList buildpack.Stacks) string {
+	result := make([]string, 0)
+	for _, stack := range stackList {
+		stackString := string(stack)
+		result = append(result, stackString)
+	}
+	return strings.Join(result, ", ")
+}
+
+func (p Packager) Summary() (string, error) {
+	var out string
+	if err := p.depsSummary(&out); err != nil {
+		return "", err
+	}
+
+	if err := p.defaultsSummary(&out); err != nil {
+		return "", err
+	}
+
+	return out, nil
+}
+
+func (p Packager) depsSummary(out *string) error {
+	bpMetadata := p.buildpack.Metadata
+	deps, ok := bpMetadata["dependencies"].([]map[string]interface{})
+	if !ok {
+		return errors.New("no deps in buildpack.toml")
+	}
+
+	if len(deps) > 0 {
+		*out = "\nPackaged binaries:\n\n"
+
+		sort.SliceStable(deps, func(i, j int) bool {
+			depI, err := p.buildpack.Dependency(deps[i])
+			if err != nil {
+				return false
+			}
+
+			depJ, err := p.buildpack.Dependency(deps[j])
+			if err != nil {
+				return false
+			}
+
+			if strings.Compare(depI.ID, depJ.ID) < 0 {
+				return true
+			}
+
+			depIVer := depI.Version.Version
+			depJVer := depJ.Version.Version
+			return depIVer.LessThan(depJVer)
+		})
+
+		*out += "| name | version | cf_stacks |\n|-|-|-|\n"
+	}
+
+	for _, d := range deps {
+		dep, err := p.buildpack.Dependency(d)
+		if err != nil {
+			return err
+		}
+
+		*out += fmt.Sprintf("| %s | %s | %s |\n", dep.ID, dep.Version.Version.String(), joinStacks(dep.Stacks))
+	}
+
+	return nil
+}
+
+func (p Packager) defaultsSummary(out *string) error {
+	bpMetadata := p.buildpack.Metadata
+	defaults, ok := bpMetadata["default_versions"].(map[string]interface{})
+	if !ok {
+		return errors.New("no default_versions in buildpack.toml")
+	}
+
+	if len(defaults) > 0 {
+		*out += "\nDefault binary versions:\n\n"
+		*out += "| name | version |\n|-|-|\n"
+		for name, version := range defaults {
+			*out += fmt.Sprintf("| %s | %s |\n", name, version)
+		}
+	}
+
+	return nil
 }

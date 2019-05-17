@@ -19,14 +19,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"os"
+
+	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 )
 
 func main() {
 	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
 	uncached := pflags.Bool("uncached", false, "cache dependencies")
 	archive := pflags.Bool("archive", false, "tar resulting buildpack")
+	summary := pflags.Bool("summary", false, "print buildpack.toml summary to stdout")
 
 	if err := pflags.Parse(os.Args[1:]); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse flags: %s\n", err)
@@ -38,6 +40,21 @@ func main() {
 		fmt.Println("-----")
 		fmt.Println("Note that the destination should be the last argument")
 		fmt.Println("Example: packager --archive --uncached </path/to/destination>")
+	}
+
+	if *summary {
+		defaultPackager, err := cnbpackager.DefaultPackager("")
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
+			os.Exit(98)
+		}
+		summary, err := defaultPackager.Summary()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Failed to produce summary: %s\n", err)
+			os.Exit(99)
+		}
+		fmt.Println(summary)
+		os.Exit(0)
 	}
 
 	if len(pflags.Args()) != 1 {

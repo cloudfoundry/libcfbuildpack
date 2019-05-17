@@ -2,11 +2,12 @@ package cnbpackager_test
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
@@ -113,6 +114,28 @@ id = 'stack-id'
 			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
 			Expect(tarball).To(BeAnExistingFile())
 			Expect(outputDir).NotTo(BeAnExistingFile())
+		})
+	})
+
+	when("summary", func() {
+		var fakeCnbDir string
+		var summarySolution string
+		it.Before(func() {
+			fakeCnbDir = filepath.Join("testdata", "summary-testdata", "fake-cnb")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			Expect(err).ToNot(HaveOccurred())
+
+			solutionBytes, err := ioutil.ReadFile(filepath.Join("testdata", "summary-testdata", "summary_solution.txt"))
+			Expect(err).ToNot(HaveOccurred())
+			summarySolution = string(solutionBytes)
+
+		})
+
+		it("Returns a package Summary of the CNB directory", func() {
+			summary, err := pkgr.Summary()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(summary).To(ContainSubstring(summarySolution))
+
 		})
 	})
 }

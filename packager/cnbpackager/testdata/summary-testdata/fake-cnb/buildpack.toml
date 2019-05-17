@@ -1,0 +1,34 @@
+[buildpack]
+id = "org.cloudfoundry.fake"
+name = "Fake Buildpack"
+version = "0.0.1"
+
+[metadata]
+include_files = ["bin/build","bin/detect","buildpack.toml"]
+pre_package = "./scripts/build.sh"
+
+[metadata.default_versions]
+dep1 = "4.5.x"
+
+
+[[metadata.dependencies]]
+id = "dep2"
+name = "Dep2"
+sha256 = "awesome-shasum2"
+stacks = ["stack2"]
+uri = "some-uri2"
+version = "7.8.9"
+
+[[metadata.dependencies]]
+id = "dep1"
+name = "Dep1"
+sha256 = "awesome-shasum1"
+stacks = ["stack1"]
+uri = "some-uri1"
+version = "4.5.6"
+
+[[stacks]]
+id = "stack1"
+
+[[stacks]]
+id = "stack2"
