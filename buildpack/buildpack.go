@@ -18,10 +18,11 @@ package buildpack
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/buildpack/libbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/mitchellh/mapstructure"
-	"path/filepath"
 )
 
 const (

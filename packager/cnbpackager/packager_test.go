@@ -118,24 +118,79 @@ id = 'stack-id'
 	})
 
 	when("summary", func() {
-		var fakeCnbDir string
-		var summarySolution string
-		it.Before(func() {
-			fakeCnbDir = filepath.Join("testdata", "summary-testdata", "fake-cnb")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "")
-			Expect(err).ToNot(HaveOccurred())
-
-			solutionBytes, err := ioutil.ReadFile(filepath.Join("testdata", "summary-testdata", "summary_solution.txt"))
-			Expect(err).ToNot(HaveOccurred())
-			summarySolution = string(solutionBytes)
-
-		})
 
 		it("Returns a package Summary of the CNB directory", func() {
+			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			Expect(err).ToNot(HaveOccurred())
+			solution := `
+Packaged binaries:
+
+| name | version | cf_stacks |
+|-|-|-|
+| dep1 | 4.5.6 | stack1, stack2 |
+| dep2 | 7.8.9 | stack2 |
+
+Default binary versions:
+
+| name | version |
+|-|-|
+| dep1 | 4.5.x |
+
+Supported Stacks:
+
+| name |
+|-|
+| stack1 |
+| stack2 |
+`
+
 			summary, err := pkgr.Summary()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(summary).To(ContainSubstring(summarySolution))
+			Expect(summary).To(Equal(solution))
+		})
 
+		it("does not have default versions", func() {
+			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-defaults")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			Expect(err).ToNot(HaveOccurred())
+			solution := `
+Packaged binaries:
+
+| name | version | cf_stacks |
+|-|-|-|
+| dep1 | 4.5.6 | stack1 |
+| dep2 | 7.8.9 | stack2 |
+
+Supported Stacks:
+
+| name |
+|-|
+| stack1 |
+| stack2 |
+`
+
+			summary, err := pkgr.Summary()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(summary).To(Equal(solution))
+		})
+
+		it("does not have any dependencies", func() {
+			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-dependencies")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			Expect(err).ToNot(HaveOccurred())
+			solution := `
+Supported Stacks:
+
+| name |
+|-|
+| stack1 |
+| stack2 |
+`
+
+			summary, err := pkgr.Summary()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(summary).To(Equal(solution))
 		})
 	})
 }

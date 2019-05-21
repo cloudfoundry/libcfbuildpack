@@ -28,6 +28,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Masterminds/semver"
+
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	loggerBp "github.com/buildpack/libbuildpack/logger"
@@ -249,63 +251,85 @@ func (p Packager) Summary() (string, error) {
 		return "", err
 	}
 
-	if err := p.defaultsSummary(&out); err != nil {
-		return "", err
-	}
+	p.defaultsSummary(&out)
+	p.stacksSummary(&out)
 
 	return out, nil
 }
 
 func (p Packager) depsSummary(out *string) error {
+
+	type depKey struct {
+		Idx     int
+		ID      string
+		Version string
+	}
+
 	bpMetadata := p.buildpack.Metadata
 	deps, ok := bpMetadata["dependencies"].([]map[string]interface{})
-	if !ok {
-		return errors.New("no deps in buildpack.toml")
+	if !ok || len(deps) == 0 {
+		return nil
 	}
 
-	if len(deps) > 0 {
-		*out = "\nPackaged binaries:\n\n"
+	*out = "\nPackaged binaries:\n\n"
+	*out += "| name | version | cf_stacks |\n|-|-|-|\n"
 
-		sort.SliceStable(deps, func(i, j int) bool {
-			depI, err := p.buildpack.Dependency(deps[i])
-			if err != nil {
-				return false
-			}
-
-			depJ, err := p.buildpack.Dependency(deps[j])
-			if err != nil {
-				return false
-			}
-
-			if strings.Compare(depI.ID, depJ.ID) < 0 {
-				return true
-			}
-
-			depIVer := depI.Version.Version
-			depJVer := depJ.Version.Version
-			return depIVer.LessThan(depJVer)
-		})
-
-		*out += "| name | version | cf_stacks |\n|-|-|-|\n"
-	}
-
+	depMap := map[depKey]buildpack.Stacks{}
 	for _, d := range deps {
 		dep, err := p.buildpack.Dependency(d)
 		if err != nil {
 			return err
 		}
+		depKey := depKey{
+			ID:      dep.ID,
+			Version: dep.Version.Version.String(),
+		}
+		if _, ok := depMap[depKey]; !ok {
+			depMap[depKey] = dep.Stacks
+		} else {
+			depMap[depKey] = append(depMap[depKey], dep.Stacks...)
+		}
+	}
+	depKeyArray := make([]depKey, 0)
+	for key, _ := range depMap {
+		depKeyArray = append(depKeyArray, key)
+	}
 
-		*out += fmt.Sprintf("| %s | %s | %s |\n", dep.ID, dep.Version.Version.String(), joinStacks(dep.Stacks))
+	sort.SliceStable(depKeyArray, func(i, j int) bool {
+		alph := strings.Compare(depKeyArray[i].ID, depKeyArray[j].ID)
+		if alph < 0 {
+			return true
+		} else if alph == 0 {
+			versionI, err := semver.NewVersion(depKeyArray[i].Version)
+			if err != nil {
+				return false
+			}
+			versionJ, err := semver.NewVersion(depKeyArray[j].Version)
+			if err != nil {
+				return false
+			}
+			return versionI.LessThan(versionJ)
+		}
+		return false
+	})
+
+	for _, dKey := range depKeyArray {
+		stacks := depMap[dKey]
+		stackStringArray := []string{}
+		for _, stack := range stacks {
+			stackStringArray = append(stackStringArray, string(stack))
+		}
+		*out += fmt.Sprintf("| %s | %s | %s |\n", dKey.ID, dKey.Version, strings.Join(stackStringArray, ", "))
 	}
 
 	return nil
 }
 
-func (p Packager) defaultsSummary(out *string) error {
+func (p Packager) defaultsSummary(out *string) {
 	bpMetadata := p.buildpack.Metadata
 	defaults, ok := bpMetadata["default_versions"].(map[string]interface{})
 	if !ok {
-		return errors.New("no default_versions in buildpack.toml")
+		return
 	}
 
 	if len(defaults) > 0 {
@@ -315,6 +339,20 @@ func (p Packager) defaultsSummary(out *string) error {
 			*out += fmt.Sprintf("| %s | %s |\n", name, version)
 		}
 	}
+}
 
-	return nil
+func (p Packager) stacksSummary(out *string) {
+	if len(p.buildpack.Stacks) < 1 {
+		return
+	}
+
+	*out += `
+Supported Stacks:
+
+| name |
+|-|
+`
+	for _, stack := range p.buildpack.Stacks {
+		*out += fmt.Sprintf("| %s |\n", stack.ID)
+	}
 }
