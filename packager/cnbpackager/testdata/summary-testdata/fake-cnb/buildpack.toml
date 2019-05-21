@@ -10,7 +10,6 @@ pre_package = "./scripts/build.sh"
 [metadata.default_versions]
 dep1 = "4.5.x"
 
-
 [[metadata.dependencies]]
 id = "dep2"
 name = "Dep2"
@@ -27,6 +26,13 @@ stacks = ["stack1"]
 uri = "some-uri1"
 version = "4.5.6"
 
+[[metadata.dependencies]]
+id = "dep1"
+name = "Dep1"
+sha256 = "awesome-shasum1"
+stacks = ["stack1"]
+uri = "some-uri1"
+version = "7.8.9"
 
 [[metadata.dependencies]]
 id = "dep1"

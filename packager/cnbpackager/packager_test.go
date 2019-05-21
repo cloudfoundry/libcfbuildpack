@@ -128,6 +128,7 @@ Packaged binaries:
 
 | name | version | cf_stacks |
 |-|-|-|
+| dep1 | 7.8.9 | stack1 |
 | dep1 | 4.5.6 | stack1, stack2 |
 | dep2 | 7.8.9 | stack2 |
 
@@ -137,7 +138,7 @@ Default binary versions:
 |-|-|
 | dep1 | 4.5.x |
 
-Supported Stacks:
+Supported stacks:
 
 | name |
 |-|
@@ -162,7 +163,7 @@ Packaged binaries:
 | dep1 | 4.5.6 | stack1 |
 | dep2 | 7.8.9 | stack2 |
 
-Supported Stacks:
+Supported stacks:
 
 | name |
 |-|
@@ -180,7 +181,7 @@ Supported Stacks:
 			pkgr, err = cnbpackager.New(fakeCnbDir, "")
 			Expect(err).ToNot(HaveOccurred())
 			solution := `
-Supported Stacks:
+Supported stacks:
 
 | name |
 |-|

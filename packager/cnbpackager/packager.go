@@ -308,7 +308,7 @@ func (p Packager) depsSummary(out *string) error {
 			if err != nil {
 				return false
 			}
-			return versionI.LessThan(versionJ)
+			return versionI.GreaterThan(versionJ)
 		}
 		return false
 	})
@@ -347,7 +347,7 @@ func (p Packager) stacksSummary(out *string) {
 	}
 
 	*out += `
-Supported Stacks:
+Supported stacks:
 
 | name |
 |-|
