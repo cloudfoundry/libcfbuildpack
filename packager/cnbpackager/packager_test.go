@@ -126,7 +126,7 @@ id = 'stack-id'
 			solution := `
 Packaged binaries:
 
-| name | version | cf_stacks |
+| name | version | stacks |
 |-|-|-|
 | dep1 | 7.8.9 | stack1 |
 | dep1 | 4.5.6 | stack1, stack2 |
@@ -158,7 +158,7 @@ Supported stacks:
 			solution := `
 Packaged binaries:
 
-| name | version | cf_stacks |
+| name | version | stacks |
 |-|-|-|
 | dep1 | 4.5.6 | stack1 |
 | dep2 | 7.8.9 | stack2 |

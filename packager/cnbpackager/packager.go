@@ -272,7 +272,7 @@ func (p Packager) depsSummary(out *string) error {
 	}
 
 	*out = "\nPackaged binaries:\n\n"
-	*out += "| name | version | cf_stacks |\n|-|-|-|\n"
+	*out += "| name | version | stacks |\n|-|-|-|\n"
 
 	depMap := map[depKey]buildpack.Stacks{}
 	for _, d := range deps {
