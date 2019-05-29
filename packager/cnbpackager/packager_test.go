@@ -23,6 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 
 	. "github.com/onsi/gomega"
@@ -36,9 +38,9 @@ func TestUnitPackager(t *testing.T) {
 
 func testPackager(t *testing.T, when spec.G, it spec.S) {
 	var (
-		outputDir, cnbDir, tempDir, depSHA, tarball string
-		pkgr                                        cnbpackager.Packager
-		err                                         error
+		cnbDir, outputDir, cacheDir, tempDir, depSHA, tarball string
+		pkgr                                                  cnbpackager.Packager
+		err                                                   error
 	)
 
 	it.Before(func() {
@@ -71,10 +73,12 @@ version = "1.0.0"
 id = 'stack-id'
 `, depSHA, depFile)
 
-		outputDir = filepath.Join(tempDir, "output")
 		cnbDir = filepath.Join(tempDir, "cnb")
 		Expect(os.MkdirAll(cnbDir, 0777))
 		Expect(ioutil.WriteFile(filepath.Join(cnbDir, "buildpack.toml"), []byte(buildpackTOML), 0666)).To(Succeed())
+
+		outputDir = filepath.Join(tempDir, "output")
+		cacheDir = filepath.Join(tempDir, "cache")
 	})
 
 	it.After(func() {
@@ -86,19 +90,19 @@ id = 'stack-id'
 
 	when("cached", func() {
 		it.Before(func() {
-			pkgr, err = cnbpackager.New(cnbDir, outputDir)
+			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		it("Create makes a cached buildpack", func() {
 			Expect(pkgr.Create(true)).To(Succeed())
-			cacheRoot := filepath.Join(outputDir, "dependency-cache")
+			cacheRoot := filepath.Join(cacheDir, buildpack.CacheRoot)
 
-			Expect(cacheRoot).To(BeAnExistingFile())
-			Expect(filepath.Join(cacheRoot, depSHA)).To(BeAnExistingFile())
 			Expect(filepath.Join(cacheRoot, depSHA+".toml")).To(BeAnExistingFile())
 			Expect(filepath.Join(cacheRoot, depSHA, "hello.tgz")).To(BeAnExistingFile())
 			Expect(filepath.Join(outputDir, "buildpack.toml")).To(BeAnExistingFile())
+			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA+".toml")).To(BeAnExistingFile())
+			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA, "hello.tgz")).To(BeAnExistingFile())
 		})
 
 		it("Archive can make a tarred up cached buildpack", func() {
@@ -113,14 +117,13 @@ id = 'stack-id'
 
 	when("uncached", func() {
 		it.Before(func() {
-			pkgr, err = cnbpackager.New(cnbDir, outputDir)
+			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
 			Expect(err).ToNot(HaveOccurred())
 		})
 		it("Create makes an uncached buildpack", func() {
 			Expect(pkgr.Create(false)).To(Succeed())
-			cacheRoot := filepath.Join(outputDir, "dependency-cache")
-			Expect(cacheRoot).NotTo(BeAnExistingFile())
 			Expect(filepath.Join(outputDir, "buildpack.toml")).To(BeAnExistingFile())
+			Expect(filepath.Join(outputDir, buildpack.CacheRoot)).NotTo(BeAnExistingFile())
 		})
 
 		it("Archive can make a tarred up buildpack", func() {
@@ -134,10 +137,9 @@ id = 'stack-id'
 	})
 
 	when("summary", func() {
-
 		it("Returns a package Summary of the CNB directory", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			solution := `
 Packaged binaries:
@@ -169,7 +171,7 @@ Supported stacks:
 
 		it("does not have default versions", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-defaults")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			solution := `
 Packaged binaries:
@@ -194,7 +196,7 @@ Supported stacks:
 
 		it("does not have any dependencies", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-dependencies")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "")
+			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			solution := `
 Supported stacks:
