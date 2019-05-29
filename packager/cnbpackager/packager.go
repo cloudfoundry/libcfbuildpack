@@ -39,6 +39,11 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
+const (
+	DefaultDstDir    = "packaged-cnb"
+	DefaultCacheBase = ".cnb-packager-cache"
+)
+
 type Packager struct {
 	buildpack       buildpack.Buildpack
 	layers          layers.Layers
@@ -46,30 +51,7 @@ type Packager struct {
 	outputDirectory string
 }
 
-func DefaultPackager(outputDirectory string) (Packager, error) {
-	l, err := loggerBp.DefaultLogger("")
-	if err != nil {
-		return Packager{}, err
-	}
-
-	logger := logger.Logger{Logger: l}
-
-	b, err := buildpackBp.DefaultBuildpack(l)
-	if err != nil {
-		return Packager{}, err
-	}
-	buildpack := buildpack.NewBuildpack(b, logger)
-	layers := layers.NewLayers(layersBp.NewLayers(buildpack.CacheRoot, l), layersBp.NewLayers(buildpack.CacheRoot, l), buildpack, logger)
-
-	return Packager{
-		buildpack,
-		layers,
-		logger,
-		outputDirectory,
-	}, nil
-}
-
-func New(bpDir, outputDir string) (Packager, error) {
+func New(bpDir, outputDir, cacheDir string) (Packager, error) {
 	l, err := loggerBp.DefaultLogger("")
 	if err != nil {
 		return Packager{}, err
@@ -82,12 +64,22 @@ func New(bpDir, outputDir string) (Packager, error) {
 	log := logger.Logger{Logger: l}
 	b := buildpack.NewBuildpack(specBP, log)
 
+	depCache, err := filepath.Abs(filepath.Join(cacheDir, buildpack.CacheRoot))
+	if err != nil {
+		return Packager{}, err
+	}
+
 	return Packager{
 		b,
-		layers.NewLayers(layersBp.NewLayers(b.CacheRoot, l), layersBp.NewLayers(b.CacheRoot, l), b, log),
+		layers.NewLayers(layersBp.NewLayers(depCache, l), layersBp.NewLayers(depCache, l), b, log),
 		log,
 		outputDir,
 	}, nil
+}
+
+type pkgFile struct {
+	path        string
+	packagePath string
 }
 
 func (p Packager) Create(cache bool) error {
@@ -102,20 +94,32 @@ func (p Packager) Create(cache bool) error {
 		return err
 	}
 
-	var dependencyFiles []string
-	if cache {
-		dependencyFiles, err = p.cacheDependencies()
+	var allFiles []pkgFile
+	for _, i := range includedFiles {
+		path, err := filepath.Abs(filepath.Join(p.buildpack.Root, i))
 		if err != nil {
 			return err
 		}
-		includedFiles = append(includedFiles, dependencyFiles...)
+		f := pkgFile{
+			path:        path,
+			packagePath: i,
+		}
+		allFiles = append(allFiles, f)
 	}
 
-	return p.createPackage(includedFiles)
+	if cache {
+		dependencyFiles, err := p.cacheDependencies()
+		if err != nil {
+			return err
+		}
+		allFiles = append(allFiles, dependencyFiles...)
+	}
+
+	return p.createPackage(allFiles)
 }
 
-func (p Packager) cacheDependencies() ([]string, error) {
-	var files []string
+func (p Packager) cacheDependencies() ([]pkgFile, error) {
+	var files []pkgFile
 
 	deps, err := p.buildpack.Dependencies()
 	if err != nil {
@@ -132,17 +136,17 @@ func (p Packager) cacheDependencies() ([]string, error) {
 			return nil, err
 		}
 
-		artifact, err := filepath.Rel(p.buildpack.Root, a)
-		if err != nil {
-			return nil, err
+		f := pkgFile{
+			path:        a,
+			packagePath: filepath.Join(buildpack.CacheRoot, dep.SHA256, filepath.Base(a)),
 		}
 
-		metadata, err := filepath.Rel(p.buildpack.Root, layer.Metadata)
-		if err != nil {
-			return nil, err
+		metaF := pkgFile{
+			path:        layer.Metadata,
+			packagePath: filepath.Join(buildpack.CacheRoot, dep.SHA256+".toml"),
 		}
 
-		files = append(files, artifact, metadata)
+		files = append(files, f, metaF)
 	}
 
 	return files, nil
@@ -200,7 +204,7 @@ func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) erro
 	return nil
 }
 
-func (p Packager) createPackage(files []string) error {
+func (p Packager) createPackage(files []pkgFile) error {
 	if len(files) == 0 {
 		return errors.New("no files included")
 	}
@@ -208,8 +212,12 @@ func (p Packager) createPackage(files []string) error {
 	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
 
 	for _, file := range files {
-		p.logger.SubsequentLine("Adding %s", file)
-		if err := helper.CopyFile(filepath.Join(p.buildpack.Root, file), filepath.Join(p.outputDirectory, file)); err != nil {
+		p.logger.SubsequentLine("Adding %s", file.packagePath)
+		outputDir := filepath.Dir(filepath.Join(p.outputDirectory, file.packagePath))
+		if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+			return err
+		}
+		if err := helper.CopyFile(file.path, filepath.Join(p.outputDirectory, file.packagePath)); err != nil {
 			return err
 		}
 	}
@@ -234,15 +242,6 @@ func (p Packager) prePackage() error {
 
 func stripBaseDirectory(base, path string) string {
 	return strings.TrimPrefix(strings.Replace(path, base, "", -1), string(filepath.Separator))
-}
-
-func joinStacks(stackList buildpack.Stacks) string {
-	result := make([]string, 0)
-	for _, stack := range stackList {
-		stackString := string(stack)
-		result = append(result, stackString)
-	}
-	return strings.Join(result, ", ")
 }
 
 func (p Packager) Summary() (string, error) {

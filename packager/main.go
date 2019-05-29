@@ -19,16 +19,27 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"os/user"
+	"path/filepath"
 
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 )
 
 func main() {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defaultCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
+
 	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
 	uncached := pflags.Bool("uncached", false, "cache dependencies")
 	archive := pflags.Bool("archive", false, "tar resulting buildpack")
 	summary := pflags.Bool("summary", false, "print buildpack.toml summary to stdout")
+	cacheDir := pflags.String("cachedir", defaultCacheDir, "directory to store downloaded dependencies")
 
 	if err := pflags.Parse(os.Args[1:]); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse flags: %s\n", err)
@@ -39,46 +50,44 @@ func main() {
 		pflags.PrintDefaults()
 		fmt.Println("-----")
 		fmt.Println("Note that the destination should be the last argument")
-		fmt.Println("Example: packager --archive --uncached </path/to/destination>")
+		fmt.Println("Example: packager --archive --uncached --cachedir </path/to/cache> </path/to/destination>")
 	}
 
-	if *summary {
-		defaultPackager, err := cnbpackager.DefaultPackager("")
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
-			os.Exit(98)
-		}
-		summary, err := defaultPackager.Summary()
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to produce summary: %s\n", err)
-			os.Exit(99)
-		}
-		fmt.Println(summary)
-		os.Exit(0)
-	}
-
-	if len(pflags.Args()) != 1 {
+	destination := cnbpackager.DefaultDstDir
+	if len(pflags.Args()) == 1 {
+		destination = pflags.Args()[0]
+	} else if len(pflags.Args()) > 1 {
 		pflags.Usage()
 		os.Exit(100)
 	}
 
-	destination := pflags.Args()[0]
-	defaultPackager, err := cnbpackager.DefaultPackager(destination)
+	pkgr, err := cnbpackager.New(".", destination, *cacheDir) // Default bpDir is "."
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
 		os.Exit(101)
 	}
 
-	if err := defaultPackager.Create(!*uncached); err != nil {
+	if *summary {
+		summaryOutput, err := pkgr.Summary()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Failed to produce summary: %s\n", err)
+			os.Exit(99)
+		}
+		fmt.Println(summaryOutput)
+		os.Exit(0)
+	}
+
+	if err := pkgr.Create(!*uncached); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to create: %s\n", err)
 		os.Exit(102)
 	}
 
 	if *archive {
-		if err := defaultPackager.Archive(!*uncached); err != nil {
+		if err := pkgr.Archive(!*uncached); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Failed to archive: %s\n", err)
 			os.Exit(103)
 		}
 	}
+
 }

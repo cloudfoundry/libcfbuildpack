@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	cacheRoot            = "dependency-cache"
+	CacheRoot            = "dependency-cache"
 	DependenciesMetadata = "dependencies"
 	DefaultVersions      = "default-versions"
 )
@@ -128,5 +128,20 @@ func (b Buildpack) RuntimeDependency(id, version string, stack stack.Stack) (Dep
 		return Dependency{}, err
 	}
 
-	return deps.Best(id, version, stack)
+	if err := decoder.Decode(dep); err != nil {
+		return Dependency{}, err
+	}
+
+	return d, nil
+}
+
+// String makes Buildpack satisfy the Stringer interface.
+func (b Buildpack) String() string {
+	return fmt.Sprintf("Buildpack{ Buildpack: %s, CacheRoot: %s, logger: %s }",
+		b.Buildpack, b.CacheRoot, b.logger)
+}
+
+// NewBuildpack creates a new instance of Buildpack from a specified buildpack.Buildpack.
+func NewBuildpack(buildpack buildpack.Buildpack, logger logger.Logger) Buildpack {
+	return Buildpack{buildpack, filepath.Join(buildpack.Root, CacheRoot), logger}
 }
