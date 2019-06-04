@@ -327,7 +327,7 @@ func (p Packager) depsSummary(out *string) error {
 
 func (p Packager) defaultsSummary(out *string) {
 	bpMetadata := p.buildpack.Metadata
-	defaults, ok := bpMetadata["default_versions"].(map[string]interface{})
+	defaults, ok := bpMetadata[buildpack.DefaultVersions].(map[string]interface{})
 	if !ok {
 		return
 	}
