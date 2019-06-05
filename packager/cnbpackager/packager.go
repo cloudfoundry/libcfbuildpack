@@ -276,7 +276,7 @@ func (p Packager) depsSummary(out *string) error {
 
 	depMap := map[depKey]buildpack.Stacks{}
 	for _, d := range deps {
-		dep, err := p.buildpack.Dependency(d)
+		dep, err := buildpack.NewDependency(d)
 		if err != nil {
 			return err
 		}
