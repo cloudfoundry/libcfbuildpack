@@ -27,7 +27,7 @@ import (
 const (
 	cacheRoot            = "dependency-cache"
 	DependenciesMetadata = "dependencies"
-	DefaultVersions      = "default_versions"
+	DefaultVersions      = "default-versions"
 )
 
 // Buildpack is an extension to libbuildpack.Buildpack that adds additional opinionated behaviors.
