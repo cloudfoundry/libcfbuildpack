@@ -17,7 +17,6 @@
 package manifest
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/buildpack/libbuildpack/application"
@@ -28,11 +27,6 @@ import (
 
 type Manifest struct {
 	*properties.Properties
-}
-
-// String makes Manifest satisfy the Stringer interface.
-func (m Manifest) String() string {
-	return fmt.Sprintf("Manifest{ Properties: %v }", m.Properties)
 }
 
 func NewManifest(application application.Application, logger logger.Logger) (Manifest, error) {
