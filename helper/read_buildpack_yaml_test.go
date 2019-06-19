@@ -18,53 +18,57 @@ package helper_test
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestReadBuildpackYaml(t *testing.T) {
+	type BuildpackYaml struct {
+		Python struct {
+			Version string `yaml:"version"`
+		} `yaml:"python"`
+
+		Go struct {
+			Version string `yaml:"version"`
+		} `yaml:"go"`
+	}
+
 	spec.Run(t, "ReadBuildpackYaml", func(t *testing.T, when spec.G, it spec.S) {
-		var(
-		pythonVersion = "1.2.3"
-		goVersion = "4.5.6"
-		buildpackYamlPath 	string
+		var (
+			pythonVersion     = "1.2.3"
+			goVersion         = "4.5.6"
+			buildpackYamlPath string
+			config            *BuildpackYaml
 		)
 
 		Expect := NewWithT(t).Expect
 
-
 		when("read buildpack yaml version", func() {
-			 it.Before(func() {
-				 tmpDir := os.TempDir()
-				 buildpackYamlPath = filepath.Join(tmpDir, "buildpack.yml")
-				 buildpackYAMLString := fmt.Sprintf("python:\n  version: %s\ngo:\n version: %s", pythonVersion, goVersion)
-				 Expect(helper.WriteFile(buildpackYamlPath, 0777, buildpackYAMLString)).To(Succeed())
-			 })
+			it.Before(func() {
+				tmpDir := os.TempDir()
+				buildpackYamlPath = filepath.Join(tmpDir, "buildpack.yml")
+				buildpackYAMLString := fmt.Sprintf("python:\n  version: %s\ngo:\n version: %s", pythonVersion, goVersion)
+				Expect(helper.WriteFile(buildpackYamlPath, 0777, buildpackYAMLString)).To(Succeed())
+				config = &BuildpackYaml{}
+			})
 
-			 it.After(func() {
-				 Expect(os.RemoveAll(buildpackYamlPath)).To(Succeed())
-			 })
+			it.After(func() {
+				Expect(os.RemoveAll(buildpackYamlPath)).To(Succeed())
+			})
 
-			 it("returns the version specified for the given language", func() {
-				 buildpackYamlVersion, err := helper.ReadBuildpackYamlVersion(buildpackYamlPath, "python")
-				 Expect(err).NotTo(HaveOccurred())
-				 Expect(buildpackYamlVersion).To(Equal(pythonVersion))
+			it("unmarshals a user defined config when given a buildpackyml path", func() {
+				err := helper.ReadBuildpackYaml(buildpackYamlPath, config)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(config.Python.Version).To(Equal(pythonVersion))
+				Expect(config.Go.Version).To(Equal(goVersion))
+			})
 
-				 buildpackYamlVersion, err = helper.ReadBuildpackYamlVersion(buildpackYamlPath, "go")
-				 Expect(err).NotTo(HaveOccurred())
-				 Expect(buildpackYamlVersion).To(Equal(goVersion))
-			 })
-
-			 it("returns empty string if no version specified for given language", func() {
-				 buildpackYamlVersion, err := helper.ReadBuildpackYamlVersion(buildpackYamlPath, "some-language")
-				 Expect(err).NotTo(HaveOccurred())
-				 Expect(buildpackYamlVersion).To(Equal(""))
-			 })
 		})
 	}, spec.Report(report.Terminal{}))
 }
