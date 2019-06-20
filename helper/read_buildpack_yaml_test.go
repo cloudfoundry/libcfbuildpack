@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/cloudfoundry/libcfbuildpack/test"
+
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
@@ -70,5 +72,27 @@ func TestReadBuildpackYaml(t *testing.T) {
 			})
 
 		})
+
+		when("buildpack yaml file exists but is empty", func() {
+			it.Before(func() {
+				tmpDir := os.TempDir()
+				buildpackYamlPath = filepath.Join(tmpDir, "buildpack.yml")
+				test.TouchFile(t, tmpDir, "buildpack.yml")
+				config = &BuildpackYaml{}
+			})
+
+			it.After(func() {
+				Expect(os.RemoveAll(buildpackYamlPath)).To(Succeed())
+			})
+
+			it("does not error", func() {
+				err := helper.ReadBuildpackYaml(buildpackYamlPath, config)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(config).To(Equal(&BuildpackYaml{}))
+			})
+
+		})
+
 	}, spec.Report(report.Terminal{}))
+
 }
