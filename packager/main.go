@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"log"
 	"os"
 	"os/user"
@@ -34,14 +33,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
-	localCacheDir := buildpack.CacheRoot
+	defaultCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
 
 	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
 	uncached := pflags.Bool("uncached", false, "cache dependencies")
 	archive := pflags.Bool("archive", false, "tar resulting buildpack")
 	summary := pflags.Bool("summary", false, "print buildpack.toml summary to stdout")
-	globalCache := pflags.Bool("global_cache", false, fmt.Sprintf("use global cache dir at %s", globalCacheDir))
+	cacheDir := pflags.String("cachedir", defaultCacheDir, "directory to store downloaded dependencies")
 
 	if err := pflags.Parse(os.Args[1:]); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse flags: %s\n", err)
@@ -63,12 +61,7 @@ func main() {
 		os.Exit(100)
 	}
 
-	var pkgr cnbpackager.Packager
-	if *globalCache {
-		pkgr, err = cnbpackager.New(".", destination, globalCacheDir) // Default bpDir is "."
-	} else {
-		pkgr, err = cnbpackager.New(".", destination, localCacheDir) // Default bpDir is "."
-	}
+	pkgr, err := cnbpackager.New(".", destination, *cacheDir) // Default bpDir is "."
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Packager: %s\n", err)
