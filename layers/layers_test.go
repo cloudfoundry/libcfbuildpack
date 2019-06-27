@@ -59,11 +59,12 @@ func TestLayers(t *testing.T) {
 				},
 			})).To(Succeed())
 
-			g.Expect(info.String()).To(Equal(fmt.Sprintf(`%s Process types:
-       %s: test-command-2
-       %s:            test-command-1
-`, color.New(color.FgRed, color.Bold).Sprint("----->"), color.CyanString("a-very-long-type"),
-				color.CyanString("short"))))
+			actual := info.String()
+			expected := fmt.Sprintf(`  Process types:
+    %s: test-command-2
+    %s:            test-command-1
+`, color.CyanString("a-very-long-type"), color.CyanString("short"))
+			g.Expect(actual).To(Equal(expected))
 		})
 
 		it("logs number of slices", func() {
@@ -74,8 +75,7 @@ func TestLayers(t *testing.T) {
 				},
 			})).To(Succeed())
 
-			g.Expect(info.String()).To(Equal(fmt.Sprintf(`%s 2 application slices
-`, color.New(color.FgRed, color.Bold).Sprint("----->"))))
+			g.Expect(info.String()).To(Equal("  2 application slices\n"))
 		})
 
 		it("registers touched layers", func() {

@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
+	"github.com/fatih/color"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
 	layersBp "github.com/buildpack/libbuildpack/layers"
@@ -43,6 +44,8 @@ const (
 	DefaultDstDir    = "packaged-cnb"
 	DefaultCacheBase = ".cnb-packager-cache"
 )
+
+var identityColor = color.New(color.FgBlue)
 
 type Packager struct {
 	buildpack       buildpack.Buildpack
@@ -83,7 +86,7 @@ type pkgFile struct {
 }
 
 func (p Packager) Create(cache bool) error {
-	p.logger.FirstLine("Packaging %s", p.logger.PrettyIdentity(p.buildpack))
+	p.logger.Title(p.buildpack)
 
 	if err := p.prePackage(); err != nil {
 		return err
@@ -127,7 +130,7 @@ func (p Packager) cacheDependencies() ([]pkgFile, error) {
 	}
 
 	for _, dep := range deps {
-		p.logger.FirstLine("Caching %s", p.logger.PrettyIdentity(dep))
+		p.logger.Header("Caching %s", p.prettyIdentity(dep))
 
 		layer := p.layers.DownloadLayer(dep)
 
@@ -150,6 +153,20 @@ func (p Packager) cacheDependencies() ([]pkgFile, error) {
 	}
 
 	return files, nil
+}
+
+func (Packager) prettyIdentity(v logger.Identifiable) string {
+	if v == nil {
+		return ""
+	}
+
+	name, description := v.Identity()
+
+	if description == "" {
+		return identityColor.Sprint(name)
+	}
+
+	return identityColor.Sprintf("%s %s", name, description)
 }
 
 func (p Packager) Archive(cached bool) error {
@@ -209,10 +226,10 @@ func (p Packager) createPackage(files []pkgFile) error {
 		return errors.New("no files included")
 	}
 
-	p.logger.FirstLine("Creating package in %s", p.outputDirectory)
+	p.logger.Header("Creating package in %s", p.outputDirectory)
 
 	for _, file := range files {
-		p.logger.SubsequentLine("Adding %s", file.packagePath)
+		p.logger.Body("Adding %s", file.packagePath)
 		outputDir := filepath.Dir(filepath.Join(p.outputDirectory, file.packagePath))
 		if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
 			return err
@@ -235,7 +252,7 @@ func (p Packager) prePackage() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = p.buildpack.Root
 
-	p.logger.FirstLine("Pre-Package with %s", strings.Join(cmd.Args, " "))
+	p.logger.Header("Pre-Package with %s", strings.Join(cmd.Args, " "))
 
 	return cmd.Run()
 }
