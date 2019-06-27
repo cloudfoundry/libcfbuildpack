@@ -34,6 +34,75 @@ func TestLogger(t *testing.T) {
 
 		g := NewGomegaWithT(t)
 
+		it("writes title with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.Title(metadata{"test-name", 1})
+
+			g.Expect(info.String()).
+				To(Equal(fmt.Sprintf("\n%s %s\n", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
+					color.New(color.FgBlue).Sprint("1"))))
+		})
+
+		it("writes header with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.Header("test-header")
+
+			g.Expect(info.String()).To(Equal("  test-header\n"))
+		})
+
+		it("writes header error with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.HeaderError("test-header")
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("  %s\n", color.New(color.FgRed, color.Bold).Sprint("test-header"))))
+		})
+
+		it("writes header warning with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.HeaderWarning("test-header")
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("  %s\n", color.New(color.FgYellow, color.Bold).Sprint("test-header"))))
+		})
+
+		it("writes body with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.Body("test-body-1\ntest-body-2")
+
+			g.Expect(info.String()).To(Equal(fmt.Sprintf("%s\n", color.New(color.Faint).Sprint("    test-body-1\n    test-body-2"))))
+		})
+
+		it("writes body error with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.BodyError("test-body-1\ntest-body-2")
+
+			actual := info.String()
+			expected := fmt.Sprintf("%s\n", color.New(color.Faint).Sprintf("    %s\x1b[%dm", color.New(color.FgRed, color.Bold).Sprint("test-body-1\n    test-body-2"), color.Faint))
+			g.Expect(actual).To(Equal(expected))
+		})
+
+		it("writes body warning with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.BodyWarning("test-body-1\ntest-body-2")
+
+			actual := info.String()
+			expected := fmt.Sprintf("%s\n", color.New(color.Faint).Sprintf("    %s\x1b[%dm", color.New(color.FgYellow, color.Bold).Sprint("test-body-1\n    test-body-2"), color.Faint))
+			g.Expect(actual).To(Equal(expected))
+		})
+
 		it("writes eye catcher on first line", func() {
 			var info bytes.Buffer
 
@@ -68,14 +137,6 @@ func TestLogger(t *testing.T) {
 			logger.SubsequentLine("test %s", "message")
 
 			g.Expect(info.String()).To(Equal("       test message\n"))
-		})
-
-		it("formats pretty identity", func() {
-			logger := logger.Logger{Logger: bp.NewLogger(nil, nil)}
-
-			g.Expect(logger.PrettyIdentity(metadata{"test-name", 1})).
-				To(Equal(fmt.Sprintf("%s %s", color.New(color.FgBlue, color.Bold).Sprint("test-name"),
-					color.BlueString("1"))))
 		})
 	}, spec.Report(report.Terminal{}))
 }
