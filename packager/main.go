@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"log"
 	"os"
 	"os/user"
@@ -35,7 +34,7 @@ func main() {
 	}
 
 	globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
-	localCacheDir := buildpack.CacheRoot
+	localCacheDir := "."
 
 	pflags := flag.NewFlagSet("Packager Flags", flag.ExitOnError)
 	uncached := pflags.Bool("uncached", false, "cache dependencies")
