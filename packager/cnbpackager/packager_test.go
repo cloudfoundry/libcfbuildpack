@@ -90,6 +90,7 @@ id = 'stack-id'
 
 	when("cached", func() {
 		it.Before(func() {
+			outputDir += "-cached"
 			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -104,15 +105,6 @@ id = 'stack-id'
 			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA+".toml")).To(BeAnExistingFile())
 			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA, "hello.tgz")).To(BeAnExistingFile())
 		})
-
-		it("Archive can make a tarred up cached buildpack", func() {
-			Expect(pkgr.Create(true)).To(Succeed())
-			Expect(pkgr.Archive(true)).To(Succeed())
-
-			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+"-cached.tgz")
-			Expect(tarball).To(BeAnExistingFile())
-			Expect(outputDir).NotTo(BeAnExistingFile())
-		})
 	})
 
 	when("uncached", func() {
@@ -120,15 +112,23 @@ id = 'stack-id'
 			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
 			Expect(err).ToNot(HaveOccurred())
 		})
+
 		it("Create makes an uncached buildpack", func() {
 			Expect(pkgr.Create(false)).To(Succeed())
 			Expect(filepath.Join(outputDir, "buildpack.toml")).To(BeAnExistingFile())
 			Expect(filepath.Join(outputDir, buildpack.CacheRoot)).NotTo(BeAnExistingFile())
 		})
+	})
+
+	when("archiving", func() {
+		it.Before(func() {
+			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
 
 		it("Archive can make a tarred up buildpack", func() {
 			Expect(pkgr.Create(false)).To(Succeed())
-			Expect(pkgr.Archive(false)).To(Succeed())
+			Expect(pkgr.Archive()).To(Succeed())
 
 			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
 			Expect(tarball).To(BeAnExistingFile())

@@ -169,12 +169,9 @@ func (Packager) prettyIdentity(v logger.Identifiable) string {
 	return identityColor.Sprintf("%s %s", name, description)
 }
 
-func (p Packager) Archive(cached bool) error {
+func (p Packager) Archive() error {
 	defer os.RemoveAll(p.outputDirectory)
 	fileName := filepath.Base(p.outputDirectory)
-	if cached {
-		fileName = fileName + "-cached"
-	}
 	tarFile := filepath.Join(filepath.Dir(p.outputDirectory), fileName+".tgz")
 
 	file, err := os.Create(tarFile)

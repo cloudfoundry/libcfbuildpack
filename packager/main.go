@@ -90,7 +90,7 @@ func main() {
 	}
 
 	if *archive {
-		if err := pkgr.Archive(!*uncached); err != nil {
+		if err := pkgr.Archive(); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Failed to archive: %s\n", err)
 			os.Exit(103)
 		}
