@@ -24,7 +24,8 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-
+	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
+	loggerBp "github.com/buildpack/libbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 )
 
@@ -67,7 +68,11 @@ func main() {
 	if *globalCache {
 		pkgr, err = cnbpackager.New(".", destination, globalCacheDir) // Default bpDir is "."
 	} else {
-		pkgr, err = cnbpackager.New(".", destination, localCacheDir) // Default bpDir is "."
+		bpRoot, err := findBpRoot()
+		if err != nil {
+			os.Exit(100)
+		}
+		pkgr, err = cnbpackager.New(".", destination, filepath.Join(bpRoot,localCacheDir)) // Default bpDir is "."
 	}
 
 	if err != nil {
@@ -96,5 +101,16 @@ func main() {
 			os.Exit(103)
 		}
 	}
+}
 
+func findBpRoot() (string, error) {
+	l, err := loggerBp.DefaultLogger("")
+	if err != nil {
+		return "", err
+	}
+	bp, err := buildpackBp.DefaultBuildpack(l)
+	if err !=  nil {
+		return "", err
+	}
+	return bp.Root, nil
 }
