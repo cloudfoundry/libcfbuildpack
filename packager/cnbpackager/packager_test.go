@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
+	. "github.com/cloudfoundry/libcfbuildpack/test"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
@@ -122,7 +122,8 @@ id = 'stack-id'
 
 	when("archiving", func() {
 		it.Before(func() {
-			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
+			fakeCnbDir := filepath.Join("testdata", "archive-testdata", "fake-cnb")
+			pkgr, err = cnbpackager.New(fakeCnbDir, outputDir, cacheDir)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -133,6 +134,21 @@ id = 'stack-id'
 			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
 			Expect(tarball).To(BeAnExistingFile())
 			Expect(outputDir).NotTo(BeAnExistingFile())
+		})
+
+		it("includes the parent directories of included files", func() {
+			Expect(pkgr.Create(false)).To(Succeed())
+			Expect(pkgr.Archive()).To(Succeed())
+
+			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
+			Expect(tarball).To(BeAnExistingFile())
+			Expect(outputDir).NotTo(BeAnExistingFile())
+
+			Expect(tarball).NotTo(HaveArchiveEntry(""))
+			Expect(tarball).To(HaveArchiveEntry("bin"))
+			Expect(tarball).To(HaveArchiveEntry("bin/detect"))
+			Expect(tarball).To(HaveArchiveEntry("bin/build"))
+			Expect(tarball).To(HaveArchiveEntry("buildpack.toml"))
 		})
 	})
 
