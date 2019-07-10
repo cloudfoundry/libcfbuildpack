@@ -60,14 +60,6 @@ func TestTouchedLayers(t *testing.T) {
 			g.Expect(filepath.Join(root, "test-layer.toml")).NotTo(BeARegularFile())
 		})
 
-		it("does not remove app.toml", func() {
-			test.TouchFile(t, root, "app.toml")
-
-			g.Expect(touched.Cleanup()).To(Succeed())
-
-			g.Expect(filepath.Join(root, "app.toml")).To(BeARegularFile())
-		})
-
 		it("does not remove launch.toml", func() {
 			test.TouchFile(t, root, "launch.toml")
 
