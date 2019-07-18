@@ -55,5 +55,30 @@ func TestManifest(t *testing.T) {
 			g.Expect(ok).To(BeTrue())
 			g.Expect(k).To(Equal("test-value"))
 		})
+
+		it("returns proper values when lines are broken", func() {
+			test.WriteFile(t, filepath.Join(f.Detect.Application.Root, "META-INF", "MANIFEST.MF"),
+				`Manifest-Version: 1.0
+Implementation-Title: petclinic
+Implementation-Version: 2.1.0.BUILD-SNAPSHOT
+Start-Class: org.springframework.samples.petclinic.PetClinicApplicatio
+ n
+Spring-Boot-Classes: BOOT-INF/classes/
+Spring-Boot-Lib: BOOT-INF/lib/
+Build-Jdk-Spec: 1.8
+Spring-Boot-Version: 2.1.6.RELEASE
+Created-By: Maven Archiver 3.4.0
+Main-Class: org.springframework.boot.loader.JarLauncher
+`)
+
+			m, err := NewManifest(f.Detect.Application, f.Detect.Logger)
+
+			g.Expect(err).NotTo(HaveOccurred())
+
+			k, ok := m.Get("Start-Class")
+			g.Expect(ok).To(BeTrue())
+			g.Expect(k).To(Equal("org.springframework.samples.petclinic.PetClinicApplication"))
+
+		})
 	}, spec.Report(report.Terminal{}))
 }
