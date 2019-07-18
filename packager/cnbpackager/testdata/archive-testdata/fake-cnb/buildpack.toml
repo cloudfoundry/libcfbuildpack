@@ -1,0 +1,7 @@
+[buildpack]
+id = "org.cloudfoundry.fake"
+name = "Fake Buildpack"
+version = "0.0.1"
+
+[metadata]
+include_files = ["bin/build","bin/detect","buildpack.toml"]

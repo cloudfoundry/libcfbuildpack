@@ -193,16 +193,14 @@ func (p Packager) Archive() error {
 }
 
 func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
+	if !info.Mode().IsRegular() && !info.Mode().IsDir(){
+		return nil
 	}
-	defer file.Close()
 
 	if header, err := tar.FileInfoHeader(info, path); err == nil {
 		header.Name = stripBaseDirectory(p.outputDirectory, path)
 
-		if !info.Mode().IsRegular() {
+		if header.Name == "" {
 			return nil
 		}
 
@@ -210,10 +208,17 @@ func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) erro
 			return err
 		}
 
-		if _, err := io.Copy(tw, file); err != nil {
-			return err
-		}
+		if info.Mode().IsRegular() {
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
 
+			if _, err := io.Copy(tw, file); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
