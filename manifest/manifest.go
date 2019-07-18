@@ -17,7 +17,9 @@
 package manifest
 
 import (
+	"io/ioutil"
 	"path/filepath"
+	"strings"
 
 	"github.com/buildpack/libbuildpack/application"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
@@ -38,7 +40,12 @@ func NewManifest(application application.Application, logger logger.Logger) (Man
 		return Manifest{properties.NewProperties()}, nil
 	}
 
-	p, err := properties.LoadFile(f, properties.UTF8)
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		return Manifest{}, err
+	}
+
+	p, err := properties.LoadString(normalizeManifest(string(b)))
 	if err != nil {
 		return Manifest{}, err
 	}
@@ -47,4 +54,22 @@ func NewManifest(application application.Application, logger logger.Logger) (Man
 
 	logger.Debug("Manifest: %s", m)
 	return m, nil
+}
+
+func normalizeManifest(manifest string) string {
+	// The full grammar for manifests can be found here:
+	// https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#JARManifest
+
+	// Convert Windows style line endings to UNIX
+	n := strings.ReplaceAll(manifest, "\r\n", "\n")
+
+	// The spec allows newlines to be single carriage-returns
+	// this is a legacy line ending only supported on System 9
+	// and before.
+	n = strings.ReplaceAll(n, "\r", "\n")
+
+	// The spec only allowed for line lengths of 78 bytes.
+	// All lines are blank, start a property name or are
+	// a continuation of the previous lines (indicated by a leading space).
+	return strings.ReplaceAll(n, "\n ", "")
 }
