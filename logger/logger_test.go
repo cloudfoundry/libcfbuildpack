@@ -92,6 +92,13 @@ func TestLogger(t *testing.T) {
 			g.Expect(actual).To(Equal(expected))
 		})
 
+		it("creates body with indent", func() {
+			logger := logger.Logger{Logger: bp.NewLogger(nil, nil)}
+			s := logger.BodyIndent("test-body-1\ntest-body-2")
+
+			g.Expect(s).To(Equal("    test-body-1\n    test-body-2"))
+		})
+
 		it("writes body warning with format", func() {
 			var info bytes.Buffer
 
