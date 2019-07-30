@@ -28,7 +28,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -37,7 +37,7 @@ import (
 func TestDownloadLayer(t *testing.T) {
 	spec.Run(t, "DownloadLayer", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			root       string
@@ -67,14 +67,14 @@ func TestDownloadLayer(t *testing.T) {
 		})
 
 		it("creates a download layer with the dependency SHA256 name", func() {
-			g.Expect(layer.Root).To(Equal(filepath.Join(root, dependency.SHA256)))
+			g.Expect(layer.Root).To(gomega.Equal(filepath.Join(root, dependency.SHA256)))
 		})
 
 		it("downloads a dependency", func() {
 			server.AppendHandlers(ghttp.RespondWith(http.StatusOK, "test-payload"))
 
-			g.Expect(layer.Artifact()).To(SatisfyAll(
-				Equal(filepath.Join(layer.Root, "test-path")),
+			g.Expect(layer.Artifact()).To(gomega.SatisfyAll(
+				gomega.Equal(filepath.Join(layer.Root, "test-path")),
 				test.HaveContent("test-payload")))
 
 			g.Expect(layer).To(test.HaveLayerMetadata(false, true, false))
@@ -87,7 +87,7 @@ Version = "%s"
 SHA256 = "%s"
 URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-			g.Expect(layer.Artifact()).To(Equal(filepath.Join(root, "buildpack", dependency.SHA256, "test-path")))
+			g.Expect(layer.Artifact()).To(gomega.Equal(filepath.Join(root, "buildpack", dependency.SHA256, "test-path")))
 		})
 
 		it("does not download a previously cached dependency", func() {
@@ -97,7 +97,7 @@ Version = "%s"
 SHA256 = "%s"
 URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
 
-			g.Expect(layer.Artifact()).To(Equal(filepath.Join(layer.Root, "test-path")))
+			g.Expect(layer.Artifact()).To(gomega.Equal(filepath.Join(layer.Root, "test-path")))
 		})
 
 		it("cleans directory when downloading dependency", func() {
@@ -105,9 +105,9 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 			test.TouchFile(t, layer.Root, "test-file")
 
 			_, err := layer.Artifact()
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(BeAnExistingFile())
+			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(gomega.BeAnExistingFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

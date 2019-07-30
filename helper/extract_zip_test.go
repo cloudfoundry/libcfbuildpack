@@ -22,7 +22,7 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -30,7 +30,7 @@ import (
 func TestExtractZip(t *testing.T) {
 	spec.Run(t, "ExtractZip", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var root string
 
@@ -39,16 +39,16 @@ func TestExtractZip(t *testing.T) {
 		})
 
 		it("extracts the archive", func() {
-			g.Expect(helper.ExtractZip(filepath.Join("testdata", "test-archive.zip"), root, 0)).To(Succeed())
-			g.Expect(filepath.Join(root, "fileA.txt")).To(BeARegularFile())
-			g.Expect(filepath.Join(root, "dirA", "fileB.txt")).To(BeARegularFile())
-			g.Expect(filepath.Join(root, "dirA", "fileC.txt")).To(BeARegularFile())
+			g.Expect(helper.ExtractZip(filepath.Join("testdata", "test-archive.zip"), root, 0)).To(gomega.Succeed())
+			g.Expect(filepath.Join(root, "fileA.txt")).To(gomega.BeARegularFile())
+			g.Expect(filepath.Join(root, "dirA", "fileB.txt")).To(gomega.BeARegularFile())
+			g.Expect(filepath.Join(root, "dirA", "fileC.txt")).To(gomega.BeARegularFile())
 		})
 
 		it("skips stripped components", func() {
-			g.Expect(helper.ExtractZip(filepath.Join("testdata", "test-archive.zip"), root, 1)).To(Succeed())
-			g.Expect(filepath.Join(root, "fileB.txt")).To(BeARegularFile())
-			g.Expect(filepath.Join(root, "fileC.txt")).To(BeARegularFile())
+			g.Expect(helper.ExtractZip(filepath.Join("testdata", "test-archive.zip"), root, 1)).To(gomega.Succeed())
+			g.Expect(filepath.Join(root, "fileB.txt")).To(gomega.BeARegularFile())
+			g.Expect(filepath.Join(root, "fileC.txt")).To(gomega.BeARegularFile())
 
 		})
 

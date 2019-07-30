@@ -21,7 +21,7 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -29,7 +29,7 @@ import (
 func TestFindServiceCredentials(t *testing.T) {
 	spec.Run(t, "FindServiceCredentials", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("matches single service by BindingName", func() {
 			defer test.ReplaceEnv(t, "CNB_SERVICES", `{
@@ -48,9 +48,9 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			c, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
-			g.Expect(c).To(Equal(helper.Credentials{"test-key": "test-value"}))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(c).To(gomega.Equal(helper.Credentials{"test-key": "test-value"}))
 		})
 
 		it("matches single service by InstanceName", func() {
@@ -70,9 +70,9 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			c, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
-			g.Expect(c).To(Equal(helper.Credentials{"test-key": "test-value"}))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(c).To(gomega.Equal(helper.Credentials{"test-key": "test-value"}))
 		})
 
 		it("matches single service by Label", func() {
@@ -92,9 +92,9 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			c, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
-			g.Expect(c).To(Equal(helper.Credentials{"test-key": "test-value"}))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(c).To(gomega.Equal(helper.Credentials{"test-key": "test-value"}))
 		})
 
 		it("matches single service by Tags", func() {
@@ -115,9 +115,9 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			c, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
-			g.Expect(c).To(Equal(helper.Credentials{"test-key": "test-value"}))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(c).To(gomega.Equal(helper.Credentials{"test-key": "test-value"}))
 		})
 
 		it("matches single service with Credentials", func() {
@@ -138,15 +138,15 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			c, ok, err := helper.FindServiceCredentials("test-service", "test-key")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
-			g.Expect(c).To(Equal(helper.Credentials{"test-key": "test-value"}))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(c).To(gomega.Equal(helper.Credentials{"test-key": "test-value"}))
 		})
 
 		it("does not match no service", func() {
 			_, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 
 		it("does not match multiple services", func() {
@@ -176,8 +176,8 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			_, ok, err := helper.FindServiceCredentials("test-service")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 
 		it("does not match without Credentials", func() {
@@ -197,8 +197,8 @@ func TestFindServiceCredentials(t *testing.T) {
 }`)()
 
 			_, ok, err := helper.FindServiceCredentials("test-service", "test-key")
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 	}, spec.Report(report.Terminal{}))
 }

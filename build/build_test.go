@@ -25,7 +25,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -33,7 +33,7 @@ import (
 func TestBuild(t *testing.T) {
 	spec.Run(t, "Build", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var root string
 
@@ -75,18 +75,18 @@ test-key = "test-value"
 			test.WriteFile(t, filepath.Join(root, "platform", "env", "TEST_KEY"), "test-value")
 
 			b, err := build.DefaultBuild()
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			g.Expect(b.Application).NotTo(BeZero())
-			g.Expect(b.Buildpack).NotTo(BeZero())
-			g.Expect(b.BuildPlan).NotTo(BeZero())
-			g.Expect(b.BuildPlanWriter).NotTo(BeZero())
-			g.Expect(b.Layers).NotTo(BeZero())
-			g.Expect(b.Logger).NotTo(BeZero())
-			g.Expect(b.Platform).NotTo(BeZero())
-			g.Expect(b.Stack).NotTo(BeZero())
+			g.Expect(b.Application).NotTo(gomega.BeZero())
+			g.Expect(b.Buildpack).NotTo(gomega.BeZero())
+			g.Expect(b.BuildPlan).NotTo(gomega.BeZero())
+			g.Expect(b.BuildPlanWriter).NotTo(gomega.BeZero())
+			g.Expect(b.Layers).NotTo(gomega.BeZero())
+			g.Expect(b.Logger).NotTo(gomega.BeZero())
+			g.Expect(b.Platform).NotTo(gomega.BeZero())
+			g.Expect(b.Stack).NotTo(gomega.BeZero())
 
-			g.Expect(os.Getenv("TEST_KEY")).To(Equal("test-value"))
+			g.Expect(os.Getenv("TEST_KEY")).To(gomega.Equal("test-value"))
 		})
 
 		it("returns 0 when successful", func() {
@@ -101,11 +101,11 @@ test-key = "test-value"
 			console.In(t, "")
 
 			b, err := build.DefaultBuild()
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
 			g.Expect(b.Success(buildplan.BuildPlan{
 				"alpha": buildplan.Dependency{Version: "test-version"},
-			})).To(Equal(build.SuccessStatusCode))
+			})).To(gomega.Equal(build.SuccessStatusCode))
 
 			g.Expect(filepath.Join(root, "plan.toml")).To(test.HaveContent(`[alpha]
   version = "test-version"
@@ -124,9 +124,9 @@ test-key = "test-value"
 			console.In(t, "")
 
 			b, err := build.DefaultBuild()
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			g.Expect(b.Failure(42)).To(Equal(42))
+			g.Expect(b.Failure(42)).To(gomega.Equal(42))
 		})
 	}, spec.Report(report.Terminal{}))
 }

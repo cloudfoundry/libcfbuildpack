@@ -23,14 +23,14 @@ import (
 	"github.com/buildpack/libbuildpack/application"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 )
 
 func TestFindMainModule(t *testing.T) {
 	spec.Run(t, "FindMainModule", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			app  application.Application
@@ -45,8 +45,8 @@ func TestFindMainModule(t *testing.T) {
 		it("returns false if no package.json", func() {
 			_, ok, err := helper.FindMainModule(app)
 
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 
 		it("returns false if no main", func() {
@@ -54,8 +54,8 @@ func TestFindMainModule(t *testing.T) {
 
 			_, ok, err := helper.FindMainModule(app)
 
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 
 		it("returns false if main file does not exist", func() {
@@ -63,8 +63,8 @@ func TestFindMainModule(t *testing.T) {
 
 			_, ok, err := helper.FindMainModule(app)
 
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeFalse())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeFalse())
 		})
 
 		it("returns true if main file does exist", func() {
@@ -73,8 +73,8 @@ func TestFindMainModule(t *testing.T) {
 
 			_, ok, err := helper.FindMainModule(app)
 
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(ok).To(BeTrue())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(ok).To(gomega.BeTrue())
 		})
 	})
 }

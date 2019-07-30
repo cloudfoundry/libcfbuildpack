@@ -27,7 +27,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -35,7 +35,7 @@ import (
 func TestHelperLayer(t *testing.T) {
 	spec.Run(t, "HelperLayer", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			bp    buildpack.Buildpack
@@ -65,7 +65,7 @@ func TestHelperLayer(t *testing.T) {
 		})
 
 		it("creates a helper layer with the helper id name", func() {
-			g.Expect(layer.Root).To(Equal(filepath.Join(root, id)))
+			g.Expect(layer.Root).To(gomega.Equal(filepath.Join(root, id)))
 		})
 
 		it("calls contributor to contribute dependency layer", func() {
@@ -73,9 +73,9 @@ func TestHelperLayer(t *testing.T) {
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeTrue())
+			g.Expect(contributed).To(gomega.BeTrue())
 		})
 
 		it("does not call contributor for a cached layer", func() {
@@ -89,17 +89,17 @@ func TestHelperLayer(t *testing.T) {
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeFalse())
+			g.Expect(contributed).To(gomega.BeFalse())
 		})
 
 		it("contributes dependency to build plan", func() {
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(ls.DependencyBuildPlans).To(Equal(buildplan.BuildPlan{
+			g.Expect(ls.DependencyBuildPlans).To(gomega.Equal(buildplan.BuildPlan{
 				id: buildplan.Dependency{
 					Version: bp.Info.Version,
 					Metadata: buildplan.Metadata{
@@ -115,9 +115,9 @@ func TestHelperLayer(t *testing.T) {
 
 			g.Expect(layer.Contribute(func(artifact string, layer layers.HelperLayer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(BeAnExistingFile())
+			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(gomega.BeAnExistingFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

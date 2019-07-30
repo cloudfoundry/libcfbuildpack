@@ -25,7 +25,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/test"
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -49,26 +49,26 @@ func TestReadBuildpackYaml(t *testing.T) {
 			config            *BuildpackYaml
 		)
 
-		Expect := NewWithT(t).Expect
+		Expect := gomega.NewWithT(t).Expect
 
 		when("read buildpack yaml version", func() {
 			it.Before(func() {
 				tmpDir := os.TempDir()
 				buildpackYamlPath = filepath.Join(tmpDir, "buildpack.yml")
 				buildpackYAMLString := fmt.Sprintf("python:\n  version: %s\ngo:\n version: %s", pythonVersion, goVersion)
-				Expect(helper.WriteFile(buildpackYamlPath, 0777, buildpackYAMLString)).To(Succeed())
+				Expect(helper.WriteFile(buildpackYamlPath, 0777, buildpackYAMLString)).To(gomega.Succeed())
 				config = &BuildpackYaml{}
 			})
 
 			it.After(func() {
-				Expect(os.RemoveAll(buildpackYamlPath)).To(Succeed())
+				Expect(os.RemoveAll(buildpackYamlPath)).To(gomega.Succeed())
 			})
 
 			it("unmarshals a user defined config when given a buildpackyml path", func() {
 				err := helper.ReadBuildpackYaml(buildpackYamlPath, config)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(config.Python.Version).To(Equal(pythonVersion))
-				Expect(config.Go.Version).To(Equal(goVersion))
+				Expect(err).NotTo(gomega.HaveOccurred())
+				Expect(config.Python.Version).To(gomega.Equal(pythonVersion))
+				Expect(config.Go.Version).To(gomega.Equal(goVersion))
 			})
 
 		})
@@ -82,13 +82,13 @@ func TestReadBuildpackYaml(t *testing.T) {
 			})
 
 			it.After(func() {
-				Expect(os.RemoveAll(buildpackYamlPath)).To(Succeed())
+				Expect(os.RemoveAll(buildpackYamlPath)).To(gomega.Succeed())
 			})
 
 			it("does not error", func() {
 				err := helper.ReadBuildpackYaml(buildpackYamlPath, config)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(&BuildpackYaml{}))
+				Expect(err).NotTo(gomega.HaveOccurred())
+				Expect(config).To(gomega.Equal(&BuildpackYaml{}))
 			})
 
 		})

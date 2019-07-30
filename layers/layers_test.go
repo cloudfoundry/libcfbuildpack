@@ -29,7 +29,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
 	"github.com/fatih/color"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -37,7 +37,7 @@ import (
 func TestLayers(t *testing.T) {
 	spec.Run(t, "Layers", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			root string
@@ -57,14 +57,14 @@ func TestLayers(t *testing.T) {
 					{"short", "test-command-1"},
 					{"a-very-long-type", "test-command-2"},
 				},
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
 			actual := info.String()
 			expected := fmt.Sprintf(`  Process types:
     %s: test-command-2
     %s:            test-command-1
 `, color.CyanString("a-very-long-type"), color.CyanString("short"))
-			g.Expect(actual).To(Equal(expected))
+			g.Expect(actual).To(gomega.Equal(expected))
 		})
 
 		it("logs number of slices", func() {
@@ -73,9 +73,9 @@ func TestLayers(t *testing.T) {
 					layers.Slice{},
 					layers.Slice{},
 				},
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(info.String()).To(Equal("  2 application slices\n"))
+			g.Expect(info.String()).To(gomega.Equal("  2 application slices\n"))
 		})
 
 		it("registers touched layers", func() {
@@ -84,11 +84,11 @@ func TestLayers(t *testing.T) {
 
 			g.Expect(l.Layer("test-layer-1").Contribute(nil, func(layer layers.Layer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(l.TouchedLayers.Cleanup()).To(Succeed())
-			g.Expect(filepath.Join(l.Root, "test-layer-1.toml")).To(BeAnExistingFile())
-			g.Expect(filepath.Join(l.Root, "test-layer-2.toml")).NotTo(BeAnExistingFile())
+			g.Expect(l.TouchedLayers.Cleanup()).To(gomega.Succeed())
+			g.Expect(filepath.Join(l.Root, "test-layer-1.toml")).To(gomega.BeAnExistingFile())
+			g.Expect(filepath.Join(l.Root, "test-layer-2.toml")).NotTo(gomega.BeAnExistingFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

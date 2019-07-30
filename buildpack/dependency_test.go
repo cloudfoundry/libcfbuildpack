@@ -21,7 +21,7 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -48,10 +48,10 @@ var TestDep = map[string]interface{}{
 func TestDependency(t *testing.T) {
 	spec.Run(t, "Dependency", func(t *testing.T, when spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
-		when("NewDependency", func(){
-			it("constructs a dependency", func(){
+		when("NewDependency", func() {
+			it("constructs a dependency", func() {
 				expectedDep := buildpack.Dependency{
 					ID:      "test-id-1",
 					Name:    "test-name-1",
@@ -65,11 +65,11 @@ func TestDependency(t *testing.T) {
 					},
 				}
 
-				g.Expect(buildpack.NewDependency(TestDep)).To(Equal(expectedDep))
+				g.Expect(buildpack.NewDependency(TestDep)).To(gomega.Equal(expectedDep))
 			})
 		})
 
-		when("Validate", func(){
+		when("Validate", func() {
 			it("validates", func() {
 				g.Expect(buildpack.Dependency{
 					ID:      "test-id",
@@ -81,7 +81,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).To(Succeed())
+				}.Validate()).To(gomega.Succeed())
 			})
 
 			it("does not validate with invalid id", func() {
@@ -94,7 +94,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid name", func() {
@@ -107,7 +107,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid version", func() {
@@ -120,7 +120,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid uri", func() {
@@ -133,7 +133,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid sha256", func() {
@@ -146,7 +146,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid stacks", func() {
@@ -159,7 +159,7 @@ func TestDependency(t *testing.T) {
 					Licenses: buildpack.Licenses{
 						{Type: "test-type"},
 					},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 
 			it("does not validate with invalid licenses", func() {
@@ -170,10 +170,9 @@ func TestDependency(t *testing.T) {
 					URI:     "test-uri",
 					SHA256:  "test-sha256",
 					Stacks:  buildpack.Stacks{"test-stack"},
-				}.Validate()).NotTo(Succeed())
+				}.Validate()).NotTo(gomega.Succeed())
 			})
 		})
-
 
 	}, spec.Report(report.Terminal{}))
 }

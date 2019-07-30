@@ -23,7 +23,7 @@ import (
 	"github.com/buildpack/libbuildpack/stack"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -68,7 +68,8 @@ var TestDep2 = map[string]interface{}{
 
 func TestBuildpack(t *testing.T) {
 	spec.Run(t, "Buildpack", func(t *testing.T, when spec.G, it spec.S) {
-		g := NewWithT(t)
+
+		g := gomega.NewWithT(t)
 
 		when("Dependencies", func(){
 			it("returns dependencies", func() {
@@ -106,7 +107,7 @@ func TestBuildpack(t *testing.T) {
 					},
 				}
 
-				g.Expect(buildpack.Buildpack{Buildpack: bp}.Dependencies()).To(Equal(expected))
+				g.Expect(buildpack.Buildpack{Buildpack: bp}.Dependencies()).To(gomega.Equal(expected))
 			})
 		})
 
@@ -118,13 +119,13 @@ func TestBuildpack(t *testing.T) {
 					},
 				}
 
-				g.Expect(buildpack.Buildpack{Buildpack: b}.IncludeFiles()).To(ConsistOf("test-file-1", "test-file-2"))
+				g.Expect(buildpack.Buildpack{Buildpack: b}.IncludeFiles()).To(gomega.ConsistOf("test-file-1", "test-file-2"))
 			})
 
 			it("returns empty []string if include_files does not exist", func() {
 				b := bp.Buildpack{}
 
-				g.Expect(buildpack.Buildpack{Buildpack: b}.IncludeFiles()).To(BeEmpty())
+				g.Expect(buildpack.Buildpack{Buildpack: b}.IncludeFiles()).To(gomega.BeEmpty())
 			})
 		})
 
@@ -138,15 +139,15 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				actual, ok := buildpack.Buildpack{Buildpack: b}.PrePackage()
-				g.Expect(ok).To(BeTrue())
-				g.Expect(actual).To(Equal("test-package"))
+				g.Expect(ok).To(gomega.BeTrue())
+				g.Expect(actual).To(gomega.Equal("test-package"))
 			})
 
 			it("returns false if pre_package does not exist", func() {
 				b := bp.Buildpack{}
 
 				_, ok := buildpack.Buildpack{Buildpack: b}.PrePackage()
-				g.Expect(ok).To(BeFalse())
+				g.Expect(ok).To(gomega.BeFalse())
 			})
 		})
 
@@ -164,12 +165,12 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
-				g.Expect(ver).To(Equal(version))
-				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(ver).To(gomega.Equal(version))
+				g.Expect(err).ToNot(gomega.HaveOccurred())
 
 				ver, err = buildpack.Buildpack{}.DefaultVersion("invalid-id")
-				g.Expect(ver).To(Equal(""))
-				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(ver).To(gomega.Equal(""))
+				g.Expect(err).ToNot(gomega.HaveOccurred())
 			})
 
 			it("returns empty string if DefaultVersions has incorrect structure", func() {
@@ -182,8 +183,8 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
-				g.Expect(ver).To(Equal(""))
-				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(ver).To(gomega.Equal(""))
+				g.Expect(err).ToNot(gomega.HaveOccurred())
 			})
 
 			it("returns an error if the type of values that DefaultVersions maps to are not strings", func() {
@@ -198,8 +199,8 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				ver, err := buildpack.Buildpack{Buildpack: b}.DefaultVersion(id)
-				g.Expect(ver).To(Equal(""))
-				g.Expect(err).To(HaveOccurred())
+				g.Expect(ver).To(gomega.Equal(""))
+				g.Expect(err).To(gomega.HaveOccurred())
 			})
 		})
 
@@ -235,8 +236,8 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				dep, err := buildpack.Buildpack{Buildpack: b}.RuntimeDependency(id, "1.0", stack)
-				g.Expect(dep).To(Equal(expectedDep))
-				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(dep).To(gomega.Equal(expectedDep))
+				g.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 
 			it(`get the Dependency matching the DefaultVersion, if "" or "default" version`, func() {
@@ -252,12 +253,12 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				dep, err := buildpack.Buildpack{Buildpack: b}.RuntimeDependency(id, "", stack)
-				g.Expect(dep).To(Equal(expectedDep))
-				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(dep).To(gomega.Equal(expectedDep))
+				g.Expect(err).NotTo(gomega.HaveOccurred())
 
 				dep, err = buildpack.Buildpack{Buildpack: b}.RuntimeDependency(id, "default", stack)
-				g.Expect(dep).To(Equal(expectedDep))
-				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(dep).To(gomega.Equal(expectedDep))
+				g.Expect(err).NotTo(gomega.HaveOccurred())
 			})
 
 			it("returns an error if the Dependency is not present in the Buildpack", func() {
@@ -273,8 +274,8 @@ func TestBuildpack(t *testing.T) {
 				}
 
 				dep, err := buildpack.Buildpack{Buildpack: b}.RuntimeDependency(id, "1.0", stack)
-				g.Expect(dep).To(Equal(buildpack.Dependency{}))
-				g.Expect(err).To(HaveOccurred())
+				g.Expect(dep).To(gomega.Equal(buildpack.Dependency{}))
+				g.Expect(err).To(gomega.HaveOccurred())
 			})
 		})
 

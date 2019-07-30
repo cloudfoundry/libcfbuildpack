@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -28,24 +28,24 @@ import (
 func TestLicenses(t *testing.T) {
 	spec.Run(t, "Licenses", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("does not validate if there is not at least one license", func() {
-			g.Expect(buildpack.Licenses{}.Validate()).NotTo(Succeed())
+			g.Expect(buildpack.Licenses{}.Validate()).NotTo(gomega.Succeed())
 		})
 
 		it("validates when all licenses are valid", func() {
 			g.Expect(buildpack.Licenses{
 				{Type: "test-type"},
 				{URI: "test-uri"},
-			}.Validate()).To(Succeed())
+			}.Validate()).To(gomega.Succeed())
 		})
 
 		it("does not validate when a license is invalid", func() {
 			g.Expect(buildpack.Licenses{
 				{Type: "test-type"},
 				{},
-			}.Validate()).NotTo(Succeed())
+			}.Validate()).NotTo(gomega.Succeed())
 		})
 	}, spec.Report(report.Terminal{}))
 }

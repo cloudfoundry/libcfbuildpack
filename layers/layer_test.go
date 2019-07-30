@@ -26,7 +26,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -34,7 +34,7 @@ import (
 func TestLayer(t *testing.T) {
 	spec.Run(t, "Layer", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			root  string
@@ -52,7 +52,7 @@ Alpha = "test-value"
 Bravo = 1
 `)
 
-			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeTrue())
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(gomega.BeTrue())
 		})
 
 		it("identifies non-matching metadata", func() {
@@ -61,7 +61,7 @@ Alpha = "test-value"
 Bravo = 2
 `)
 
-			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(gomega.BeFalse())
 		})
 
 		it("identifies invalid metadata", func() {
@@ -70,11 +70,11 @@ Alpha = "test-value"
 Bravo = "invalid-value"
 `)
 
-			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(gomega.BeFalse())
 		})
 
 		it("identifies missing metadata", func() {
-			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(BeFalse())
+			g.Expect(layer.MetadataMatches(metadata{"test-value", 1})).To(gomega.BeFalse())
 		})
 
 		it("does not call contributor for cached layer", func() {
@@ -88,9 +88,9 @@ Bravo = 1
 			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeFalse())
+			g.Expect(contributed).To(gomega.BeFalse())
 		})
 
 		it("calls contributor for uncached layer", func() {
@@ -99,9 +99,9 @@ Bravo = 1
 			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeTrue())
+			g.Expect(contributed).To(gomega.BeTrue())
 		})
 
 		it("does not clean directory for non-matching metadata", func() {
@@ -109,9 +109,9 @@ Bravo = 1
 
 			g.Expect(layer.Contribute(metadata{"test-value", 1}, func(layer layers.Layer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(layer.Root, "test-file")).To(BeARegularFile())
+			g.Expect(filepath.Join(layer.Root, "test-file")).To(gomega.BeARegularFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

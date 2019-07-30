@@ -25,9 +25,9 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
-	. "github.com/cloudfoundry/libcfbuildpack/test"
+	"github.com/cloudfoundry/libcfbuildpack/test"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -44,13 +44,13 @@ func testPackager(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		RegisterTestingT(t)
+		gomega.RegisterTestingT(t)
 
 		tempDir, err = ioutil.TempDir("", "")
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		depFile, err := filepath.Abs(filepath.Join("testdata", "hello.tgz"))
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		depSHA = "9299d8c43e7af6797cd7fb5c12d986a90b864daa3c23ee50dab629ef844c1231"
 
 		buildpackTOML := fmt.Sprintf(`
@@ -74,8 +74,8 @@ id = 'stack-id'
 `, depSHA, depFile)
 
 		cnbDir = filepath.Join(tempDir, "cnb")
-		Expect(os.MkdirAll(cnbDir, 0777))
-		Expect(ioutil.WriteFile(filepath.Join(cnbDir, "buildpack.toml"), []byte(buildpackTOML), 0666)).To(Succeed())
+		gomega.Expect(os.MkdirAll(cnbDir, 0777))
+		gomega.Expect(ioutil.WriteFile(filepath.Join(cnbDir, "buildpack.toml"), []byte(buildpackTOML), 0666)).To(gomega.Succeed())
 
 		outputDir = filepath.Join(tempDir, "output")
 		cacheDir = filepath.Join(tempDir, "cache")
@@ -92,31 +92,31 @@ id = 'stack-id'
 		it.Before(func() {
 			outputDir += "-cached"
 			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
 		it("Create makes a cached buildpack", func() {
-			Expect(pkgr.Create(true)).To(Succeed())
+			gomega.Expect(pkgr.Create(true)).To(gomega.Succeed())
 			cacheRoot := filepath.Join(cacheDir, buildpack.CacheRoot)
 
-			Expect(filepath.Join(cacheRoot, depSHA+".toml")).To(BeAnExistingFile())
-			Expect(filepath.Join(cacheRoot, depSHA, "hello.tgz")).To(BeAnExistingFile())
-			Expect(filepath.Join(outputDir, "buildpack.toml")).To(BeAnExistingFile())
-			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA+".toml")).To(BeAnExistingFile())
-			Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA, "hello.tgz")).To(BeAnExistingFile())
+			gomega.Expect(filepath.Join(cacheRoot, depSHA+".toml")).To(gomega.BeAnExistingFile())
+			gomega.Expect(filepath.Join(cacheRoot, depSHA, "hello.tgz")).To(gomega.BeAnExistingFile())
+			gomega.Expect(filepath.Join(outputDir, "buildpack.toml")).To(gomega.BeAnExistingFile())
+			gomega.Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA+".toml")).To(gomega.BeAnExistingFile())
+			gomega.Expect(filepath.Join(outputDir, buildpack.CacheRoot, depSHA, "hello.tgz")).To(gomega.BeAnExistingFile())
 		})
 	})
 
 	when("uncached", func() {
 		it.Before(func() {
 			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
 		it("Create makes an uncached buildpack", func() {
-			Expect(pkgr.Create(false)).To(Succeed())
-			Expect(filepath.Join(outputDir, "buildpack.toml")).To(BeAnExistingFile())
-			Expect(filepath.Join(outputDir, buildpack.CacheRoot)).NotTo(BeAnExistingFile())
+			gomega.Expect(pkgr.Create(false)).To(gomega.Succeed())
+			gomega.Expect(filepath.Join(outputDir, "buildpack.toml")).To(gomega.BeAnExistingFile())
+			gomega.Expect(filepath.Join(outputDir, buildpack.CacheRoot)).NotTo(gomega.BeAnExistingFile())
 		})
 	})
 
@@ -124,31 +124,31 @@ id = 'stack-id'
 		it.Before(func() {
 			fakeCnbDir := filepath.Join("testdata", "archive-testdata", "fake-cnb")
 			pkgr, err = cnbpackager.New(fakeCnbDir, outputDir, cacheDir)
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
 		it("Archive can make a tarred up buildpack", func() {
-			Expect(pkgr.Create(false)).To(Succeed())
-			Expect(pkgr.Archive()).To(Succeed())
+			gomega.Expect(pkgr.Create(false)).To(gomega.Succeed())
+			gomega.Expect(pkgr.Archive()).To(gomega.Succeed())
 
 			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
-			Expect(tarball).To(BeAnExistingFile())
-			Expect(outputDir).NotTo(BeAnExistingFile())
+			gomega.Expect(tarball).To(gomega.BeAnExistingFile())
+			gomega.Expect(outputDir).NotTo(gomega.BeAnExistingFile())
 		})
 
 		it("includes the parent directories of included files", func() {
-			Expect(pkgr.Create(false)).To(Succeed())
-			Expect(pkgr.Archive()).To(Succeed())
+			gomega.Expect(pkgr.Create(false)).To(gomega.Succeed())
+			gomega.Expect(pkgr.Archive()).To(gomega.Succeed())
 
 			tarball = filepath.Join(filepath.Dir(outputDir), filepath.Base(outputDir)+".tgz")
-			Expect(tarball).To(BeAnExistingFile())
-			Expect(outputDir).NotTo(BeAnExistingFile())
+			gomega.Expect(tarball).To(gomega.BeAnExistingFile())
+			gomega.Expect(outputDir).NotTo(gomega.BeAnExistingFile())
 
-			Expect(tarball).NotTo(HaveArchiveEntry(""))
-			Expect(tarball).To(HaveArchiveEntry("bin"))
-			Expect(tarball).To(HaveArchiveEntry("bin/detect"))
-			Expect(tarball).To(HaveArchiveEntry("bin/build"))
-			Expect(tarball).To(HaveArchiveEntry("buildpack.toml"))
+			gomega.Expect(tarball).NotTo(test.HaveArchiveEntry(""))
+			gomega.Expect(tarball).To(test.HaveArchiveEntry("bin"))
+			gomega.Expect(tarball).To(test.HaveArchiveEntry("bin/detect"))
+			gomega.Expect(tarball).To(test.HaveArchiveEntry("bin/build"))
+			gomega.Expect(tarball).To(test.HaveArchiveEntry("buildpack.toml"))
 		})
 	})
 
@@ -156,7 +156,7 @@ id = 'stack-id'
 		it("Returns a package Summary of the CNB directory", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb")
 			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Packaged binaries:
 
@@ -181,14 +181,14 @@ Supported stacks:
 `
 
 			summary, err := pkgr.Summary()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(summary).To(Equal(solution))
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			gomega.Expect(summary).To(gomega.Equal(solution))
 		})
 
 		it("does not have default versions", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-defaults")
 			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Packaged binaries:
 
@@ -206,14 +206,14 @@ Supported stacks:
 `
 
 			summary, err := pkgr.Summary()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(summary).To(Equal(solution))
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			gomega.Expect(summary).To(gomega.Equal(solution))
 		})
 
 		it("does not have any dependencies", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-dependencies")
 			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
-			Expect(err).ToNot(HaveOccurred())
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Supported stacks:
 
@@ -224,8 +224,8 @@ Supported stacks:
 `
 
 			summary, err := pkgr.Summary()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(summary).To(Equal(solution))
+			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			gomega.Expect(summary).To(gomega.Equal(solution))
 		})
 	})
 }

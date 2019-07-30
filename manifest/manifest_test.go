@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -29,7 +29,7 @@ import (
 func TestManifest(t *testing.T) {
 	spec.Run(t, "Manifest", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var f *test.DetectFactory
 
@@ -40,8 +40,8 @@ func TestManifest(t *testing.T) {
 		it("returns empty manifest if file doesn't exist", func() {
 			m, err := NewManifest(f.Detect.Application, f.Detect.Logger)
 
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(m.Len()).To(Equal(0))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(m.Len()).To(gomega.Equal(0))
 		})
 
 		it("returns populated manifest if file exists", func() {
@@ -49,11 +49,11 @@ func TestManifest(t *testing.T) {
 
 			m, err := NewManifest(f.Detect.Application, f.Detect.Logger)
 
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
 			k, ok := m.Get("test-key")
-			g.Expect(ok).To(BeTrue())
-			g.Expect(k).To(Equal("test-value"))
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(k).To(gomega.Equal("test-value"))
 		})
 
 		it("returns proper values when lines are broken", func() {
@@ -73,11 +73,11 @@ Main-Class: org.springframework.boot.loader.JarLauncher
 
 			m, err := NewManifest(f.Detect.Application, f.Detect.Logger)
 
-			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(err).NotTo(gomega.HaveOccurred())
 
 			k, ok := m.Get("Start-Class")
-			g.Expect(ok).To(BeTrue())
-			g.Expect(k).To(Equal("org.springframework.samples.petclinic.PetClinicApplication"))
+			g.Expect(ok).To(gomega.BeTrue())
+			g.Expect(k).To(gomega.Equal("org.springframework.samples.petclinic.PetClinicApplication"))
 
 		})
 	}, spec.Report(report.Terminal{}))

@@ -28,7 +28,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -36,7 +36,7 @@ import (
 func TestDependencyLayer(t *testing.T) {
 	spec.Run(t, "DependencyLayer", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			root       string
@@ -60,7 +60,7 @@ func TestDependencyLayer(t *testing.T) {
 		})
 
 		it("creates a dependency layer with the dependency id name", func() {
-			g.Expect(layer.Root).To(Equal(filepath.Join(root, dependency.ID)))
+			g.Expect(layer.Root).To(gomega.Equal(filepath.Join(root, dependency.ID)))
 		})
 
 		it("calls contributor to contribute dependency layer", func() {
@@ -74,9 +74,9 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeTrue())
+			g.Expect(contributed).To(gomega.BeTrue())
 		})
 
 		it("does not call contributor for a cached layer", func() {
@@ -90,13 +90,13 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 				contributed = true
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(contributed).To(BeFalse())
+			g.Expect(contributed).To(gomega.BeFalse())
 		})
 
 		it("returns artifact name", func() {
-			g.Expect(layer.ArtifactName()).To(Equal("test-path"))
+			g.Expect(layer.ArtifactName()).To(gomega.Equal("test-path"))
 		})
 
 		it("contributes dependency to build plan", func() {
@@ -108,9 +108,9 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(ls.DependencyBuildPlans).To(Equal(buildplan.BuildPlan{
+			g.Expect(ls.DependencyBuildPlans).To(gomega.Equal(buildplan.BuildPlan{
 				dependency.ID: buildplan.Dependency{
 					Version: "1.0",
 					Metadata: buildplan.Metadata{
@@ -134,9 +134,9 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 				return nil
-			})).To(Succeed())
+			})).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(BeAnExistingFile())
+			g.Expect(filepath.Join(layer.Root, "test-file")).NotTo(gomega.BeAnExistingFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }

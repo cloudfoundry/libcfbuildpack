@@ -21,7 +21,7 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -29,7 +29,7 @@ import (
 func TestDependencies(t *testing.T) {
 	spec.Run(t, "Dependencies", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("filters by id", func() {
 			d := buildpack.Dependencies{
@@ -57,7 +57,7 @@ func TestDependencies(t *testing.T) {
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-			g.Expect(d.Best("test-id-2", "1.0", "test-stack-1")).To(Equal(expected))
+			g.Expect(d.Best("test-id-2", "1.0", "test-stack-1")).To(gomega.Equal(expected))
 		})
 
 		it("filters by version constraint", func() {
@@ -86,7 +86,7 @@ func TestDependencies(t *testing.T) {
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-			g.Expect(d.Best("test-id", "2.0", "test-stack-1")).To(Equal(expected))
+			g.Expect(d.Best("test-id", "2.0", "test-stack-1")).To(gomega.Equal(expected))
 		})
 
 		it("filters by stack", func() {
@@ -115,7 +115,7 @@ func TestDependencies(t *testing.T) {
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-3"}}
 
-			g.Expect(d.Best("test-id", "1.0", "test-stack-3")).To(Equal(expected))
+			g.Expect(d.Best("test-id", "1.0", "test-stack-3")).To(gomega.Equal(expected))
 		})
 
 		it("returns the best dependency", func() {
@@ -144,7 +144,7 @@ func TestDependencies(t *testing.T) {
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-			g.Expect(d.Best("test-id", "1.*", "test-stack-1")).To(Equal(expected))
+			g.Expect(d.Best("test-id", "1.*", "test-stack-1")).To(gomega.Equal(expected))
 		})
 
 		it("returns error if there are no matching dependencies", func() {
@@ -173,9 +173,9 @@ func TestDependencies(t *testing.T) {
 			}
 
 			_, err := d.Best("test-id-2", "1.0", "test-stack-1")
-			g.Expect(err).To(HaveOccurred())
+			g.Expect(err).To(gomega.HaveOccurred())
 			expectedError := "no valid dependencies for test-id-2, 1.0, and test-stack-1 in [(test-id, 1.0, [test-stack-1 test-stack-2]), (test-id, 1.0, [test-stack-1 test-stack-3]), (test-id-2, 1.1, [test-stack-1 test-stack-3])]"
-			g.Expect(err).To(MatchError(expectedError))
+			g.Expect(err).To(gomega.MatchError(expectedError))
 		})
 
 		it("substitutes all wildcard for unspecified version constraint", func() {
@@ -197,7 +197,7 @@ func TestDependencies(t *testing.T) {
 				SHA256:  "test-sha256",
 				Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}}
 
-			g.Expect(d.Best("test-id", "", "test-stack-1")).To(Equal(expected))
+			g.Expect(d.Best("test-id", "", "test-stack-1")).To(gomega.Equal(expected))
 		})
 
 		it("indicates that dependency exists", func() {
@@ -211,13 +211,13 @@ func TestDependencies(t *testing.T) {
 					Stacks:  buildpack.Stacks{"test-stack-1", "test-stack-2"}},
 			}
 
-			g.Expect(d.Has("test-id")).To(BeTrue())
+			g.Expect(d.Has("test-id")).To(gomega.BeTrue())
 		})
 
 		it("indicates that dependency does not exist", func() {
 			d := buildpack.Dependencies{}
 
-			g.Expect(d.Has("test-id")).To(BeFalse())
+			g.Expect(d.Has("test-id")).To(gomega.BeFalse())
 		})
 	}, spec.Report(report.Terminal{}))
 }

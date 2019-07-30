@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -28,22 +28,22 @@ import (
 func TestLicense(t *testing.T) {
 	spec.Run(t, "License", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("validates with type set", func() {
-			g.Expect(buildpack.License{Type: "test-type"}.Validate()).To(Succeed())
+			g.Expect(buildpack.License{Type: "test-type"}.Validate()).To(gomega.Succeed())
 		})
 
 		it("validates with uri set", func() {
-			g.Expect(buildpack.License{URI: "test-uri "}.Validate()).To(Succeed())
+			g.Expect(buildpack.License{URI: "test-uri "}.Validate()).To(gomega.Succeed())
 		})
 
 		it("validates with type and uri set", func() {
-			g.Expect(buildpack.License{Type: "test-type", URI: "test-uri "}.Validate()).To(Succeed())
+			g.Expect(buildpack.License{Type: "test-type", URI: "test-uri "}.Validate()).To(gomega.Succeed())
 		})
 
 		it("does not validate without type and uri set", func() {
-			g.Expect(buildpack.License{}.Validate()).NotTo(Succeed())
+			g.Expect(buildpack.License{}.Validate()).NotTo(gomega.Succeed())
 		})
 	}, spec.Report(report.Terminal{}))
 }

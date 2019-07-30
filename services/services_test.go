@@ -21,14 +21,14 @@ import (
 
 	bp "github.com/buildpack/libbuildpack/services"
 	"github.com/cloudfoundry/libcfbuildpack/services"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 )
 
 func TestServices(t *testing.T) {
 	spec.Run(t, "Services", func(t *testing.T, when spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		when("FindServiceCredentials", func() {
 			it("matches single service by BindingName", func() {
@@ -36,7 +36,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeTrue())
+				g.Expect(ok).To(gomega.BeTrue())
 			})
 
 			it("matches single service by InstanceName", func() {
@@ -44,7 +44,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeTrue())
+				g.Expect(ok).To(gomega.BeTrue())
 			})
 
 			it("matches single service by Label", func() {
@@ -52,7 +52,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeTrue())
+				g.Expect(ok).To(gomega.BeTrue())
 			})
 
 			it("matches single service by Tags", func() {
@@ -60,7 +60,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeTrue())
+				g.Expect(ok).To(gomega.BeTrue())
 			})
 
 			it("matches single service with Credentials", func() {
@@ -71,8 +71,8 @@ func TestServices(t *testing.T) {
 
 				c, ok := s.FindServiceCredentials("test-service", "test-credential")
 
-				g.Expect(c).To(Equal(services.Credentials{"test-credential": "test-payload"}))
-				g.Expect(ok).To(BeTrue())
+				g.Expect(c).To(gomega.Equal(services.Credentials{"test-credential": "test-payload"}))
+				g.Expect(ok).To(gomega.BeTrue())
 			})
 
 			it("does not match no service", func() {
@@ -80,7 +80,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeFalse())
+				g.Expect(ok).To(gomega.BeFalse())
 			})
 
 			it("does not match multiple services", func() {
@@ -91,7 +91,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service")
 
-				g.Expect(ok).To(BeFalse())
+				g.Expect(ok).To(gomega.BeFalse())
 			})
 
 			it("does not match without Credentials", func() {
@@ -99,7 +99,7 @@ func TestServices(t *testing.T) {
 
 				_, ok := s.FindServiceCredentials("test-service", "test-credential")
 
-				g.Expect(ok).To(BeFalse())
+				g.Expect(ok).To(gomega.BeFalse())
 			})
 		})
 
@@ -108,25 +108,25 @@ func TestServices(t *testing.T) {
 			it("matches single service by BindingName", func() {
 				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
 
-				g.Expect(s.HasService("test-service")).To(BeTrue())
+				g.Expect(s.HasService("test-service")).To(gomega.BeTrue())
 			})
 
 			it("matches single service by InstanceName", func() {
 				s := services.Services{Services: bp.Services{services.Service{InstanceName: "test-service-1"}}}
 
-				g.Expect(s.HasService("test-service")).To(BeTrue())
+				g.Expect(s.HasService("test-service")).To(gomega.BeTrue())
 			})
 
 			it("matches single service by Label", func() {
 				s := services.Services{Services: bp.Services{services.Service{Label: "test-service-1"}}}
 
-				g.Expect(s.HasService("test-service")).To(BeTrue())
+				g.Expect(s.HasService("test-service")).To(gomega.BeTrue())
 			})
 
 			it("matches single service by Tags", func() {
 				s := services.Services{Services: bp.Services{services.Service{Tags: []string{"test-service-1"}}}}
 
-				g.Expect(s.HasService("test-service")).To(BeTrue())
+				g.Expect(s.HasService("test-service")).To(gomega.BeTrue())
 			})
 
 			it("matches single service with Credentials", func() {
@@ -135,13 +135,13 @@ func TestServices(t *testing.T) {
 					Credentials: services.Credentials{"test-credential": "test-payload"},
 				}}}
 
-				g.Expect(s.HasService("test-service", "test-credential")).To(BeTrue())
+				g.Expect(s.HasService("test-service", "test-credential")).To(gomega.BeTrue())
 			})
 
 			it("does not match no service", func() {
 				s := services.Services{Services: bp.Services{}}
 
-				g.Expect(s.HasService("test-service")).To(BeFalse())
+				g.Expect(s.HasService("test-service")).To(gomega.BeFalse())
 			})
 
 			it("does not match multiple services", func() {
@@ -150,13 +150,13 @@ func TestServices(t *testing.T) {
 					services.Service{BindingName: "test-service-2"},
 				}}
 
-				g.Expect(s.HasService("test-service")).To(BeFalse())
+				g.Expect(s.HasService("test-service")).To(gomega.BeFalse())
 			})
 
 			it("does not match without Credentials", func() {
 				s := services.Services{Services: bp.Services{services.Service{BindingName: "test-service-1"}}}
 
-				g.Expect(s.HasService("test-service", "test-credential")).To(BeFalse())
+				g.Expect(s.HasService("test-service", "test-credential")).To(gomega.BeFalse())
 			})
 		})
 	})

@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -28,10 +28,10 @@ import (
 func TestStacks(t *testing.T) {
 	spec.Run(t, "Stacks", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("does not validate if there is not at least one stack", func() {
-			g.Expect(buildpack.Stacks{}.Validate()).NotTo(Succeed())
+			g.Expect(buildpack.Stacks{}.Validate()).NotTo(gomega.Succeed())
 		})
 	}, spec.Report(report.Terminal{}))
 }

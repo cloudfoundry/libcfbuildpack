@@ -23,7 +23,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -31,7 +31,7 @@ import (
 func TestApplicationRoutes(t *testing.T) {
 	spec.Run(t, "ApplicationRoutes", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		it("extracts value from CNB_APP_ROUTES", func() {
 			defer test.ReplaceEnv(t, "CNB_APP_ROUTES", `{
@@ -43,7 +43,7 @@ func TestApplicationRoutes(t *testing.T) {
   }
 }`)()
 
-			g.Expect(helper.DefaultApplicationRoutes()).To(Equal(helper.ApplicationRoutes{
+			g.Expect(helper.DefaultApplicationRoutes()).To(gomega.Equal(helper.ApplicationRoutes{
 				"test-type-1": {Port: 1},
 				"test-type-2": {URI: "test-uri"},
 			}))
@@ -51,10 +51,10 @@ func TestApplicationRoutes(t *testing.T) {
 
 		it("returns error when CNB_APP_ROUTES not set", func() {
 			defer internal.ProtectEnv(t, "CNB_APP_ROUTES")()
-			g.Expect(os.Unsetenv("CNB_APP_ROUTES")).Should(Succeed())
+			g.Expect(os.Unsetenv("CNB_APP_ROUTES")).Should(gomega.Succeed())
 
 			_, err := helper.DefaultApplicationRoutes()
-			g.Expect(err).To(MatchError("CNB_APP_ROUTES not set"))
+			g.Expect(err).To(gomega.MatchError("CNB_APP_ROUTES not set"))
 		})
 	}, spec.Report(report.Terminal{}))
 }

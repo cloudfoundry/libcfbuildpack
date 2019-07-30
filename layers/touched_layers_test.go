@@ -23,7 +23,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
@@ -31,7 +31,7 @@ import (
 func TestTouchedLayers(t *testing.T) {
 	spec.Run(t, "TouchedLayers", func(t *testing.T, _ spec.G, it spec.S) {
 
-		g := NewGomegaWithT(t)
+		g := gomega.NewWithT(t)
 
 		var (
 			root    string
@@ -47,33 +47,33 @@ func TestTouchedLayers(t *testing.T) {
 			test.TouchFile(t, root, "test-layer.toml")
 
 			touched.Add(filepath.Join(root, "test-layer.toml"))
-			g.Expect(touched.Cleanup()).To(Succeed())
+			g.Expect(touched.Cleanup()).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(root, "test-layer.toml")).To(BeARegularFile())
+			g.Expect(filepath.Join(root, "test-layer.toml")).To(gomega.BeARegularFile())
 		})
 
 		it("removes untouched layers", func() {
 			test.TouchFile(t, root, "test-layer.toml")
 
-			g.Expect(touched.Cleanup()).To(Succeed())
+			g.Expect(touched.Cleanup()).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(root, "test-layer.toml")).NotTo(BeARegularFile())
+			g.Expect(filepath.Join(root, "test-layer.toml")).NotTo(gomega.BeARegularFile())
 		})
 
 		it("does not remove launch.toml", func() {
 			test.TouchFile(t, root, "launch.toml")
 
-			g.Expect(touched.Cleanup()).To(Succeed())
+			g.Expect(touched.Cleanup()).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(root, "launch.toml")).To(BeARegularFile())
+			g.Expect(filepath.Join(root, "launch.toml")).To(gomega.BeARegularFile())
 		})
 
 		it("does not remove store.toml", func() {
 			test.TouchFile(t, root, "store.toml")
 
-			g.Expect(touched.Cleanup()).To(Succeed())
+			g.Expect(touched.Cleanup()).To(gomega.Succeed())
 
-			g.Expect(filepath.Join(root, "store.toml")).To(BeARegularFile())
+			g.Expect(filepath.Join(root, "store.toml")).To(gomega.BeARegularFile())
 		})
 	}, spec.Report(report.Terminal{}))
 }
