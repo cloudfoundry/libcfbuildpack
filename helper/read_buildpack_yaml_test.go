@@ -94,5 +94,4 @@ func TestReadBuildpackYaml(t *testing.T) {
 		})
 
 	}, spec.Report(report.Terminal{}))
-
 }

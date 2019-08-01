@@ -17,11 +17,10 @@
 package build_test
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/buildpack/libbuildpack/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -45,10 +44,6 @@ func TestBuild(t *testing.T) {
 			defer internal.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
-			defer internal.ProtectEnv(t, "TEST_KEY")
-
-			console, d := internal.ReplaceConsole(t)
-			defer d()
 
 			test.WriteFile(t, filepath.Join(root, "buildpack.toml"), `[buildpack]
 id = "buildpack-id"
@@ -64,29 +59,31 @@ run-images = ["run-image-tag"]
 test-key = "test-value"
 `)
 
-			console.In(t, `[alpha]
-  version = "alpha-version"
-  name = "alpha-name"
+			test.WriteFile(t, filepath.Join(root, "plan.toml"), `[[entries]]
+  name = "test-entry-1a"
+  version = "test-version-1a"
+  [entries.metadata]
+    test-key-1a = "test-value-1a"
 
-[bravo]
-  name = "bravo-name"
+[[entries]]
+  name = "test-entry-1b"
+  version = "test-version-1b"
+  [entries.metadata]
+    test-key-1b = "test-value-1b"
 `)
-
-			test.WriteFile(t, filepath.Join(root, "platform", "env", "TEST_KEY"), "test-value")
 
 			b, err := build.DefaultBuild()
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 
 			g.Expect(b.Application).NotTo(gomega.BeZero())
 			g.Expect(b.Buildpack).NotTo(gomega.BeZero())
-			g.Expect(b.BuildPlan).NotTo(gomega.BeZero())
-			g.Expect(b.BuildPlanWriter).NotTo(gomega.BeZero())
+			g.Expect(b.Plans).NotTo(gomega.BeZero())
 			g.Expect(b.Layers).NotTo(gomega.BeZero())
 			g.Expect(b.Logger).NotTo(gomega.BeZero())
 			g.Expect(b.Platform).NotTo(gomega.BeZero())
+			g.Expect(b.Services).NotTo(gomega.BeZero())
 			g.Expect(b.Stack).NotTo(gomega.BeZero())
-
-			g.Expect(os.Getenv("TEST_KEY")).To(gomega.Equal("test-value"))
+			g.Expect(b.Writer).NotTo(gomega.BeZero())
 		})
 
 		it("returns 0 when successful", func() {
@@ -94,21 +91,35 @@ test-key = "test-value"
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
-			console, d := internal.ReplaceConsole(t)
-			defer d()
-
 			test.TouchFile(t, root, "buildpack.toml")
-			console.In(t, "")
+			test.TouchFile(t, root, "plan.toml")
 
 			b, err := build.DefaultBuild()
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			g.Expect(b.Success(buildplan.BuildPlan{
-				"alpha": buildplan.Dependency{Version: "test-version"},
-			})).To(gomega.Equal(build.SuccessStatusCode))
+			g.Expect(b.Success(
+				buildpackplan.Plan{
+					Name:     "test-entry-1a",
+					Version:  "test-version-1a",
+					Metadata: buildpackplan.Metadata{"test-key-1a": "test-value-1a"},
+				},
+				buildpackplan.Plan{
+					Name:     "test-entry-1b",
+					Version:  "test-version-1b",
+					Metadata: buildpackplan.Metadata{"test-key-1b": "test-value-1b"},
+				})).To(gomega.Equal(build.SuccessStatusCode))
 
-			g.Expect(filepath.Join(root, "plan.toml")).To(test.HaveContent(`[alpha]
-  version = "test-version"
+			g.Expect(filepath.Join(root, "plan.toml")).To(test.HaveContent(`[[entries]]
+  name = "test-entry-1a"
+  version = "test-version-1a"
+  [entries.metadata]
+    test-key-1a = "test-value-1a"
+
+[[entries]]
+  name = "test-entry-1b"
+  version = "test-version-1b"
+  [entries.metadata]
+    test-key-1b = "test-value-1b"
 `))
 		})
 
@@ -117,11 +128,8 @@ test-key = "test-value"
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "layers"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
 
-			console, d := internal.ReplaceConsole(t)
-			defer d()
-
 			test.TouchFile(t, root, "buildpack.toml")
-			console.In(t, "")
+			test.TouchFile(t, root, "plan.toml")
 
 			b, err := build.DefaultBuild()
 			g.Expect(err).NotTo(gomega.HaveOccurred())

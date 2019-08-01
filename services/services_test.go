@@ -23,6 +23,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/services"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
 )
 
 func TestServices(t *testing.T) {
@@ -159,5 +160,5 @@ func TestServices(t *testing.T) {
 				g.Expect(s.HasService("test-service", "test-credential")).To(gomega.BeFalse())
 			})
 		})
-	})
+	}, spec.Report(report.Terminal{}))
 }
