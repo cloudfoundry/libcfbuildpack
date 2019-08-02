@@ -17,7 +17,6 @@
 package detect_test
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -45,10 +44,6 @@ func TestDetect(t *testing.T) {
 			defer internal.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
-			defer internal.ProtectEnv(t, "TEST_KEY")
-
-			console, e := internal.ReplaceConsole(t)
-			defer e()
 
 			test.WriteFile(t, filepath.Join(root, "buildpack.toml"), `[buildpack]
 id = "buildpack-id"
@@ -64,30 +59,16 @@ run-images = ["run-image-tag"]
 test-key = "test-value"
 `)
 
-			test.WriteFile(t, filepath.Join(root, "platform", "env", "TEST_KEY"), "test-value")
-
 			d, err := detect.DefaultDetect()
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			console.In(t, `[alpha]
-  version = "alpha-version"
-  name = "alpha-name"
-
-[bravo]
-  name = "bravo-name"
-`)
-
-			g.Expect(d.BuildPlan.Init()).To(gomega.Succeed())
-
 			g.Expect(d.Application).NotTo(gomega.BeZero())
 			g.Expect(d.Buildpack).NotTo(gomega.BeZero())
-			g.Expect(d.BuildPlan).NotTo(gomega.BeZero())
-			g.Expect(d.BuildPlanWriter).NotTo(gomega.BeZero())
 			g.Expect(d.Logger).NotTo(gomega.BeZero())
 			g.Expect(d.Platform).NotTo(gomega.BeZero())
+			g.Expect(d.Services).NotTo(gomega.BeZero())
 			g.Expect(d.Stack).NotTo(gomega.BeZero())
-
-			g.Expect(os.Getenv("TEST_KEY")).To(gomega.Equal("test-value"))
+			g.Expect(d.Writer).NotTo(gomega.BeZero())
 		})
 
 		it("returns code when erroring", func() {
@@ -116,7 +97,7 @@ test-key = "test-value"
 			g.Expect(d.Fail()).To(gomega.Equal(detect.FailStatusCode))
 		})
 
-		it("returns 0 and BuildPlan when passing", func() {
+		it("returns 0 and Plan when passing", func() {
 			defer internal.ReplaceWorkingDirectory(t, root)()
 			defer test.ReplaceEnv(t, "CNB_STACK_ID", "test-stack")()
 			defer internal.ReplaceArgs(t, filepath.Join(root, "bin", "test"), filepath.Join(root, "platform"), filepath.Join(root, "plan.toml"))()
@@ -126,13 +107,96 @@ test-key = "test-value"
 			d, err := detect.DefaultDetect()
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 
-			g.Expect(d.Pass(buildplan.BuildPlan{
-				"alpha": buildplan.Dependency{Version: "test-version"},
-			})).To(gomega.Equal(detect.PassStatusCode))
+			g.Expect(d.Pass(buildplan.Plan{
+				Provides: []buildplan.Provided{
+					{"test-provided-1a"},
+					{"test-provided-1b"},
+				},
+				Requires: []buildplan.Required{
+					{"test-required-1a", "test-version-1a", buildplan.Metadata{"test-key-1a": "test-value-1a"}},
+					{"test-required-1b", "test-version-1b", buildplan.Metadata{"test-key-1b": "test-value-1b"}},
+				},
+			},
+				buildplan.Plan{
+					Provides: []buildplan.Provided{
+						{"test-provided-2a"},
+						{"test-provided-2b"},
+					},
+					Requires: []buildplan.Required{
+						{"test-required-2a", "test-version-2a", buildplan.Metadata{"test-key-2a": "test-value-2a"}},
+						{"test-required-2b", "test-version-2b", buildplan.Metadata{"test-key-2b": "test-value-2b"}},
+					},
+				},
+				buildplan.Plan{
+					Provides: []buildplan.Provided{
+						{"test-provided-3a"},
+						{"test-provided-3b"},
+					},
+					Requires: []buildplan.Required{
+						{"test-required-3a", "test-version-3a", buildplan.Metadata{"test-key-3a": "test-value-3a"}},
+						{"test-required-3b", "test-version-3b", buildplan.Metadata{"test-key-3b": "test-value-3b"}},
+					},
+				})).To(gomega.Equal(detect.PassStatusCode))
 
-			g.Expect(filepath.Join(root, "plan.toml")).To(test.HaveContent(`[alpha]
-  version = "test-version"
+			g.Expect(filepath.Join(root, "plan.toml")).To(test.HaveContent(`[[provides]]
+  name = "test-provided-1a"
+
+[[provides]]
+  name = "test-provided-1b"
+
+[[requires]]
+  name = "test-required-1a"
+  version = "test-version-1a"
+  [requires.metadata]
+    test-key-1a = "test-value-1a"
+
+[[requires]]
+  name = "test-required-1b"
+  version = "test-version-1b"
+  [requires.metadata]
+    test-key-1b = "test-value-1b"
+
+[[or]]
+
+  [[or.provides]]
+    name = "test-provided-2a"
+
+  [[or.provides]]
+    name = "test-provided-2b"
+
+  [[or.requires]]
+    name = "test-required-2a"
+    version = "test-version-2a"
+    [or.requires.metadata]
+      test-key-2a = "test-value-2a"
+
+  [[or.requires]]
+    name = "test-required-2b"
+    version = "test-version-2b"
+    [or.requires.metadata]
+      test-key-2b = "test-value-2b"
+
+[[or]]
+
+  [[or.provides]]
+    name = "test-provided-3a"
+
+  [[or.provides]]
+    name = "test-provided-3b"
+
+  [[or.requires]]
+    name = "test-required-3a"
+    version = "test-version-3a"
+    [or.requires.metadata]
+      test-key-3a = "test-value-3a"
+
+  [[or.requires]]
+    name = "test-required-3b"
+    version = "test-version-3b"
+    [or.requires.metadata]
+      test-key-3b = "test-value-3b"
 `))
 		})
 	}, spec.Report(report.Terminal{}))
 }
+

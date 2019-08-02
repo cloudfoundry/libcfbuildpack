@@ -25,6 +25,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/test"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
 )
 
 func TestFindMainModule(t *testing.T) {
@@ -76,5 +77,5 @@ func TestFindMainModule(t *testing.T) {
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(ok).To(gomega.BeTrue())
 		})
-	})
+	}, spec.Report(report.Terminal{}))
 }

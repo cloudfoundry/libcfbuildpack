@@ -259,5 +259,5 @@ Supported stacks:
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			gomega.Expect(summary).To(gomega.Equal(solution))
 		})
-	})
+	}, spec.Report(report.Terminal{}))
 }

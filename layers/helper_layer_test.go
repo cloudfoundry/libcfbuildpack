@@ -21,9 +21,10 @@ import (
 	"testing"
 
 	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
-	"github.com/buildpack/libbuildpack/buildplan"
+	buildpackplanBp "github.com/buildpack/libbuildpack/buildpackplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -99,12 +100,17 @@ func TestHelperLayer(t *testing.T) {
 				return nil
 			})).To(gomega.Succeed())
 
-			g.Expect(ls.DependencyBuildPlans).To(gomega.Equal(buildplan.BuildPlan{
-				id: buildplan.Dependency{
-					Version: bp.Info.Version,
-					Metadata: buildplan.Metadata{
-						"id":   bp.Info.ID,
-						"name": bp.Info.Name,
+			g.Expect(*ls.Plans).To(gomega.Equal(buildpackplan.Plans{
+				Plans: buildpackplanBp.Plans{
+					Entries: []buildpackplan.Plan{
+						{
+							Name:    id,
+							Version: bp.Info.Version,
+							Metadata: buildpackplan.Metadata{
+								"id":   bp.Info.ID,
+								"name": bp.Info.Name,
+							},
+						},
 					},
 				},
 			}))

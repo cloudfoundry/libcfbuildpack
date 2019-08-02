@@ -21,9 +21,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/buildpack/libbuildpack/buildplan"
+	buildpackplanBp "github.com/buildpack/libbuildpack/buildpackplan"
 	layersBp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/internal"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
@@ -110,15 +111,20 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 				return nil
 			})).To(gomega.Succeed())
 
-			g.Expect(ls.DependencyBuildPlans).To(gomega.Equal(buildplan.BuildPlan{
-				dependency.ID: buildplan.Dependency{
-					Version: "1.0",
-					Metadata: buildplan.Metadata{
-						"name":     dependency.Name,
-						"uri":      dependency.URI,
-						"sha256":   dependency.SHA256,
-						"stacks":   dependency.Stacks,
-						"licenses": dependency.Licenses,
+			g.Expect(*ls.Plans).To(gomega.Equal(buildpackplan.Plans{
+				Plans: buildpackplanBp.Plans{
+					Entries: []buildpackplan.Plan{
+						{
+							Name:    dependency.ID,
+							Version: "1.0",
+							Metadata: buildpackplan.Metadata{
+								"name":     dependency.Name,
+								"uri":      dependency.URI,
+								"sha256":   dependency.SHA256,
+								"stacks":   dependency.Stacks,
+								"licenses": dependency.Licenses,
+							},
+						},
 					},
 				},
 			}))
