@@ -1,0 +1,71 @@
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
+
+	. "github.com/onsi/gomega"
+	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
+)
+
+func TestIntegrationPackager(t *testing.T) {
+	spec.Run(t, "Package Integration", testPackagerIntegration, spec.Report(report.Terminal{}))
+}
+
+func testPackagerIntegration(t *testing.T, when spec.G, it spec.S) {
+	var (
+		Expect                                                              func(interface{}, ...interface{}) Assertion
+		cnbDir, outputDir, tempDir, buildpackTomlPath, oldBPToml, newBPToml string
+		err                                                                 error
+		newVersion                                                          string
+	)
+
+	it.Before(func() {
+		Expect = NewWithT(t).Expect
+
+		tempDir, err = ioutil.TempDir("", "")
+		Expect(err).NotTo(HaveOccurred())
+
+		cnbDir = filepath.Join(tempDir, "cnb")
+		Expect(os.MkdirAll(cnbDir, 0777))
+		newVersion = "newVersion"
+		buildpackTomlPath = filepath.Join(cnbDir, "buildpack.toml")
+		baseBuildpackTOML := `[buildpack]
+id = "buildpack-id"
+name = "buildpack-name"
+version = "%s"
+
+[metadata]
+include_files = ["buildpack.toml"]`
+		oldBPToml = fmt.Sprintf(baseBuildpackTOML, "{{ .Version }}")
+		newBPToml = fmt.Sprintf(baseBuildpackTOML, newVersion)
+
+		outputDir = filepath.Join(tempDir, "output")
+	})
+
+	it.After(func() {
+		os.RemoveAll(tempDir)
+	})
+
+	when("packaging", func() {
+		it("does it in a temp directory", func() {
+			Expect(ioutil.WriteFile(buildpackTomlPath, []byte(oldBPToml), 0666)).To(Succeed())
+
+			// Set first arg equal to command name, per: https://stackoverflow.com/questions/33723300/how-to-test-the-passing-of-arguments-in-golang
+			os.Args = []string{"cmd", "-version=" + newVersion, outputDir}
+			Expect(os.Chdir(cnbDir)).To(Succeed())
+			main()
+			originalOutput, err := ioutil.ReadFile(buildpackTomlPath)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(originalOutput)).To(Equal(oldBPToml))
+
+			newOutput, err := ioutil.ReadFile(filepath.Join(outputDir, "buildpack.toml"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(newOutput)).To(Equal(newBPToml))
+		})
+	})
+}

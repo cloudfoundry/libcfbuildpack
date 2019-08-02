@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cnbpackager_test
+package cnbpackager
 
 import (
 	"fmt"
@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"github.com/cloudfoundry/libcfbuildpack/test"
 
 	"github.com/onsi/gomega"
@@ -38,9 +37,9 @@ func TestUnitPackager(t *testing.T) {
 
 func testPackager(t *testing.T, when spec.G, it spec.S) {
 	var (
-		cnbDir, outputDir, cacheDir, tempDir, depSHA, tarball string
-		pkgr                                                  cnbpackager.Packager
-		err                                                   error
+		cnbDir, outputDir, cacheDir, tempDir, depSHA, tarball, newVersion, buildpackTOML string
+		pkgr                                                                             Packager
+		err                                                                              error
 	)
 
 	it.Before(func() {
@@ -53,7 +52,8 @@ func testPackager(t *testing.T, when spec.G, it spec.S) {
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		depSHA = "9299d8c43e7af6797cd7fb5c12d986a90b864daa3c23ee50dab629ef844c1231"
 
-		buildpackTOML := fmt.Sprintf(`
+		buildpackTOML = fmt.Sprintf(`
+[buildpack]
 id = "buildpack-id"
 name = "buildpack-name"
 version = "buildpack-version"
@@ -70,8 +70,7 @@ uri = "file://%s"
 version = "1.0.0"
 
 [[stacks]]
-id = 'stack-id'
-`, depSHA, depFile)
+id = 'stack-id'`, depSHA, depFile)
 
 		cnbDir = filepath.Join(tempDir, "cnb")
 		gomega.Expect(os.MkdirAll(cnbDir, 0777))
@@ -79,6 +78,7 @@ id = 'stack-id'
 
 		outputDir = filepath.Join(tempDir, "output")
 		cacheDir = filepath.Join(tempDir, "cache")
+		newVersion = "newVersion"
 	})
 
 	it.After(func() {
@@ -88,10 +88,42 @@ id = 'stack-id'
 		}
 	})
 
+	when("insertTemplateVersion", func() {
+		when("buildpack.toml doesn't have a templated version", func() {
+			it("doesn't replace anything in the buildpack", func() {
+				buildpackTomlPath := filepath.Join(cnbDir, "buildpack.toml")
+				gomega.Expect(insertTemplateVersion(cnbDir, newVersion)).To(gomega.Succeed())
+
+				output, err := ioutil.ReadFile(buildpackTomlPath)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				gomega.Expect(string(output)).To(gomega.Equal(buildpackTOML))
+			})
+		})
+
+		when("buildpack.toml has a templated version", func() {
+			it("replaces the version in the buildpack", func() {
+				buildpackTomlPath := filepath.Join(cnbDir, "buildpack.toml")
+				baseBuildpackTOML := `[buildpack]
+	id = "buildpack-id"
+	name = "buildpack-name"
+	version = "%s"`
+				oldBPToml := fmt.Sprintf(baseBuildpackTOML, "{{ .Version }}")
+				newBPToml := fmt.Sprintf(baseBuildpackTOML, newVersion)
+				gomega.Expect(ioutil.WriteFile(buildpackTomlPath, []byte(oldBPToml), 0666)).To(gomega.Succeed())
+
+				gomega.Expect(insertTemplateVersion(cnbDir, newVersion)).To(gomega.Succeed())
+
+				output, err := ioutil.ReadFile(buildpackTomlPath)
+				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				gomega.Expect(string(output)).To(gomega.Equal(newBPToml))
+			})
+		})
+	})
+
 	when("cached", func() {
 		it.Before(func() {
 			outputDir += "-cached"
-			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
+			pkgr, err = New(cnbDir, outputDir, "", cacheDir)
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
@@ -109,7 +141,7 @@ id = 'stack-id'
 
 	when("uncached", func() {
 		it.Before(func() {
-			pkgr, err = cnbpackager.New(cnbDir, outputDir, cacheDir)
+			pkgr, err = New(cnbDir, outputDir, "", cacheDir)
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
@@ -123,7 +155,7 @@ id = 'stack-id'
 	when("archiving", func() {
 		it.Before(func() {
 			fakeCnbDir := filepath.Join("testdata", "archive-testdata", "fake-cnb")
-			pkgr, err = cnbpackager.New(fakeCnbDir, outputDir, cacheDir)
+			pkgr, err = New(fakeCnbDir, outputDir, "", cacheDir)
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		})
 
@@ -155,7 +187,7 @@ id = 'stack-id'
 	when("summary", func() {
 		it("Returns a package Summary of the CNB directory", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
+			pkgr, err = New(fakeCnbDir, "", "", "")
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Packaged binaries:
@@ -187,7 +219,7 @@ Supported stacks:
 
 		it("does not have default versions", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-defaults")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
+			pkgr, err = New(fakeCnbDir, "", "", "")
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Packaged binaries:
@@ -212,7 +244,7 @@ Supported stacks:
 
 		it("does not have any dependencies", func() {
 			fakeCnbDir := filepath.Join("testdata", "summary-testdata", "fake-cnb-without-dependencies")
-			pkgr, err = cnbpackager.New(fakeCnbDir, "", "")
+			pkgr, err = New(fakeCnbDir, "", "", "")
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			solution := `
 Supported stacks:
