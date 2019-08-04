@@ -11,5 +11,6 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/sclevine/spec v1.2.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
+	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
