@@ -54,8 +54,8 @@ func TestLayers(t *testing.T) {
 		it("logs process types", func() {
 			g.Expect(l.WriteApplicationMetadata(layers.Metadata{
 				Processes: []layers.Process{
-					{"short", "test-command-1"},
-					{"a-very-long-type", "test-command-2"},
+					{Type: "short", Command: "test-command-1"},
+					{Type: "a-very-long-type", Command: "test-command-2"},
 				},
 			})).To(gomega.Succeed())
 
