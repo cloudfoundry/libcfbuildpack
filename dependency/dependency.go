@@ -23,8 +23,10 @@ import (
 )
 
 const (
-	pattern      = `(?m)(.*id[\s]+=[\s]+"%s"\n.*\nversion[\s]+=[\s]+")%s("\nuri[\s]+=[\s]+").*("\nsha256[\s]+=[\s]+").*(".*)`
-	substitution = "${1}%s${2}%s${3}%s${4}"
+	dependencyPattern      = `(?m)(.*id[\s]+=[\s]+"%s"\n.*\nversion[\s]+=[\s]+")%s("\nuri[\s]+=[\s]+").*("\nsha256[\s]+=[\s]+").*(".*)`
+	dependencySubstitution = "${1}%s${2}%s${3}%s${4}"
+	orderPattern           = `([\s]+{[\s]+id[\s]+=[\s]+"%s",[\s]+version[\s]+=[\s]+")%s(".+)`
+	orderSubstitution      = "${1}%s${2}"
 )
 
 type dependency struct {
@@ -37,21 +39,44 @@ func (d dependency) update(version string, uri string, sha256 string) error {
 		return err
 	}
 
-	r, err := regexp.Compile(fmt.Sprintf(pattern, d.id, d.versionPattern))
-	if err != nil {
-		return err
-	}
-
 	b, err := ioutil.ReadFile("buildpack.toml")
 	if err != nil {
 		return err
 	}
 
-	s := []byte(fmt.Sprintf(substitution, version, uri, sha256))
+	b, err = d.updateDependency(version, uri, sha256, b)
+	if err != nil {
+		return err
+	}
 
-	b = r.ReplaceAll(b, s)
+	b, err = d.updateOrder(version, b)
+	if err != nil {
+		return err
+	}
 
 	return ioutil.WriteFile("buildpack.toml", b, 0644)
+}
+
+func (d dependency) updateDependency(version string, uri string, sha256 string, b []byte) ([]byte, error) {
+	r, err := regexp.Compile(fmt.Sprintf(dependencyPattern, d.id, d.versionPattern))
+	if err != nil {
+		return nil, err
+	}
+
+	s := []byte(fmt.Sprintf(dependencySubstitution, version, uri, sha256))
+
+	return r.ReplaceAll(b, s), nil
+}
+
+func (d dependency) updateOrder(version string, b []byte) ([]byte, error) {
+	r, err := regexp.Compile(fmt.Sprintf(orderPattern, d.id, d.versionPattern))
+	if err != nil {
+		return nil, err
+	}
+
+	s := []byte(fmt.Sprintf(orderSubstitution, version))
+
+	return r.ReplaceAll(b, s), nil
 }
 
 func (d dependency) validate(version string, uri string, sha256 string) error {
