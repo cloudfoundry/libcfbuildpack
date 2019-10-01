@@ -12,8 +12,9 @@ require (
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/gomega v1.7.0
-	github.com/sclevine/spec v1.2.0
+	github.com/sclevine/spec v1.3.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3 // indirect
+	golang.org/x/sys v0.0.0-20191001151750-bb3f8db39f24 // indirect
 	gopkg.in/yaml.v2 v2.2.3
 )
