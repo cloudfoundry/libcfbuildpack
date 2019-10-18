@@ -92,7 +92,7 @@ func TestLogger(t *testing.T) {
 			g.Expect(actual).To(gomega.Equal(expected))
 		})
 
-		it("creates body with indent", func() {
+		it("writes body with indent", func() {
 			logger := logger.Logger{Logger: bp.NewLogger(nil, nil)}
 			s := logger.BodyIndent("test-body-1\ntest-body-2")
 
@@ -108,6 +108,17 @@ func TestLogger(t *testing.T) {
 			actual := info.String()
 			expected := fmt.Sprintf("%s\n", color.New(color.Faint).Sprintf("    %s\x1b[%dm", color.New(color.FgYellow, color.Bold).Sprint("test-body-1\n    test-body-2"), color.Faint))
 			g.Expect(actual).To(gomega.Equal(expected))
+		})
+
+		it("writes terminal error with format", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.TerminalError(metadata{"test-name", 1}, "test-error")
+
+			g.Expect(info.String()).
+				To(gomega.Equal(fmt.Sprintf("\n%s %s\n  %s\n", color.New(color.FgRed, color.Bold).Sprint("test-name"),
+					color.New(color.FgRed).Sprint("1"), color.New(color.FgRed, color.Bold).Sprint("test-error"))))
 		})
 
 		it("writes eye catcher on first line", func() {
