@@ -15,9 +15,9 @@ require (
 	github.com/onsi/gomega v1.7.1
 	github.com/sclevine/spec v1.3.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
-	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
+	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20191113165036-4c7a9d0fe056 // indirect
+	golang.org/x/sys v0.0.0-20191119060738-e882bf8e40c2 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
-	gopkg.in/yaml.v2 v2.2.5
+	gopkg.in/yaml.v2 v2.2.6
 )
