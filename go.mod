@@ -3,7 +3,7 @@ module github.com/cloudfoundry/libcfbuildpack
 go 1.13
 
 require (
-	cloud.google.com/go v0.48.0 // indirect
+	cloud.google.com/go v0.49.0 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver v1.5.0
 	github.com/buildpack/libbuildpack v1.25.4
@@ -17,7 +17,7 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20191119060738-e882bf8e40c2 // indirect
+	golang.org/x/sys v0.0.0-20191119195528-f068ffe820e4 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
-	gopkg.in/yaml.v2 v2.2.6
+	gopkg.in/yaml.v2 v2.2.7
 )
