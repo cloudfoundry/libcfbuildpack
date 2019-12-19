@@ -13,7 +13,7 @@ require (
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/ginkgo v1.11.0 // indirect
-	github.com/onsi/gomega v1.8.0
+	github.com/onsi/gomega v1.8.1
 	github.com/sclevine/spec v1.4.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
