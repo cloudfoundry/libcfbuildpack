@@ -147,6 +147,78 @@ func TestDependencies(t *testing.T) {
 			g.Expect(d.Best("test-id", "1.*", "test-stack-1")).To(gomega.Equal(expected))
 		})
 
+		it("returns the best dependency after filtering", func() {
+			d := buildpack.Dependencies{
+				buildpack.Dependency{
+					ID:      "test-id-1",
+					Name:    "test-name-1",
+					Version: internal.NewTestVersion(t, "1.9.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-1",
+					Name:    "test-name-1",
+					Version: internal.NewTestVersion(t, "1.9.1"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-2"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name-2",
+					Version: internal.NewTestVersion(t, "1.8.5"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-2"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name-2",
+					Version: internal.NewTestVersion(t, "1.8.6"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name-2",
+					Version: internal.NewTestVersion(t, "1.8.6"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-2"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name-2",
+					Version: internal.NewTestVersion(t, "1.9.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-1"},
+				},
+				buildpack.Dependency{
+					ID:      "test-id-2",
+					Name:    "test-name-2",
+					Version: internal.NewTestVersion(t, "1.9.0"),
+					URI:     "test-uri",
+					SHA256:  "test-sha256",
+					Stacks:  buildpack.Stacks{"test-stack-2"},
+				},
+			}
+
+			expected := buildpack.Dependency{
+				ID:      "test-id-2",
+				Name:    "test-name-2",
+				Version: internal.NewTestVersion(t, "1.9.0"),
+				URI:     "test-uri",
+				SHA256:  "test-sha256",
+				Stacks:  buildpack.Stacks{"test-stack-2"},
+			}
+
+			g.Expect(d.Best("test-id-2", "", "test-stack-2")).To(gomega.Equal(expected))
+		})
+
 		it("returns error if there are no matching dependencies", func() {
 			d := buildpack.Dependencies{
 				buildpack.Dependency{
