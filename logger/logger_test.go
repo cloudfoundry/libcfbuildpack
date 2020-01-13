@@ -99,6 +99,15 @@ func TestLogger(t *testing.T) {
 			g.Expect(s).To(gomega.Equal("    test-body-1\n    test-body-2"))
 		})
 
+		it("writes launch configuration", func() {
+			var info bytes.Buffer
+
+			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
+			logger.LaunchConfiguration("test-message", "test-default")
+
+			g.Expect(info.String()).To(gomega.Equal(fmt.Sprintf("%s\n", color.New(color.Faint).Sprintf("    test-message. Default %s\x1b[%dm", color.New(color.Italic).Sprint("test-default"), color.Faint))))
+		})
+
 		it("writes body warning with format", func() {
 			var info bytes.Buffer
 
