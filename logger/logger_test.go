@@ -129,42 +129,6 @@ func TestLogger(t *testing.T) {
 				To(gomega.Equal(fmt.Sprintf("\n%s %s\n  %s\n", color.New(color.FgRed, color.Bold).Sprint("test-name"),
 					color.New(color.FgRed).Sprint("1"), color.New(color.FgRed, color.Bold).Sprint("test-error"))))
 		})
-
-		it("writes eye catcher on first line", func() {
-			var info bytes.Buffer
-
-			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
-			logger.FirstLine("test %s", "message")
-
-			g.Expect(info.String()).To(gomega.Equal(fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))))
-		})
-
-		it("writes eye catcher on warning", func() {
-			var info bytes.Buffer
-
-			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
-			logger.Warning("test %s", "message")
-
-			g.Expect(info.String()).To(gomega.Equal(fmt.Sprintf("%s test message\n", color.New(color.FgYellow, color.Bold).Sprint("----->"))))
-		})
-
-		it("writes eye catcher on error", func() {
-			var info bytes.Buffer
-
-			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
-			logger.Error("test %s", "message")
-
-			g.Expect(info.String()).To(gomega.Equal(fmt.Sprintf("%s test message\n", color.New(color.FgRed, color.Bold).Sprint("----->"))))
-		})
-
-		it("writes indent on second line", func() {
-			var info bytes.Buffer
-
-			logger := logger.Logger{Logger: bp.NewLogger(nil, &info)}
-			logger.SubsequentLine("test %s", "message")
-
-			g.Expect(info.String()).To(gomega.Equal("       test message\n"))
-		})
 	}, spec.Report(report.Terminal{}))
 }
 

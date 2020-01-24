@@ -60,30 +60,6 @@ func (l Layer) AppendSharedEnv(name string, format string, args ...interface{}) 
 	return l.Layer.AppendSharedEnv(name, format, args...)
 }
 
-// AppendPathBuildEnv appends the value of this environment variable to any previous declarations of the value using the
-// OS path delimiter.
-//
-// Deprecated: Use PrependPathBuildEnv
-func (l Layer) AppendPathBuildEnv(name string, format string, args ...interface{}) error {
-	return l.PrependPathBuildEnv(name, format, args...)
-}
-
-// AppendPathLaunchEnv appends the value of this environment variable to any previous declarations of the value using
-// the OS path delimiter.
-//
-// Deprecated: Use PrependPathLaunchEnv
-func (l Layer) AppendPathLaunchEnv(name string, format string, args ...interface{}) error {
-	return l.PrependPathLaunchEnv(name, format, args...)
-}
-
-// AppendPathSharedEnv appends the value of this environment variable to any previous declarations of the value using
-// the OS path delimiter.
-//
-// Deprecated: Use PrependPathSharedEnv
-func (l Layer) AppendPathSharedEnv(name string, format string, args ...interface{}) error {
-	return l.PrependPathSharedEnv(name, format, args...)
-}
-
 // DefaultBuildEnv sets a default for an environment variable with this value.
 func (l Layer) DefaultBuildEnv(name string, format string, args ...interface{}) error {
 	l.Touch()

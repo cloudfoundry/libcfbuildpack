@@ -43,30 +43,6 @@ func HaveAppendSharedEnvironment(name string, format string, args ...interface{}
 	return haveSharedEnvironment(fmt.Sprintf("%s.append", name), format, args...)
 }
 
-// HaveAppendPathBuildEnvironment tests that a layer has an append path build environment variable with the expected
-// content.
-//
-// Deprecated: Use HavePrependPathBuildEnvironment
-func HaveAppendPathBuildEnvironment(name string, format string, args ...interface{}) types.GomegaMatcher {
-	return HavePrependPathBuildEnvironment(name, format, args...)
-}
-
-// HaveAppendPathLaunchEnvironment tests that a layer has an append path launch environment variable with the expected
-// content.
-//
-// Deprecated: Use HavePrependPathLaunchEnvironment
-func HaveAppendPathLaunchEnvironment(name string, format string, args ...interface{}) types.GomegaMatcher {
-	return HavePrependPathLaunchEnvironment(name, format, args...)
-}
-
-// HaveAppendPathSharedEnvironment tests that a layer has an append path shared environment variable with the expected
-// content.
-//
-// Deprecated: Use HavePrependPathSharedEnvironment
-func HaveAppendPathSharedEnvironment(name string, format string, args ...interface{}) types.GomegaMatcher {
-	return HavePrependPathSharedEnvironment(name, format, args...)
-}
-
 // HaveDefaultBuildEnvironment tests that a layer has a default build environment variable with the expected
 // content.
 func HaveDefaultBuildEnvironment(name string, format string, args ...interface{}) types.GomegaMatcher {
