@@ -17,7 +17,7 @@
 package layers
 
 import (
-	"github.com/buildpack/libbuildpack/layers"
+	"github.com/buildpacks/libbuildpack/v2/layers"
 )
 
 const (

@@ -17,7 +17,7 @@
 package buildpack
 
 import (
-	"github.com/buildpack/libbuildpack/buildpack"
+	"github.com/buildpacks/libbuildpack/v2/buildpack"
 )
 
 type BuildImages = buildpack.BuildImages

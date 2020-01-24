@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
 )
 
 func NewTestVersion(t *testing.T, version string) buildpack.Version {

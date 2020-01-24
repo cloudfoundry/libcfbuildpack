@@ -17,7 +17,7 @@
 package buildpackplan
 
 import (
-	"github.com/buildpack/libbuildpack/buildpackplan"
+	"github.com/buildpacks/libbuildpack/v2/buildpackplan"
 )
 
 // Plan represents a contractual buildpack plan.

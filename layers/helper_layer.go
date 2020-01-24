@@ -20,9 +20,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpackplan"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 )
 
 // HelperLayer is an extension to Layer that is unique to a buildpack provided helper.

@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpackplan"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 )
 
 // MultiDependencyLayer is an extension to Layer that is unique to a collection of dependencies.

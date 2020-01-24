@@ -19,8 +19,8 @@ package layers
 import (
 	"reflect"
 
-	"github.com/buildpack/libbuildpack/layers"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/buildpacks/libbuildpack/v2/layers"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/fatih/color"
 )
 

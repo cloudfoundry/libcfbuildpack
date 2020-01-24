@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/buildpack/libbuildpack/stack"
+	"github.com/buildpacks/libbuildpack/v2/stack"
 )
 
 // Dependencies is a collection of Dependency instances.

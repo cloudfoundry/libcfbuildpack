@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/buildpack/libbuildpack/logger"
+	"github.com/buildpacks/libbuildpack/v2/logger"
 	"github.com/fatih/color"
 )
 

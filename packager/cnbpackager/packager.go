@@ -33,13 +33,13 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
 
-	buildpackBp "github.com/buildpack/libbuildpack/buildpack"
-	layersBp "github.com/buildpack/libbuildpack/layers"
-	loggerBp "github.com/buildpack/libbuildpack/logger"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	buildpackBp "github.com/buildpacks/libbuildpack/v2/buildpack"
+	layersBp "github.com/buildpacks/libbuildpack/v2/layers"
+	loggerBp "github.com/buildpacks/libbuildpack/v2/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/layers"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 )
 
 const (

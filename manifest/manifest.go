@@ -21,9 +21,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/buildpack/libbuildpack/application"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/buildpacks/libbuildpack/v2/application"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/magiconair/properties"
 )
 

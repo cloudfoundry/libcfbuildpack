@@ -19,8 +19,8 @@ package services_test
 import (
 	"testing"
 
-	bp "github.com/buildpack/libbuildpack/services"
-	"github.com/cloudfoundry/libcfbuildpack/services"
+	bp "github.com/buildpacks/libbuildpack/v2/services"
+	"github.com/cloudfoundry/libcfbuildpack/v2/services"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"

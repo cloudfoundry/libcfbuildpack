@@ -28,9 +28,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/fatih/color"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

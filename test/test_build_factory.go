@@ -24,16 +24,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/buildpack/libbuildpack/buildpackplan"
-	bpLayers "github.com/buildpack/libbuildpack/layers"
-	bpServices "github.com/buildpack/libbuildpack/services"
-	"github.com/cloudfoundry/libcfbuildpack/build"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
-	"github.com/cloudfoundry/libcfbuildpack/services"
+	"github.com/buildpacks/libbuildpack/v2/buildpackplan"
+	bpLayers "github.com/buildpacks/libbuildpack/v2/layers"
+	bpServices "github.com/buildpacks/libbuildpack/v2/services"
+	"github.com/cloudfoundry/libcfbuildpack/v2/build"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/internal"
+	"github.com/cloudfoundry/libcfbuildpack/v2/layers"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/services"
 )
 
 // BuildFactory is a factory for creating a test Build.

@@ -21,10 +21,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/buildpack/libbuildpack/buildplan"
-	bp "github.com/buildpack/libbuildpack/services"
-	"github.com/cloudfoundry/libcfbuildpack/detect"
-	"github.com/cloudfoundry/libcfbuildpack/services"
+	"github.com/buildpacks/libbuildpack/v2/buildplan"
+	bp "github.com/buildpacks/libbuildpack/v2/services"
+	"github.com/cloudfoundry/libcfbuildpack/v2/detect"
+	"github.com/cloudfoundry/libcfbuildpack/v2/services"
 )
 
 // DetectFactory is a factory for creating a test Detect.

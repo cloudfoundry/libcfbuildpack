@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cloudfoundry/libcfbuildpack/internal"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/internal"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/fatih/color"
 )
 

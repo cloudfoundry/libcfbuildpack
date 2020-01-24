@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"testing"
 
-	bp "github.com/buildpack/libbuildpack/buildpackplan"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
+	bp "github.com/buildpacks/libbuildpack/v2/buildpackplan"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpackplan"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"

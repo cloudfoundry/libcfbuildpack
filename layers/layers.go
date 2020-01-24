@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/buildpack/libbuildpack/layers"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/buildpacks/libbuildpack/v2/layers"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpackplan"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/fatih/color"
 )
 

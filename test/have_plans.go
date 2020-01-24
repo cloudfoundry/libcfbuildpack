@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/buildpacks/libbuildpack/v2/buildplan"
 	"github.com/onsi/gomega/types"
 )
 

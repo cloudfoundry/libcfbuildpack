@@ -19,7 +19,7 @@ package services
 import (
 	"strings"
 
-	"github.com/buildpack/libbuildpack/services"
+	"github.com/buildpacks/libbuildpack/v2/services"
 )
 
 // Services is a collection of services bound to the application.

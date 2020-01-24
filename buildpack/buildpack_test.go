@@ -19,10 +19,10 @@ package buildpack_test
 import (
 	"testing"
 
-	bp "github.com/buildpack/libbuildpack/buildpack"
-	"github.com/buildpack/libbuildpack/stack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/internal"
+	bp "github.com/buildpacks/libbuildpack/v2/buildpack"
+	"github.com/buildpacks/libbuildpack/v2/stack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/internal"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"

@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/test"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/test"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"

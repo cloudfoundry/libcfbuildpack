@@ -17,7 +17,7 @@
 package services
 
 import (
-	"github.com/buildpack/libbuildpack/services"
+	"github.com/buildpacks/libbuildpack/v2/services"
 )
 
 // Credentials is the collection of credential keys.

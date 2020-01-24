@@ -22,7 +22,7 @@ import (
 	"reflect"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/v2/layers"
 	"github.com/onsi/gomega/types"
 )
 

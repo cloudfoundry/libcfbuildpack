@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/buildpack/libbuildpack/stack"
+	"github.com/buildpacks/libbuildpack/v2/stack"
 
-	"github.com/buildpack/libbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	"github.com/buildpacks/libbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 )
 
 const (

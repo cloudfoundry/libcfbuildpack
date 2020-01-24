@@ -17,7 +17,7 @@
 package detect
 
 import (
-	"github.com/buildpack/libbuildpack/detect"
+	"github.com/buildpacks/libbuildpack/v2/detect"
 )
 
 const (

@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"testing"
 
-	bp "github.com/buildpack/libbuildpack/logger"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
+	bp "github.com/buildpacks/libbuildpack/v2/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/fatih/color"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"

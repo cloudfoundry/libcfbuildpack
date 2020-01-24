@@ -17,7 +17,7 @@
 package build
 
 import (
-	"github.com/buildpack/libbuildpack/build"
+	"github.com/buildpacks/libbuildpack/v2/build"
 )
 
 // SuccessStatusCode is the status code returned for success.

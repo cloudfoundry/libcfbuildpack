@@ -25,9 +25,9 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/cloudfoundry/libcfbuildpack/helper"
+	"github.com/cloudfoundry/libcfbuildpack/v2/helper"
 
-	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
+	"github.com/cloudfoundry/libcfbuildpack/v2/packager/cnbpackager"
 )
 
 func main() {

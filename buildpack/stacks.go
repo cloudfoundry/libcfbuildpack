@@ -19,7 +19,7 @@ package buildpack
 import (
 	"fmt"
 
-	"github.com/buildpack/libbuildpack/stack"
+	"github.com/buildpacks/libbuildpack/v2/stack"
 )
 
 // Stacks is a collection of stack ids.

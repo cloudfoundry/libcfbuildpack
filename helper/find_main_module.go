@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/buildpack/libbuildpack/application"
+	"github.com/buildpacks/libbuildpack/v2/application"
 )
 
 // FindMainModule examines a package.json file in the root of the Application and returns the value for "main" if it

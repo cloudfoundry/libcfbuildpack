@@ -17,11 +17,11 @@
 package detect
 
 import (
-	"github.com/buildpack/libbuildpack/detect"
-	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/logger"
-	"github.com/cloudfoundry/libcfbuildpack/runner"
-	"github.com/cloudfoundry/libcfbuildpack/services"
+	"github.com/buildpacks/libbuildpack/v2/detect"
+	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
+	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
+	"github.com/cloudfoundry/libcfbuildpack/v2/runner"
+	"github.com/cloudfoundry/libcfbuildpack/v2/services"
 )
 
 // Detect is an extension to libbuildpack.Detect that allows additional functionality to be added.
