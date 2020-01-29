@@ -77,7 +77,7 @@ func TestDownloadLayer(t *testing.T) {
 				gomega.Equal(filepath.Join(layer.Root, "test-path")),
 				test.HaveContent("test-payload")))
 
-			g.Expect(layer).To(test.HaveLayerMetadata(false, true, false))
+			g.Expect(layer).To(test.HaveLayerMetadata(false, false, false))
 		})
 
 		it("does not download a buildpack cached dependency", func() {
