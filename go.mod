@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.52.0 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver v1.5.0
-	github.com/buildpacks/libbuildpack/v2 v2.0.4
+	github.com/buildpacks/libbuildpack/v2 v2.0.5
 	github.com/fatih/color v1.9.0
 	github.com/magiconair/properties v1.8.1
 	github.com/mattn/go-isatty v0.0.12 // indirect
@@ -14,8 +14,6 @@ require (
 	github.com/onsi/gomega v1.9.0
 	github.com/sclevine/spec v1.4.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )
