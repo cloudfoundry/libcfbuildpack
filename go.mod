@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.52.0 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver v1.5.0
-	github.com/buildpacks/libbuildpack/v2 v2.0.6
+	github.com/buildpacks/libbuildpack/v2 v2.0.7
 	github.com/fatih/color v1.9.0
 	github.com/magiconair/properties v1.8.1
 	github.com/mattn/go-isatty v0.0.12 // indirect
