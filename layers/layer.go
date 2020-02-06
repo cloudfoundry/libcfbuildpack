@@ -21,10 +21,10 @@ import (
 
 	"github.com/buildpacks/libbuildpack/v2/layers"
 	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 )
 
-var identityColor = color.New(color.FgBlue)
+var identity = color.New(color.FgBlue).SprintfFunc()
 
 // LaunchLayer is an extension to libbuildpack.LaunchLayer that allows additional functionality to be added
 type Layer struct {
@@ -248,8 +248,8 @@ func (Layer) prettyIdentity(v logger.Identifiable) string {
 	name, description := v.Identity()
 
 	if description == "" {
-		return identityColor.Sprint(name)
+		return identity(name)
 	}
 
-	return identityColor.Sprintf("%s %s", name, description)
+	return identity("%s %s", name, description)
 }

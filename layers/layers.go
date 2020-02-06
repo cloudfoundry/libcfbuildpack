@@ -24,7 +24,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/v2/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/v2/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 )
 
 // Layers is an extension allows additional functionality to be added.

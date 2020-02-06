@@ -31,7 +31,7 @@ import (
 	templ "text/template"
 
 	"github.com/Masterminds/semver"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 
 	buildpackBp "github.com/buildpacks/libbuildpack/v2/buildpack"
 	layersBp "github.com/buildpacks/libbuildpack/v2/layers"
@@ -47,7 +47,7 @@ const (
 	DefaultCacheBase = ".cnb-packager-cache"
 )
 
-var identityColor = color.New(color.FgBlue)
+var identity = color.New(color.FgBlue).SprintfFunc()
 
 type Packager struct {
 	buildpack       buildpack.Buildpack
@@ -191,10 +191,10 @@ func (Packager) prettyIdentity(v logger.Identifiable) string {
 	name, description := v.Identity()
 
 	if description == "" {
-		return identityColor.Sprint(name)
+		return identity(name)
 	}
 
-	return identityColor.Sprintf("%s %s", name, description)
+	return identity("%s %s", name, description)
 }
 
 func (p Packager) Archive() error {
