@@ -28,7 +28,7 @@ import (
 	"github.com/cloudfoundry/libcfbuildpack/v2/layers"
 	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
 	"github.com/cloudfoundry/libcfbuildpack/v2/test"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"

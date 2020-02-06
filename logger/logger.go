@@ -22,35 +22,28 @@ import (
 	"strings"
 
 	"github.com/buildpacks/libbuildpack/v2/logger"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 )
 
 const (
 	BodyIndent   = "    "
 	HeaderIndent = "  "
-
-	indent = "      "
 )
 
 var (
-	description      = color.New(color.FgBlue)
-	error            = color.New(color.FgRed, color.Bold)
-	errorName        = color.New(color.FgRed, color.Bold)
-	errorDescription = color.New(color.FgRed)
+	body             = color.New(color.Faint).SprintfFunc()
+	def              = color.New(color.Italic).SprintfFunc()
+	description      = color.New(color.FgBlue).SprintfFunc()
+	error            = color.New(color.FgRed, color.Bold).SprintfFunc()
+	errorName        = color.New(color.FgRed, color.Bold).SprintfFunc()
+	errorDescription = color.New(color.FgRed).SprintfFunc()
 	lines            = regexp.MustCompile(`(?m)^`)
-	name             = color.New(color.FgBlue, color.Bold)
-	warning          = color.New(color.FgYellow, color.Bold)
-
-	errorEyeCatcher     string
-	firstLineEyeCatcher string
-	warningEyeCatcher   string
+	name             = color.New(color.FgBlue, color.Bold).SprintfFunc()
+	warning          = color.New(color.FgYellow, color.Bold).SprintfFunc()
 )
 
 func init() {
-	color.NoColor = false
-	errorEyeCatcher = error.Sprint("----->")
-	firstLineEyeCatcher = color.New(color.FgRed, color.Bold).Sprint("----->")
-	warningEyeCatcher = warning.Sprint("----->")
+	color.Enabled()
 }
 
 // Logger is an extension to libbuildpack.Logger to add additional functionality.
@@ -93,7 +86,7 @@ func (l Logger) HeaderError(format string, args ...interface{}) {
 		return
 	}
 
-	l.Header(error.Sprintf(format, args...))
+	l.Header(error(format, args...))
 }
 
 // HeaderWarning prints the log message colored yellow and bold, indented two spaces, with an empty line above it.
@@ -102,7 +95,7 @@ func (l Logger) HeaderWarning(format string, args ...interface{}) {
 		return
 	}
 
-	l.Header(warning.Sprintf(format, args...))
+	l.Header(warning(format, args...))
 }
 
 // Body prints the log message with each line indented four spaces.
@@ -111,11 +104,10 @@ func (l Logger) Body(format string, args ...interface{}) {
 		return
 	}
 
-	l.Info(color.New(color.Faint).Sprint(
-		strings.ReplaceAll(
-			l.BodyIndent(format, args...),
-			fmt.Sprintf("\x1b[%dm", color.Reset),
-			fmt.Sprintf("\x1b[%dm\x1b[%dm", color.Reset, color.Faint))))
+	l.Info(body(strings.ReplaceAll(
+		l.BodyIndent(format, args...),
+		fmt.Sprintf("\x1b[%sm", color.Reset.String()),
+		fmt.Sprintf("\x1b[%sm\x1b[%sm", color.Reset.String(), color.Faint.String()))))
 }
 
 // BodyError prints the log message colored red and bold with each line indented four spaces.
@@ -124,7 +116,7 @@ func (l Logger) BodyError(format string, args ...interface{}) {
 		return
 	}
 
-	l.Body(error.Sprintf(format, args...))
+	l.Body(error(format, args...))
 }
 
 // BodyIndent indents each line of a log message to the BodyIndent offset.
@@ -138,14 +130,14 @@ func (l Logger) BodyWarning(format string, args ...interface{}) {
 		return
 	}
 
-	l.Body(warning.Sprintf(format, args...))
+	l.Body(warning(format, args...))
 }
 
 func (l Logger) LaunchConfiguration(format string, defaultValue string) {
-	l.Body("%s. Default %s", format, color.New(color.Italic).Sprint(defaultValue))
+	l.Body("%s. Default %s", format, def(defaultValue))
 }
 
-func (l Logger) prettyIdentity(v Identifiable, nameColor *color.Color, descriptionColor *color.Color) string {
+func (l Logger) prettyIdentity(v Identifiable, nameFormatter func(format string, a ...interface{}) string, descriptionFormatter func(format string, a ...interface{}) string) string {
 	if v == nil {
 		return ""
 	}
@@ -153,8 +145,8 @@ func (l Logger) prettyIdentity(v Identifiable, nameColor *color.Color, descripti
 	name, description := v.Identity()
 
 	if description == "" {
-		return nameColor.Sprint(name)
+		return nameFormatter(name)
 	}
 
-	return fmt.Sprintf("%s %s", nameColor.Sprint(name), descriptionColor.Sprint(description))
+	return fmt.Sprintf("%s %s", nameFormatter(name), descriptionFormatter(description))
 }

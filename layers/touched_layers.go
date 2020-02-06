@@ -23,7 +23,7 @@ import (
 
 	"github.com/cloudfoundry/libcfbuildpack/v2/internal"
 	"github.com/cloudfoundry/libcfbuildpack/v2/logger"
-	"github.com/fatih/color"
+	"github.com/heroku/color"
 )
 
 // TouchedLayers contains information about the layers that have been touched as part of this execution.
