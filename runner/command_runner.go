@@ -17,8 +17,13 @@
 package runner
 
 import (
+	"io"
 	"os"
 	"os/exec"
+	"syscall"
+
+	"github.com/creack/pty"
+	"github.com/mattn/go-isatty"
 )
 
 // CommandRunner is an empty struct to hang the Run method on.
@@ -29,9 +34,27 @@ type CommandRunner struct {
 func (r CommandRunner) Run(bin string, dir string, args ...string) error {
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+
+	if !isatty.IsTerminal(os.Stdout.Fd()) {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		return cmd.Run()
+	}
+
+	f, err := pty.Start(cmd)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := io.Copy(os.Stdout, f); err != nil {
+		if !r.isEIO(err) {
+			return err
+		}
+	}
+
+	return cmd.Wait()
 }
 
 // RunWithOutput makes CommandRunner satisfy the Runner interface.  This implementation delegates to exec.Command.
@@ -39,4 +62,13 @@ func (r CommandRunner) RunWithOutput(bin string, dir string, args ...string) ([]
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = dir
 	return cmd.CombinedOutput()
+}
+
+func (CommandRunner) isEIO(err error) bool {
+	pe, ok := err.(*os.PathError)
+	if !ok {
+		return false
+	}
+
+	return pe.Err == syscall.EIO
 }

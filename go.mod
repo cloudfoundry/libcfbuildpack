@@ -7,9 +7,10 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver v1.5.0
 	github.com/buildpacks/libbuildpack/v2 v2.0.7
+	github.com/creack/pty v1.1.9
 	github.com/heroku/color v0.0.6
 	github.com/magiconair/properties v1.8.1
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-isatty v0.0.12
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/gomega v1.9.0
 	github.com/sclevine/spec v1.4.0
