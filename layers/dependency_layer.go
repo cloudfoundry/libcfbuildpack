@@ -66,8 +66,20 @@ func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flag
 		return err
 	}
 
-	l.contributeToBuildPlan()
+	if l.contains(flags, Launch) {
+		l.contributeToBuildPlan()
+	}
 	return nil
+}
+
+func (*DependencyLayer) contains(flags []Flag, candidate Flag) bool {
+	for _, f := range flags {
+		if f == candidate {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (l *DependencyLayer) contributeToBuildPlan() {

@@ -100,7 +100,7 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 			g.Expect(layer.ArtifactName()).To(gomega.Equal("test-path"))
 		})
 
-		it("contributes dependency to build plan", func() {
+		it("contributes launch dependency to build plan", func() {
 			test.WriteFile(t, layer.Metadata, `[metadata]
 ID = "%s"
 Version = "%s"
@@ -109,7 +109,7 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 
 			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 				return nil
-			})).To(gomega.Succeed())
+			}, layers.Launch)).To(gomega.Succeed())
 
 			g.Expect(*ls.Plans).To(gomega.Equal(buildpackplan.Plans{
 				Plans: buildpackplanBp.Plans{
@@ -128,6 +128,20 @@ URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, de
 					},
 				},
 			}))
+		})
+
+		it("does not contribute non-launch dependency to build plan", func() {
+			test.WriteFile(t, layer.Metadata, `[metadata]
+ID = "%s"
+Version = "%s"
+SHA256 = "%s"
+URI = "%s"`, dependency.ID, dependency.Version.Original(), dependency.SHA256, dependency.URI)
+
+			g.Expect(layer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
+				return nil
+			}, layers.Build)).To(gomega.Succeed())
+
+			g.Expect(*ls.Plans).To(gomega.Equal(buildpackplan.Plans{}))
 		})
 
 		it("cleans layer when contributing dependency layer", func() {
